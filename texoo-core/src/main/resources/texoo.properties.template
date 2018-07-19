@@ -1,0 +1,9 @@
+# Path for local TeXoo models, e.g. ~/TeXoo/Models/ or C:/TeXoo/Models/
+de.datexis.path.models            = ~/TeXoo/Models/
+# Path for TeXoo training and evaluation results, e.g. ~/TeXoo/Results/
+de.datexis.path.results            = ~/TeXoo/Results/
+
+# Project Properties automatically set by Maven
+de.datexis.texoo.version = ${project.version}
+de.datexis.texoo.artifactId = ${project.artifactId}
+de.datexis.texoo.backend = ${nd4j.backend}

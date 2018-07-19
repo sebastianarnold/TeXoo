@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wikipediaData.entityAnnotation>
+	<document docName="WNED_LoremIpsum">
+		<annotation>
+			<mention>Dungeons!</mention>
+			<wikiName>Dungeons &amp; Dragons</wikiName>
+			<offset>6</offset>
+			<length>9</length>
+		</annotation>
+		<annotation>
+			<mention>Prints</mention>
+			<wikiName>Printer (computing)</wikiName>
+			<offset>84</offset>
+			<length>6</length>
+		</annotation>
+		<annotation>
+			<mention>SPaulo</mention>
+			<wikiName>São Paulo (state)</wikiName>
+			<offset>919</offset>
+			<length>6</length>
+		</annotation>
+		<annotation>
+			<mention>Pneumonoultramicroscopicsilicovolcanoconiosis</mention>
+			<wikiName>Pneumonoultramicroscopicsilicovolcanoconiosis</wikiName>
+			<offset>963</offset>
+			<length>45</length>
+		</annotation>
+    <annotation>
+			<mention>Lorem</mention>
+			<wikiName>Lorem Ipsum</wikiName>
+			<offset>0</offset>
+			<length>5</length>
+		</annotation>
+	</document>
+</wikipediaData.entityAnnotation>

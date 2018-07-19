@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project default="copy.configuration.template">
+  
+  <!-- ant script used to copy configuration templates when they don't exist -->
+  
+  <target name="test.if.configuration.exists">
+    <condition property="configuration.exists">
+      <available file="src/main/resources/texoo.properties"/>
+    </condition>
+  </target>
+  <target name="copy.configuration.template" unless="configuration.exists" depends="test.if.configuration.exists">
+    <copy file="src/main/resources/texoo.properties.template" tofile="src/main/resources/texoo.properties"/>
+    <echo message="Copying configuration file template" />
+  </target>
+</project>
+
