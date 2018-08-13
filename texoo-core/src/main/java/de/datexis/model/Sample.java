@@ -1,10 +1,15 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +23,28 @@ public class Sample extends Document {
 
   protected final static Logger log = LoggerFactory.getLogger(Sample.class);
   
+  protected Long refUid;
+  
+  /**
+   * Create a Sample from existing Document. Sample is extended to Sentence boundaries.
+   */ 
+  public Sample(Document doc, int begin, int length) {
+    this.sentences = doc.streamSentencesInRange(begin, begin + length, false).collect(Collectors.toList());
+    this.refUid = doc.getUid();
+    this.setDocumentRef(doc);
+    if(!sentences.isEmpty()) {
+      this.setBegin(sentences.get(0).getBegin());
+      this.setEnd(sentences.get(sentences.size() - 1).getEnd());
+    } else {
+      this.setBegin(begin);
+      this.setEnd(begin + length);
+    }
+  }
+  
   /**
    * Create a Sample with existing Sentences.
    */
+  @Deprecated
   public Sample(Collection<Sentence> sentences, boolean randomizeOrder) {
     if(!sentences.isEmpty()) {
       List<Sentence> list = new ArrayList<>(sentences);
@@ -65,6 +89,24 @@ public class Sample extends Document {
   public void addAnnotations(List<? extends Annotation> anns) {
     anns.stream().forEach(ann -> ann.getDocumentRef().addAnnotation(ann));
   }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Long getRefUid() {
+    return this.refUid;
+  }
+  
+  /**
+   * @return all Annotations from referring document that are contained in this sample
+   */
+  @JsonIgnore
+  @Override
+  protected Stream<? extends Annotation> streamAnnotations() {
+    if(getDocumentRef() == null) return Stream.empty();
+    else return getDocumentRef().streamAnnotations()
+        .filter(a -> a.getBegin() >= this.getBegin() && a.getEnd() <= this.getEnd());
+  }
+  
+  
   
 
 }

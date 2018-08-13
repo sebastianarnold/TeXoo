@@ -3,6 +3,7 @@ package de.datexis.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.ArrayList;
 import java.util.List;
 import de.datexis.common.WordHelpers;
@@ -24,8 +25,9 @@ import java.util.stream.Stream;
  * A Document is a piece of text that mayu contain Sentences, Tokens and Annotations.
  * @author sarnold, fgrimme
  */
-@JsonPropertyOrder({ "id", "language", "type", "text", "annotations" })
-@JsonIgnoreProperties(value = {"begin", "length"}, ignoreUnknown = true)
+@JsonPropertyOrder({ "class", "id", "uid", "refUid", "language", "type", "begin", "length", "text", "annotations" })
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Document extends Span {
 
 	/**
@@ -417,7 +419,7 @@ public class Document extends Span {
   @Override
 	public String getText() {
     if(countTokens() > 0) {
-      return WordHelpers.tokensToText(getTokens(), 0);
+      return WordHelpers.tokensToText(getTokens(), getBegin());
     } else if(countSentences() > 0) {
       StringBuilder res = new StringBuilder();
       for(Sentence s : getSentences()) {
