@@ -1,9 +1,7 @@
 package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,15 +21,12 @@ public class Sample extends Document {
 
   protected final static Logger log = LoggerFactory.getLogger(Sample.class);
   
-  protected Long refUid;
-  
   /**
    * Create a Sample from existing Document. Sample is extended to Sentence boundaries.
    */ 
-  public Sample(Document doc, int begin, int length) {
-    this.sentences = doc.streamSentencesInRange(begin, begin + length, false).collect(Collectors.toList());
-    this.refUid = doc.getUid();
-    this.setDocumentRef(doc);
+  public Sample(Document documentRef, int begin, int length) {
+    this.sentences = documentRef.streamSentencesInRange(begin, begin + length, false).collect(Collectors.toList());
+    this.setDocumentRef(documentRef);
     if(!sentences.isEmpty()) {
       this.setBegin(sentences.get(0).getBegin());
       this.setEnd(sentences.get(sentences.size() - 1).getEnd());
@@ -90,11 +85,6 @@ public class Sample extends Document {
     anns.stream().forEach(ann -> ann.getDocumentRef().addAnnotation(ann));
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public Long getRefUid() {
-    return this.refUid;
-  }
-  
   /**
    * @return all Annotations from referring document that are contained in this sample
    */

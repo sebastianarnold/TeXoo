@@ -30,7 +30,7 @@ public abstract class Span implements Comparable<Span> {
   /**
    * Reference to the Document that this Span belongs to.
    */
-  private Document doc;
+  private Document documentRef;
   
   /**
    * The cursor positions of the Span in the Document (exclusive end)
@@ -60,11 +60,16 @@ public abstract class Span implements Comparable<Span> {
    */
   @JsonIgnore
   public Document getDocumentRef() {
-    return doc;
+    return documentRef;
+  }
+  
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Long getDocumentRefUid() {
+    return this.getDocumentRef().getUid();
   }
   
   public void setDocumentRef(Document doc) {
-    this.doc = doc;
+    this.documentRef = doc;
   }
   
   /**
