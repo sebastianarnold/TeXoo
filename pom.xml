@@ -11,7 +11,9 @@
   
   <modules>
     <module>texoo-core</module>
-    <module>texoo-models</module>
+    <module>texoo-entity-recognition</module>
+    <module>texoo-entity-linking</module>
+    <module>texoo-sector</module>
     <module>texoo-examples</module>
   </modules>  
 
