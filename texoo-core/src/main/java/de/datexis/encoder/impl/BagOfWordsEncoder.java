@@ -233,7 +233,9 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
   @Override
   public Collection<String> getNearestNeighbours(INDArray v, int n) {
     // find maximum entries
-    INDArray[] sorted = Nd4j.sortWithIndices(v.dup(), -1, false); // index,value
+    INDArray[] sorted = Nd4j.sortWithIndices(v.dup(), 0, false); // index,value
+    if(sorted[0].sumNumber().doubleValue() == 0.) // TODO: sortWithIndices could be run on -1 / 0 / 1 ?
+      log.warn("NearestNeighbour on zero vector - please check vector alignment!");
     INDArray idx = sorted[0]; // ranked indexes
     // get top n
     ArrayList<String> result = new ArrayList<>(n);

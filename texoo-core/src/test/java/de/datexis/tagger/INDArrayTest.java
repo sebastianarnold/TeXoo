@@ -26,7 +26,7 @@ public class INDArrayTest {
     int examplesSize = 7; //words
     int labelSize = 3; // classes
     
-		INDArray label = Nd4j.zeros(new int[]{num, labelSize, examplesSize});
+    INDArray label = Nd4j.zeros(new int[]{num, labelSize, examplesSize});
     INDArray mask =  Nd4j.zeros(new int[]{num, examplesSize});
 
     assertArrayEquals(new int[]{num, labelSize, examplesSize}, label.shape());

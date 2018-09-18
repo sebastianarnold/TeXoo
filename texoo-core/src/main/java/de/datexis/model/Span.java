@@ -63,7 +63,8 @@ public abstract class Span implements Comparable<Span> {
     return documentRef;
   }
   
-  @JsonInclude(JsonInclude.Include.NON_NULL)
+  //@JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonIgnore
   public Long getDocumentRefUid() {
     return this.getDocumentRef().getUid();
   }
@@ -188,6 +189,14 @@ public abstract class Span implements Comparable<Span> {
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
       return null;// Nd4j.zeros(1,1);//(Encoder)type).getVectorSize(), 1);
     }
+  }
+  
+  public boolean hasVector(Class<? extends Encoder> type) {
+    return hasVector(type.getCanonicalName());
+  }
+  
+  public boolean hasVector(String identifier) {
+    return vectors != null && vectors.containsKey(identifier);
   }
   
   /**

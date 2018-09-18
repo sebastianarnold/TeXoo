@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.deeplearning4j.models.word2vec.wordstore.VocabularyHolder;
 import org.deeplearning4j.models.word2vec.wordstore.VocabularyWord;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +56,17 @@ public abstract class LookupCacheEncoder extends Encoder {
    */
   public int getIndex(String word) {
     return vocab.indexOf(word);
+  }
+  
+  /**
+   * @return target vector for Vocabulary word or null vector if word dies not exist
+   */
+  public INDArray oneHot(String word) {
+    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    int i = getIndex(word);
+    if(i>=0) vector.put(i, 0, 1.0);
+    else log.warn("could not encode class '{}'. is it contained in training set?", word);
+    return vector;
   }
   
   /**
@@ -118,7 +130,7 @@ public abstract class LookupCacheEncoder extends Encoder {
   }
   
   @Override
-  public void loadModel(Resource modelFile) {
+  public void loadModel(Resource modelFile) throws IOException {
     /* unfortunately, VocabularyHolder is in fact not serializable yet
       if(modelFile.getFileName().endsWith(".bin")) {
       vocab = SerializationUtils.readObject(modelFile.getInputStream());
@@ -143,8 +155,6 @@ public abstract class LookupCacheEncoder extends Encoder {
       setModel(modelFile);
       setModelAvailable(true);
       log.info("loaded " + vocab.numWords() + " words from " + modelFile.toString());
-    } catch(IOException ex) {
-      log.error(ex.toString());
     }
   }
   

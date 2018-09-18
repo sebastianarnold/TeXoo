@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AnnotatorEvaluation {
 
-  protected static Logger log = LoggerFactory.getLogger(AnnotatorEvaluation.class);
+  protected Logger log = LoggerFactory.getLogger(AnnotatorEvaluation.class);
 
   public static enum Measure {TP, FP, TN, FN};
   
