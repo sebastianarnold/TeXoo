@@ -5,13 +5,11 @@ import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.encoder.impl.DummyEncoder;
-import de.datexis.encoder.impl.SentenceEmbeddingEncoder;
 import de.datexis.encoder.impl.StructureEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.models.sector.model.SectionAnnotation;
 import de.datexis.models.sector.encoder.HeadingEncoder;
 import de.datexis.models.sector.encoder.HeadingTag;
 import de.datexis.models.sector.reader.WikiSectionReader;
@@ -31,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public class ImprovedSectorTaggerIteratorIntegrationTest {
+public class SectorTaggerIteratorTest {
 
   private SectorTagger sectorTagger;
   private List<Document> documents;
@@ -39,7 +37,7 @@ public class ImprovedSectorTaggerIteratorIntegrationTest {
 
   @Before
   public void setup() throws IOException {
-    Resource testDataPath = Resource.fromJAR("testdata").resolve("en_diseases_dementia.json");
+    Resource testDataPath = Resource.fromJAR("testdata").resolve("en_disease_dementia.json");
     train = WikiSectionReader.readDatasetFromJSON(testDataPath);
     documents = Lists.newArrayList(train.getDocuments());
 

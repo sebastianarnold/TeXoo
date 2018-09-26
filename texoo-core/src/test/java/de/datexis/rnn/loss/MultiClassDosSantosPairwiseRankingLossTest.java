@@ -1,4 +1,6 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.rnn.loss;
+
+
 
 import de.datexis.rnn.loss.MultiClassDosSantosPairwiseRankingLoss;
 import static org.hamcrest.Matchers.closeTo;

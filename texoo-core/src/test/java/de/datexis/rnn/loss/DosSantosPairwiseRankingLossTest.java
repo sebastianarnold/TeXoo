@@ -1,4 +1,6 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.rnn.loss;
+
+
 
 import de.datexis.rnn.loss.DosSantosPairwiseRankingLoss;
 import static org.junit.Assert.*;

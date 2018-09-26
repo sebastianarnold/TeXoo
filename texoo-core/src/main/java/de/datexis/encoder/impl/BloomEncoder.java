@@ -1,4 +1,4 @@
-package de.datexis.models.sector.encoder;
+package de.datexis.encoder.impl;
 
 import com.google.common.hash.BitArrayBloomFilter;
 import com.google.common.hash.BitArrayBloomFilterStrategy;

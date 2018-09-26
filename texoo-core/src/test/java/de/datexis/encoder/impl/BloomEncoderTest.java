@@ -2,8 +2,6 @@ package de.datexis.encoder.impl;
 
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
-import de.datexis.encoder.impl.BagOfWordsEncoder;
-import de.datexis.models.sector.encoder.BloomEncoder;
 import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
 import java.util.Arrays;
