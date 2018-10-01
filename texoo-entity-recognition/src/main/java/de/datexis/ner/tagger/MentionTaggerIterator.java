@@ -1,5 +1,6 @@
 package de.datexis.ner.tagger;
 
+import com.google.common.collect.Iterables;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -7,9 +8,9 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Token;
 import de.datexis.model.tag.Tag;
 import de.datexis.tagger.CachedSentenceIterator;
-import edu.stanford.nlp.util.Iterables;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -58,10 +59,10 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
    * These Tokens contain BOD, BOS, EOS and EOD Markers.
    * @return 
    */
-  public ArrayList<Token> nextTokens() {
+  public List<Token> nextTokens() {
     // Beginning of Document
     // Beginning of Sentence
-    return  Iterables.asArrayList(nextSentence().getTokens().iterator());
+    return nextSentence().getTokens();
     // End of Sentence
     // End of Document
   }
