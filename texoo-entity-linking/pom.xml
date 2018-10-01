@@ -5,12 +5,12 @@
   <parent>
     <groupId>de.datexis</groupId>
     <artifactId>texoo</artifactId>
-    <version>${texoo.version}</version>
+    <relativePath>../pom.xml</relativePath>
+    <version>1.0.0-SNAPSHOT</version>
   </parent>
   
   <groupId>de.datexis</groupId>
   <artifactId>texoo-entity-linking</artifactId>
-  <version>${texoo.version}</version>
   <packaging>jar</packaging>
   
   <name>TeXoo-entity-linking</name>
