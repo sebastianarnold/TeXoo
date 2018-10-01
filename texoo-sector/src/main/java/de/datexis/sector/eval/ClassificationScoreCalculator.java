@@ -1,7 +1,7 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
 import de.datexis.encoder.LookupCacheEncoder;
-import de.datexis.models.sector.tagger.SectorTagger;
+import de.datexis.sector.tagger.SectorTagger;
 import de.datexis.tagger.Tagger;
 import java.util.Map;
 import org.deeplearning4j.datasets.iterator.AsyncMultiDataSetIterator;

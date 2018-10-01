@@ -1,12 +1,11 @@
-package de.datexis.models.sector;
+package de.datexis.sector;
 
-import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
-import de.datexis.models.sector.model.SectionAnnotation;
-import de.datexis.models.sector.reader.WikiSectionReader;
+import de.datexis.sector.model.SectionAnnotation;
+import de.datexis.sector.reader.WikiSectionReader;
 import java.io.IOException;
 import org.junit.Test;
 import static org.junit.Assert.*;

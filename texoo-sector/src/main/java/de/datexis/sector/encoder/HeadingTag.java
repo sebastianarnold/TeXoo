@@ -1,4 +1,4 @@
-package de.datexis.models.sector.encoder;
+package de.datexis.sector.encoder;
 
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
@@ -6,7 +6,7 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.Tag;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.model.SectionAnnotation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

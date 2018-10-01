@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * @author sarnold, fgrimme
  */
 @JsonPropertyOrder({ "class", "id", "uid", "refUid", "language", "type", "begin", "length", "text", "annotations" })
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=Document.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Document extends Span {
 

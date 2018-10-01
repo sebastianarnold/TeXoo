@@ -1,4 +1,4 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
 import de.datexis.encoder.LookupCacheEncoder;

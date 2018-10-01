@@ -1,5 +1,8 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
+import de.datexis.sector.tagger.SectorTaggerIterator;
+import de.datexis.sector.tagger.SectorTagger;
+import de.datexis.sector.tagger.DocumentSentenceIterator;
 import com.google.common.collect.Lists;
 
 import de.datexis.common.Resource;
@@ -10,9 +13,9 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.models.sector.encoder.HeadingEncoder;
-import de.datexis.models.sector.encoder.HeadingTag;
-import de.datexis.models.sector.reader.WikiSectionReader;
+import de.datexis.sector.encoder.HeadingEncoder;
+import de.datexis.sector.encoder.HeadingTag;
+import de.datexis.sector.reader.WikiSectionReader;
 
 import org.junit.Before;
 import org.junit.Test;

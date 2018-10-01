@@ -1,4 +1,4 @@
-package de.datexis.models.sector.encoder;
+package de.datexis.sector.encoder;
 
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import org.slf4j.Logger;

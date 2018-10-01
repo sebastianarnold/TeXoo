@@ -1,4 +1,4 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
 import de.datexis.annotator.AnnotatorComponent;
 import de.datexis.common.Resource;

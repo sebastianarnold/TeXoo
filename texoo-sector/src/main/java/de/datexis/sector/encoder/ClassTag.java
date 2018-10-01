@@ -1,4 +1,4 @@
-package de.datexis.models.sector.encoder;
+package de.datexis.sector.encoder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.datexis.encoder.Encoder;
@@ -7,7 +7,7 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.Tag;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.model.SectionAnnotation;
 import java.util.Objects;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;

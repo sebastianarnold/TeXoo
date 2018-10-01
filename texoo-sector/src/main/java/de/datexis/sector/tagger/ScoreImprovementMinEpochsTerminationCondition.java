@@ -1,4 +1,4 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
 import org.deeplearning4j.earlystopping.termination.ScoreImprovementEpochTerminationCondition;
 import org.nd4j.shade.jackson.annotation.JsonProperty;

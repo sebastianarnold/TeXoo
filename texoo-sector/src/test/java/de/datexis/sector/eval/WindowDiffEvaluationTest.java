@@ -1,5 +1,6 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
+import de.datexis.sector.eval.SegmentationEvaluation;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -8,7 +9,7 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.model.SectionAnnotation;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;

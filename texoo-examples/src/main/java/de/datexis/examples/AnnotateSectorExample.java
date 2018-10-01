@@ -1,17 +1,17 @@
 package de.datexis.examples;
 
-import de.datexis.models.sector.model.SectionAnnotation;
-import de.datexis.models.sector.encoder.ClassEncoder;
+import de.datexis.sector.model.SectionAnnotation;
+import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.annotator.AnnotatorFactory;
 import de.datexis.common.*;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.models.sector.SectorAnnotator;
-import de.datexis.models.sector.encoder.HeadingEncoder;
-import de.datexis.models.sector.reader.WikiSectionReader;
-import de.datexis.models.sector.tagger.SectorEncoder;
+import de.datexis.sector.SectorAnnotator;
+import de.datexis.sector.encoder.HeadingEncoder;
+import de.datexis.sector.reader.WikiSectionReader;
+import de.datexis.sector.tagger.SectorEncoder;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;

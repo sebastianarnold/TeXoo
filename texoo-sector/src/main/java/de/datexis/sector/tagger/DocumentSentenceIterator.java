@@ -1,4 +1,4 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;

@@ -1,12 +1,12 @@
-package de.datexis.models.sector.reader;
+package de.datexis.sector.reader;
 
-import de.datexis.models.sector.model.WikiDocument;
+import de.datexis.sector.model.WikiDocument;
 import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.model.SectionAnnotation;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;

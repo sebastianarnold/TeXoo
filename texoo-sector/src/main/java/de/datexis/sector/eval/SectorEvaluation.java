@@ -1,4 +1,4 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
 import de.datexis.encoder.LookupCacheEncoder;
@@ -6,11 +6,11 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.models.sector.encoder.ClassEncoder;
-import de.datexis.models.sector.encoder.ClassTag;
-import de.datexis.models.sector.encoder.HeadingEncoder;
-import de.datexis.models.sector.encoder.HeadingTag;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.encoder.ClassEncoder;
+import de.datexis.sector.encoder.ClassTag;
+import de.datexis.sector.encoder.HeadingEncoder;
+import de.datexis.sector.encoder.HeadingTag;
+import de.datexis.sector.model.SectionAnnotation;
 import java.util.Collection;
 import java.util.Locale;
 import org.slf4j.Logger;

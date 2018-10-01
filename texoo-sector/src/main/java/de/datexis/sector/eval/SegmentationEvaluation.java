@@ -1,9 +1,9 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
-import de.datexis.models.sector.model.SectionAnnotation;
+import de.datexis.sector.model.SectionAnnotation;
 import java.util.ArrayList;
 import org.slf4j.LoggerFactory;
 

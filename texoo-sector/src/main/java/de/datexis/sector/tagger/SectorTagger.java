@@ -1,4 +1,4 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
@@ -8,8 +8,8 @@ import de.datexis.evaluation.ModelEvaluation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.models.sector.eval.ClassificationScoreCalculator;
-import de.datexis.models.sector.tagger.DocumentSentenceIterator.Stage;
+import de.datexis.sector.eval.ClassificationScoreCalculator;
+import de.datexis.sector.tagger.DocumentSentenceIterator.Stage;
 import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;

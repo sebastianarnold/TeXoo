@@ -1,4 +1,4 @@
-package de.datexis.models.sector.model;
+package de.datexis.sector.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

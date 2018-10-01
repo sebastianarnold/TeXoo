@@ -1,4 +1,4 @@
-package de.datexis.models.sector.tagger;
+package de.datexis.sector.tagger;
 
 import com.google.common.collect.Lists;
 import de.datexis.encoder.Encoder;
@@ -9,10 +9,10 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import de.datexis.models.sector.encoder.ClassEncoder;
-import de.datexis.models.sector.encoder.ClassTag;
-import de.datexis.models.sector.encoder.HeadingEncoder;
-import de.datexis.models.sector.encoder.HeadingTag;
+import de.datexis.sector.encoder.ClassEncoder;
+import de.datexis.sector.encoder.ClassTag;
+import de.datexis.sector.encoder.HeadingEncoder;
+import de.datexis.sector.encoder.HeadingTag;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.INDArrayIndex;

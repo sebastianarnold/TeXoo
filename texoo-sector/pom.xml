@@ -41,43 +41,6 @@
       <type>jar</type>
     </dependency>
     
-    <!-- Apache Lucene -->
-    <!-- Apache 2.0 License https://lucene.apache.org/core/ -->
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-core</artifactId>
-      <version>${lucene.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queryparser</artifactId>
-      <version>${lucene.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-analyzers-common</artifactId>
-      <version>${lucene.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-analyzers-icu</artifactId>
-      <version>${lucene.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-backward-codecs</artifactId>
-      <version>${lucene.version}</version>
-    </dependency>
-    
-    <!-- String search algorithms -->
-    <!-- LGPL-3.0 License https://github.com/almondtools/stringsearchalgorithms -->
-    <dependency>
-      <groupId>net.amygdalum</groupId>
-      <artifactId>stringsearchalgorithms</artifactId>
-      <version>0.3.20</version>
-      <type>jar</type>
-    </dependency>
-    
     <!-- Testing Frameworks -->
     <dependency>
       <groupId>junit</groupId>

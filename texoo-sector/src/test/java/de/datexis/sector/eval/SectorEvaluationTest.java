@@ -1,4 +1,4 @@
-package de.datexis.models.sector.eval;
+package de.datexis.sector.eval;
 
 import java.io.IOException;
 import org.deeplearning4j.eval.EvaluationUtils;

@@ -1,11 +1,11 @@
-package de.datexis.models.sector.model;
+package de.datexis.sector.model;
 
 import com.fasterxml.jackson.annotation.*;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.BIO2Tag;
-import de.datexis.models.sector.encoder.ClassTag;
+import de.datexis.sector.encoder.ClassTag;
 import de.datexis.model.tag.TFTag;
 import java.util.stream.Collectors;
 import org.nd4j.linalg.factory.Nd4j;
