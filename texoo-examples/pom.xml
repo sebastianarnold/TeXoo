@@ -20,7 +20,13 @@
       </dependency>
       <dependency>
         <groupId>de.datexis</groupId>
-        <artifactId>texoo-models</artifactId>
+        <artifactId>texoo-entity-recognition</artifactId>
+        <version>${project.version}</version>
+        <type>jar</type>
+      </dependency>
+      <dependency>
+        <groupId>de.datexis</groupId>
+        <artifactId>texoo-entity-linking</artifactId>
         <version>${project.version}</version>
         <type>jar</type>
       </dependency>
