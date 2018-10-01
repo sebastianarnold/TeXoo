@@ -1,11 +1,11 @@
 package de.datexis.examples;
 
-import de.datexis.models.ner.MentionAnnotator;
+import de.datexis.ner.MentionAnnotator;
 import de.datexis.common.ObjectSerializer;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
-import de.datexis.models.ner.GenericMentionAnnotator;
-import de.datexis.models.ner.MentionAnnotation;
+import de.datexis.ner.GenericMentionAnnotator;
+import de.datexis.ner.MentionAnnotation;
 import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

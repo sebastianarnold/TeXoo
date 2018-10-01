@@ -1,13 +1,12 @@
 package de.datexis.examples;
 
-import de.datexis.models.ner.MentionAnnotator;
+import de.datexis.ner.MentionAnnotator;
 import de.datexis.common.*;
 import de.datexis.encoder.impl.*;
-import de.datexis.models.ner.eval.MentionAnnotatorEval;
 import de.datexis.model.*;
-import de.datexis.models.ner.MentionAnnotation;
+import de.datexis.ner.MentionAnnotation;
 import de.datexis.model.tag.BIOESTag;
-import de.datexis.models.ner.eval.MentionAnnotatorEvaluation;
+import de.datexis.ner.eval.MentionAnnotatorEvaluation;
 import de.datexis.preprocess.DocumentFactory;
 import java.util.Arrays;
 import org.slf4j.Logger;
