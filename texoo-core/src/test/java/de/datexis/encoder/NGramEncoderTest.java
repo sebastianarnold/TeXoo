@@ -1,10 +1,6 @@
 package de.datexis.encoder;
 
-import de.datexis.common.WordHelpers;
-import de.datexis.encoder.impl.BagOfWordsEncoder;
 import org.junit.Test;
-
-
 import de.datexis.encoder.impl.LetterNGramEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
@@ -12,9 +8,7 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
 import de.datexis.model.tag.BIO2Tag;
-import de.datexis.preprocess.DocumentFactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -179,7 +173,7 @@ public class NGramEncoderTest {
     ngram.trainModel(data.getDocuments());
     INDArray a = ngram.encode("Minister");
     // this has to pass for all Encoders. Don't change!
-    int size = ngram.getVectorSize();
+    long size = ngram.getVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());

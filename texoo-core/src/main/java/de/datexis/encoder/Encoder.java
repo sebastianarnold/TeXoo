@@ -38,7 +38,7 @@ public abstract class Encoder extends AnnotatorComponent {
 	 * Get the size of the result vector
 	 * @return INDArray scalar length
 	 */
-	public abstract int getVectorSize();
+	public abstract long getVectorSize();
 
 	/**
 	 * Generate a fixed-size vector of a Token

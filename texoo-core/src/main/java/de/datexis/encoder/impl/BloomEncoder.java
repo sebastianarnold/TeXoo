@@ -5,7 +5,6 @@ import com.google.common.hash.BitArrayBloomFilterStrategy;
 import com.google.common.hash.Funnels;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
-import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
 import java.io.BufferedInputStream;
@@ -67,7 +66,7 @@ public class BloomEncoder extends BagOfWordsEncoder {
   }
   
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     return (int) bloom.bitSize();
   }
   

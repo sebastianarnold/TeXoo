@@ -37,7 +37,7 @@ public class BloomEncoderTest {
     assertFalse(enc.isModelAvailable());
     enc.trainModel(Arrays.asList(doc), 0, WordHelpers.Language.EN);
     assertTrue(enc.isModelAvailable());
-    int vectorSize = enc.getVectorSize();
+    long vectorSize = enc.getVectorSize();
     assertTrue(vectorSize >= 8);
     INDArray word1 = enc.encode("nuthatch");
     INDArray word2 = enc.encode("songbird");

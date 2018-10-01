@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-import lombok.NonNull;
 import org.nd4j.linalg.primitives.Counter;
 import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
@@ -60,7 +58,7 @@ public class Word2VecEncoder extends Encoder {
   private final static Collection<String> FILENAMES_GOOGLE = Arrays.asList(".zip");
   
 	private WordVectors vec;
-	private int length;
+	private long length;
   private String modelName;
   private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   
@@ -257,7 +255,7 @@ public class Word2VecEncoder extends Encoder {
 	}
 
 	@Override
-	public int getVectorSize() {
+	public long getVectorSize() {
 		return length;
 	}
 
@@ -306,7 +304,7 @@ public class Word2VecEncoder extends Encoder {
    * @param vec
    * @param outputStream 
    */
-  private static void writeBinaryModel(@NonNull WordVectors vec, @NonNull OutputStream outputStream) throws IOException {
+  private static void writeBinaryModel(WordVectors vec, OutputStream outputStream) throws IOException {
     
     int words = 0;
     
@@ -332,7 +330,7 @@ public class Word2VecEncoder extends Encoder {
    * @param stream
    * @return 
    */
-  private static WordVectors loadBinaryModel(@NonNull InputStream stream) throws IOException {
+  private static WordVectors loadBinaryModel(InputStream stream) throws IOException {
     
     AbstractCache<VocabWord> cache = new AbstractCache.Builder<VocabWord>().build();
     List<INDArray> arrays = new ArrayList<>();

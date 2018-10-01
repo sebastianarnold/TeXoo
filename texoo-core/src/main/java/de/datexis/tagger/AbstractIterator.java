@@ -120,7 +120,6 @@ public abstract class AbstractIterator implements DataSetIterator {
 		return batchSize;
 	}
 
-	@Override
 	public int cursor() {
 		return cursor;
 	}
@@ -156,7 +155,6 @@ public abstract class AbstractIterator implements DataSetIterator {
    * Returns the number of examples this Iterator will return.
    * @return number of documents
    */
-  @Override
   public int numExamples() {
     return numExamples;
   }
@@ -165,7 +163,6 @@ public abstract class AbstractIterator implements DataSetIterator {
    * Note that the number of examples may be set to a different size.
    * @return number of documents
    */
-  @Override
   public int totalExamples() {
     return totalExamples;
   }

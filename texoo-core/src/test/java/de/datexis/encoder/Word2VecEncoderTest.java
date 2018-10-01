@@ -1,9 +1,7 @@
 package de.datexis.encoder;
 
-
 import de.datexis.common.Resource;
 import de.datexis.encoder.impl.Word2VecEncoder;
-import de.datexis.model.Dataset;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -70,7 +68,7 @@ public class Word2VecEncoderTest {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
     INDArray a = vec.encode("berlin");
     // this has to pass for all Encoders. Don't change!
-    int size = vec.getVectorSize();
+    long size = vec.getVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());

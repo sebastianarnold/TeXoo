@@ -47,7 +47,7 @@ public abstract class LookupCacheEncoder extends Encoder {
   
   @Override
   //@JsonIgnore
-  public int getVectorSize() {
+  public long getVectorSize() {
     return vocab.numWords();
   }
   

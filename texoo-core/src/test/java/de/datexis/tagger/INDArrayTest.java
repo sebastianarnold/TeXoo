@@ -12,6 +12,9 @@ import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  *
@@ -26,14 +29,15 @@ public class INDArrayTest {
     int examplesSize = 7; //words
     int labelSize = 3; // classes
     
-    INDArray label = Nd4j.zeros(new int[]{num, labelSize, examplesSize});
-    INDArray mask =  Nd4j.zeros(new int[]{num, examplesSize});
+    INDArray label = Nd4j.zeros(num, labelSize, examplesSize);
+    INDArray mask =  Nd4j.zeros(num, examplesSize);
 
-    assertArrayEquals(new int[]{num, labelSize, examplesSize}, label.shape());
-    assertArrayEquals(new int[]{num, examplesSize}, mask.shape());
+    assertArrayEquals(new long[]{num, labelSize, examplesSize}, label.shape());
+    assertArrayEquals(new long[]{num, examplesSize}, mask.shape());
     
     DataSet d0 = new DataSet(label, label, mask, mask);
-    assertEquals(Nd4j.create(new double[]{0,0,0}), d0.get(0).getFeatures().getColumn(0));
+    INDArray example = d0.get(0).getFeatures().get(new INDArrayIndex[] {point(0), all(), point(0)});
+    assertEquals(Nd4j.create(new double[]{0,0,0}), example);
     
     for(int batchNum=0; batchNum<num; batchNum++ ) {
       for(int exampleNum=0; exampleNum<examplesSize; exampleNum++) {
@@ -45,18 +49,22 @@ public class INDArrayTest {
 			}
 		}
     
-    assertArrayEquals(new int[]{num, labelSize, examplesSize}, label.shape());
-    assertArrayEquals(new int[]{num, examplesSize}, mask.shape());
+    assertArrayEquals(new long[]{num, labelSize, examplesSize}, label.shape());
+    assertArrayEquals(new long[]{num, examplesSize}, mask.shape());
     
     DataSet d1 = new DataSet(label, label, mask, mask);
     
-    assertArrayEquals(new int[]{labelSize, examplesSize}, d1.get(0).getFeatures().shape());
-    assertEquals(Nd4j.create(new double[]{0,1,2}), d1.get(0).getFeatures().getColumn(0));
-    assertEquals(Nd4j.create(new double[]{100,101,102}), d1.get(1).getFeatures().getColumn(0));
+    assertArrayEquals(new long[]{1, labelSize, examplesSize}, d1.get(0).getFeatures().shape());
+    example = d1.get(0).getFeatures().get(new INDArrayIndex[] {point(0), all(), point(0)});
+    assertEquals(Nd4j.create(new double[]{0,1,2}), example);
+    example = d1.get(1).getFeatures().get(new INDArrayIndex[] {point(0), all(), point(0)});
+    assertEquals(Nd4j.create(new double[]{100,101,102}), example);
     
-    assertArrayEquals(new int[]{labelSize, examplesSize}, d0.get(0).getFeatures().shape());
-    assertEquals(Nd4j.create(new double[]{0,1,2}), d0.get(0).getFeatures().getColumn(0));
-    assertEquals(Nd4j.create(new double[]{100,101,102}), d0.get(1).getFeatures().getColumn(0));
+    assertArrayEquals(new long[]{1, labelSize, examplesSize}, d0.get(0).getFeatures().shape());
+    example = d0.get(0).getFeatures().get(new INDArrayIndex[] {point(0), all(), point(0)});
+    assertEquals(Nd4j.create(new double[]{0,1,2}), example);
+    example = d0.get(1).getFeatures().get(new INDArrayIndex[] {point(0), all(), point(0)});
+    assertEquals(Nd4j.create(new double[]{100,101,102}), example);
   
   }
  

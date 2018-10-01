@@ -63,7 +63,7 @@ public class BagOfWordsEncoderTest {
     enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
     INDArray a = enc.encode("laden");
     // this has to pass for all Encoders. Don't change!
-    int size = enc.getVectorSize();
+    long size = enc.getVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());

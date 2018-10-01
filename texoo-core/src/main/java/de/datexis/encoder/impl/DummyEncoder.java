@@ -2,7 +2,6 @@ package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.datexis.encoder.StaticEncoder;
-import de.datexis.model.Document;
 import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -22,7 +21,7 @@ public class DummyEncoder extends StaticEncoder {
   
   @Override
   @JsonIgnore
-  public int getVectorSize() {
+  public long getVectorSize() {
     return 1;
   }
 

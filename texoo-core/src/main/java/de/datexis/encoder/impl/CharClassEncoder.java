@@ -1,17 +1,12 @@
 package de.datexis.encoder.impl;
 
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Token;
 import de.datexis.encoder.StaticEncoder;
 import de.datexis.model.Span;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -44,7 +39,7 @@ public class CharClassEncoder extends StaticEncoder {
   }
 
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     return encode("Test").length();
   }
 
