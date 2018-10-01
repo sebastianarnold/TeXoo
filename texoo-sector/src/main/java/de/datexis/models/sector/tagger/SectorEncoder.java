@@ -7,7 +7,6 @@ import de.datexis.encoder.EncoderSet;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import de.datexis.models.sector.encoder.SegmentEncoder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +50,7 @@ public class SectorEncoder extends Encoder {
   }
   
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     return tagger.getEmbeddingLayerSize();
   }
 
@@ -103,7 +102,7 @@ public class SectorEncoder extends Encoder {
         int t = 0; for(Sentence s : doc.getSentences()) {
           if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), target.getRow(batchNum).getColumn(t));
           if(embedding != null) s.putVector(SectorEncoder.class, embedding.getRow(batchNum).getColumn(t));
-          s.putVector(SegmentEncoder.class, lstm.getRow(batchNum).getColumn(t));
+          //s.putVector(SegmentEncoder.class, lstm.getRow(batchNum).getColumn(t));
           t++;
         }
         batchNum++;

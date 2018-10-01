@@ -40,7 +40,7 @@ public class HeadingTag implements Tag {
   
   @Override
   public int getVectorSize() {
-    return vector.length();
+    return (int) vector.length();
   }
 
   @Override

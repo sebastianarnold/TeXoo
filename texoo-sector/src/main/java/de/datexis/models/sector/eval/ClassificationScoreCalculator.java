@@ -1,6 +1,7 @@
 package de.datexis.models.sector.eval;
 
 import de.datexis.encoder.LookupCacheEncoder;
+import de.datexis.models.sector.tagger.SectorTagger;
 import de.datexis.tagger.Tagger;
 import java.util.Map;
 import org.deeplearning4j.datasets.iterator.AsyncMultiDataSetIterator;
@@ -8,14 +9,20 @@ import org.deeplearning4j.datasets.iterator.MultiDataSetWrapperIterator;
 import org.deeplearning4j.datasets.iterator.impl.MultiDataSetIteratorAdapter;
 import org.deeplearning4j.earlystopping.scorecalc.base.BaseIEvaluationScoreCalculator;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.BackpropType;
+import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.graph.vertex.GraphVertex;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.memory.abstracts.DummyWorkspace;
 
 /**
  * Score function for evaluating a MultiLayerNetwork according to an evaluation metric ({@link Evaluation.Metric} such
@@ -70,62 +77,87 @@ public class ClassificationScoreCalculator extends BaseIEvaluationScoreCalculato
    * @param net
    * @param evaluation
    * @param iterator 
+   * @see ComputationGraph.doEvaluation()
    */
   protected void evaluate(ComputationGraph net, ClassificationEvaluation evaluation, MultiDataSetIterator iterator) {
 
+    //WorkspaceUtils.assertNoWorkspacesOpen("Expected no external workspaces open in doEvaluation");
+    
     if(iterator.resetSupported() && !iterator.hasNext()) {
       iterator.reset();
     }
 
     MultiDataSetIterator iter = iterator.asyncSupported() ? new AsyncMultiDataSetIterator(iterator, 2, true) : iterator;
 
-    /*WorkspaceMode cMode = configuration.getTrainingWorkspaceMode();
-    configuration.setTrainingWorkspaceMode(configuration.getInferenceWorkspaceMode());*/
-
     boolean useRnnSegments = (net.getConfiguration().getBackpropType() == BackpropType.TruncatedBPTT);
     if(useRnnSegments) throw new UnsupportedOperationException("Evaluation with Truncated BPTT is not implemented.");
 
+    /*  WorkspaceMode cMode = net.getConfiguration().getTrainingWorkspaceMode();
+      net.getConfiguration().setTrainingWorkspaceMode(net.getConfiguration().getInferenceWorkspaceMode());
+      MemoryWorkspace workspace
+          = net.getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
+          : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread(
+              ComputationGraph.workspaceConfigurationExternal, ComputationGraph.WORKSPACE_EXTERNAL);*/
+      
     while(iter.hasNext()) {
-      MultiDataSet data = iter.next();
+      
+      //try (MemoryWorkspace wsB = workspace.notifyScopeEntered()) {
+      
+        MultiDataSet next = iter.next();
 
-      if(data.getFeatures() == null || data.getLabels() == null) {
-        break;
-      }
-      // TODO: this is similar to SectorTagger.encodeMatrix()
-      net.clear();
-      net.clearLayerMaskArrays();
-      net.setInputs(data.getFeatures());
-      net.setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
-      net.validateInput();
-      Map<String,INDArray> result = net.feedForward(false, false, true);
-      
-      INDArray labels = data.getLabels()[0];
-      INDArray predicted = null;
-      INDArray mask = data.getLabelsMaskArrays()[0];
-      if(result.containsKey("target")) {
-        predicted = result.get("target");
-      } else if(result.containsKey("targetFW")) {
-        predicted = result.get("targetFW").dup();
-        predicted.addi(result.get("targetBW")).divi(2); // FW/BW average
-        // TODO: we might add another softmax here?
-      }
-      
-      evaluation.eval(labels, predicted, mask);
+        if(next.getFeatures() == null || next.getLabels() == null) {
+          break;
+        }
+
+        Map<String,INDArray> weights = SectorTagger.feedForward(net, next);
+        
+        INDArray predicted = null;
+        if(weights.containsKey("target")) {
+          predicted = weights.get("target");
+        } else if(weights.containsKey("targetFW")) {
+          predicted = weights.get("targetFW").dup();
+          predicted.addi(weights.get("targetBW")).divi(2); // FW/BW average
+          // TODO: we might add another softmax here?
+        }
+
+        //try (MemoryWorkspace wsO = Nd4j.getWorkspaceManager().scopeOutOfWorkspaces()) {
+          evaluation.eval(next.getLabels(0), weights.get("target"), next.getLabelsMaskArray(0));
+        //}
+        
+      /*} finally {
+        // clear layer states to avoid leaks
+        for (Layer layer : net.getLayers()) {
+            layer.clear();
+            layer.clearNoiseWeightParams();
+        }
+        for (GraphVertex vertex : net.getVertices()) {
+            vertex.clearVertex();
+        }
+        net.clearLayerMaskArrays();
+      }*/
       
     }
     
-    net.clear();
-    net.clearLayerMaskArrays();
+    //net.clear();
+    //net.clearLayerMaskArrays();
 
     if(iterator.asyncSupported()) {
       ((AsyncMultiDataSetIterator) iter).shutdown();
     }
+    
+   // net.getConfiguration().setTrainingWorkspaceMode(cMode);
     
   }
     
   @Override
   protected double finalScore(ClassificationEvaluation e) {
       return 1. - e.getScore();
+  }
+
+  //@Override
+  public boolean minimizeScore() {
+    // false = score should be maximized
+    return false;
   }
 
 }

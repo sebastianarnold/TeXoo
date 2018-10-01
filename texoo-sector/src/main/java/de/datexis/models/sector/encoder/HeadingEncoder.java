@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class HeadingEncoder extends BagOfWordsEncoder {
 
   protected final static Logger log = LoggerFactory.getLogger(HeadingEncoder.class);
-public static final String ID = "HL";
+  public static final String ID = "HL";
   
   public HeadingEncoder() {
     super(ID);

@@ -6,7 +6,10 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.models.sector.encoder.ClassEncoder;
 import de.datexis.models.sector.encoder.ClassTag;
+import de.datexis.models.sector.encoder.HeadingEncoder;
+import de.datexis.models.sector.encoder.HeadingTag;
 import de.datexis.models.sector.model.SectionAnnotation;
 import java.util.Collection;
 import java.util.Locale;
@@ -27,14 +30,27 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   protected ClassificationEvaluation sentenceClassEval;
   protected ClassificationEvaluation segmentClassEval;
   protected SegmentationEvaluation segmentationEval;
-  protected LookupCacheEncoder targetEncoder;
+  protected Class targetEncoderClass;
   
+  /**
+   * Initialize evaluation for classification and segmentation
+   */
   public SectorEvaluation(String experimentName, Annotation.Source expected, Annotation.Source predicted, LookupCacheEncoder targetEncoder) {
     super(experimentName, expected, predicted);
     sentenceClassEval = new ClassificationEvaluation(experimentName, expectedSource, predictedSource,  targetEncoder, 3);
     segmentClassEval = new ClassificationEvaluation(experimentName, expectedSource, predictedSource, targetEncoder, 3);
     segmentationEval = new SegmentationEvaluation(experimentName);
-    this.targetEncoder = targetEncoder;
+    this.targetEncoderClass = targetEncoder.getClass();
+  }
+  
+  /**
+   * Initialize evaluation for segmentation only
+   */
+  public SectorEvaluation(String experimentName, Annotation.Source expected, Annotation.Source predicted) {
+    super(experimentName, expected, predicted);
+    sentenceClassEval = null;
+    segmentClassEval = null;
+    segmentationEval = new SegmentationEvaluation(experimentName);
   }
 
   /**
@@ -56,10 +72,22 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     countPredictions = 0;
     countExamples = 0;
     countDocs = 0;
-    // FIXME: missing HeadingTag.class
-    sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, ClassTag.class);
-    segmentClassEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class, true);
-    segmentationEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class);
+    if(sentenceClassEval != null) {
+      log.info("calculating sentence scores from tags...");
+      if(targetEncoderClass == HeadingEncoder.class) {
+        sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, HeadingTag.class);
+      } else { // e.g. ClassEncoder or ParVecEncoder
+        sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, ClassTag.class);
+      }
+    }
+    if(segmentClassEval != null) {
+      log.info("calculating segment scores from annotations...");
+      segmentClassEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class, true);
+    }
+    if(segmentationEval != null) {
+      log.info("calculating segmentation scores from annotations...");
+      segmentationEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class);
+    }
     log.info("done.");
     
     for(Document doc : docs) {
@@ -94,7 +122,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   
   public String printEvaluationStats() {
     StringBuilder line = new StringBuilder();
-    line.append("SECTOR EVALUATION [micro-avg] ").append(targetEncoder.getClass().getSimpleName()).append("\n")
+    line.append("SECTOR EVALUATION [micro-avg] ").append(targetEncoderClass.getSimpleName()).append("\n")
         .append("|statistics ---\t|sentence classification -------------------------------------\t|segmentation --------------------------------\t|segment classification ----------------------------\n")
         .append("||docs|\t|sents|\t|AUC\t A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP\t| |exp|\t |relv|\t |pred|\t |retr|\t Pk\t WD\t|AUC\t A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP")
         .append("\n");
@@ -129,6 +157,28 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     line.append(fDbl(segmentClassEval.getRecall1())).append("\t");
     line.append(fDbl(segmentClassEval.getRecallK())).append("\t");
     line.append(fDbl(segmentClassEval.getMAP())).append("\t");
+    line.append("\n");
+    System.out.println(line.toString());
+    return line.toString();
+  }
+  
+  public String printSegmentationStats() {
+    StringBuilder line = new StringBuilder();
+    line.append("SEGMENTER EVALUATION [micro-avg] ").append("\n")
+        .append("|statistics ---\t|segmentation --------------------------------\n")
+        .append("||docs|\t|sents|\t| |exp|\t |relv|\t |pred|\t |retr|\t Pk\t WD\t")
+        .append("\n");
+    // statistics
+    line.append(fInt(this.countDocuments())).append("\t");
+    line.append(fInt(this.countExamples())).append("\t");
+    
+    // Topic Segementation: segmentation
+    line.append(fInt(this.countSections())).append("\t");
+    line.append(fInt(segmentationEval.getCountExpected())).append("\t");
+    line.append(fInt(this.countPredictions())).append("\t");
+    line.append(fInt(segmentationEval.getCountPredicted())).append("\t");
+    line.append(fDbl(segmentationEval.getPk())).append("\t");
+    line.append(fDbl(segmentationEval.getWD())).append("\t");
     line.append("\n");
     System.out.println(line.toString());
     return line.toString();

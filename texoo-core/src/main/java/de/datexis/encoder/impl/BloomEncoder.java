@@ -76,7 +76,7 @@ public class BloomEncoder extends BagOfWordsEncoder {
     for(Span s : spans) {
       double[] bits = bloom.getBitArray(s.getText());
       INDArray x = Nd4j.create(bits);
-      vector.addi(x.transpose());
+      vector.addi(x.transposei());
     }
     return vector;
   }

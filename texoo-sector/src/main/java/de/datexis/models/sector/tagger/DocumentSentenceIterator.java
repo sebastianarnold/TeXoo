@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.dataset.api.MultiDataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +29,6 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   protected List<Document> documents;
   protected Iterator<Document> docIt;
   
-  //protected List<Encoder> inputEncoders;
-  //protected List<Encoder> outputEncoders;
-
   protected int numExamples;
   protected int batchSize;
   protected int cursor;
@@ -157,9 +155,13 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   public MultiDataSetPreProcessor getPreProcessor() {
     return null;
   }
+  
+  public int getNumExamples() {
+    return numExamples;
+  }
 
   protected void reportProgress() {
-    if(stage.equals(Stage.ENCODE)) return;
+    //if(stage.equals(Stage.TEST)) Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
     String timeStr = "??";
     try {
       long elapsed = System.currentTimeMillis() - startTime;

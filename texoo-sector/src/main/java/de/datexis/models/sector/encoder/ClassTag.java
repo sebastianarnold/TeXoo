@@ -2,6 +2,7 @@ package de.datexis.models.sector.encoder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.datexis.encoder.Encoder;
+import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
@@ -31,7 +32,7 @@ public class ClassTag implements Tag {
     this.label = label;
     this.index = getMaxIndex(vector);
     this.confidence = vector.maxNumber().doubleValue();
-    this.numClasses = vector.length();
+    this.numClasses = (int) vector.length();
   }
   
   /*public ClassTag(String label) {
@@ -136,14 +137,14 @@ public class ClassTag implements Tag {
   
   public static class Factory {
   
-    protected final ClassEncoder encoder;
+    protected final LookupCacheEncoder encoder;
     
-    public Factory(ClassEncoder encoder) {
+    public Factory(LookupCacheEncoder encoder) {
       this.encoder = encoder;
     }
     
     public ClassTag create(String heading) {
-      return new ClassTag(heading, encoder.encode(heading));
+      return new ClassTag(heading, encoder.oneHot(heading));
     }
     
     public ClassTag create(INDArray prediction) {
@@ -153,7 +154,7 @@ public class ClassTag implements Tag {
     public void attachFromSectionAnnotations(Document doc, Annotation.Source source) {
       for(SectionAnnotation ann : doc.getAnnotations(source, SectionAnnotation.class)) {
         String clss = ann.getSectionLabel();
-        INDArray vec = encoder.encode(clss);
+        INDArray vec = encoder.oneHot(clss);
         doc.streamSentencesInRange(ann.getBegin(), ann.getEnd(), false).forEach(
           s -> s.putTag(source, new ClassTag(clss, vec))
         );

@@ -48,7 +48,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     super(experimentName, expected, predicted);
     this.K = K;
     this.encoder = encoder;
-    this.numClasses = encoder.getVectorSize();
+    this.numClasses = (int) encoder.getVectorSize();
     log = LoggerFactory.getLogger(ClassificationEvaluation.class);
     clear();
   }
@@ -103,7 +103,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
           INDArray p = predicted.get().getVector(encoder.getClass()).transpose();
           evalExample(r, p);
         } else {
-          log.warn("Could not match predicted Annotation for expected Annotation {}", expected.toString());
+          log.warn("Could not match predicted Annotation for expected Annotation {}-{}", expected.getBegin(), expected.getEnd());
         }
       }
       if(!matchAllPredicted) continue;
@@ -144,14 +144,20 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * @param Z - predicted labels e R^d@param Y
    */
   public void evalExample(INDArray Y, INDArray Z) {
+    // pre-calculate ranked indices
+    INDArray[] z = Nd4j.sortWithIndices(Nd4j.toFlattened(Z).dup(), 1, false); // index,value
+    if(z[0].sumNumber().doubleValue() == 0.) // TODO: sortWithIndices could be run on dimension -1 / 0 / 1 ?
+      log.warn("Sort on zero vector - please check vector dimensions!");
+    INDArray Zi = z[0]; // ranked indexes
     eval.eval(Y, Z);
-    evalROC.eval(Y, Z);
-    mapsum += AP(Y, Z);
-    mrrsum += RR(Y, Z);
-    p1sum += Prec(Y, Z, 1);
-    r1sum += Rec(Y, Z, 1);
-    pksum += Prec(Y, Z, K);
-    rksum += Rec(Y, Z, K);
+    // FIXME: evalROC accesses array pointer from LOOP workspace?
+    // if(Y.length() < 256) evalROC.eval(Y, Z); // ROC evaluation is too slow for larger vectors
+    mapsum += AP(Y, Z, Zi);
+    mrrsum += RR(Y, Z, Zi);
+    p1sum += Prec(Y, Z, Zi, 1);
+    r1sum += Rec(Y, Z, Zi, 1);
+    pksum += Prec(Y, Z, Zi, K);
+    rksum += Rec(Y, Z, Zi, K);
     countExamples++;
   }
   
@@ -179,9 +185,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * @param Z - predicted labels e R^d
    * @return 
    */
-  private double RR(INDArray Y, INDArray Z) {
-    INDArray[] z = Nd4j.sortWithIndices(Z.dup(), -1, false); // index,value
-    INDArray Zi = z[0]; // ranked indexes
+  private double RR(INDArray Y, INDArray Z, INDArray Zi) {
     int ri = maxIndex(Y); // relevant index
     if(ri >= 0) {
       double r = rank(ri, Zi);
@@ -196,18 +200,17 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)#Average_precision
    * @param Y - correct labels e {0,1}^d
    * @param Z - predicted labels e R^d
+   * @param Zi - ranked indices of predicted labales
    * @return 
    */
-  private double AP(INDArray Y, INDArray Z) {
-    INDArray[] z = Nd4j.sortWithIndices(Z.dup(), -1, false); // index,value
-    INDArray Zi = z[0]; // ranked indexes
+  private double AP(INDArray Y, INDArray Z, INDArray Zi) {
     // sum over all labels
     double sum = 0;
     int count = 0;
     for(int k = 0; k < Y.length(); k++) {
       int idx = Zi.getInt(k);
       if(Y.getDouble(idx) > 0.) { // check if kth prediction is relevant
-        sum += Prec(Y, Z, k + 1);
+        sum += Prec(Y, Z, Zi, k + 1);
         count++;
       }
     }
@@ -220,11 +223,10 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * Precision at K. Proportion of top-K documents that are relevant.
    * @param Y - correct labels e {0,1}^d
    * @param Z - predicted labels e R^d
+   * @param Zi - ranked indices of predicted labales
    */
-  private double Prec(INDArray Y, INDArray Z, int k) {
+  private double Prec(INDArray Y, INDArray Z, INDArray Zi, int k) {
     double sum = 0;
-    INDArray[] z = Nd4j.sortWithIndices(Z.dup(), -1, false); // index,value
-    INDArray Zi = z[0]; // ranked indexes
     for(int i = 0; i < k; i++) {
       int idx = Zi.getInt(i); // index of top-i prediction
       if(Y.getDouble(idx) > 0.) sum++;
@@ -236,12 +238,11 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * Recall at K. Proportion of relevant documents that are in top-K.
    * @param Y - correct labels e {0,1}^d
    * @param Z - predicted labels e R^d
+   * @param Zi - ranked indices of predicted labales
    */
-    private double Rec(INDArray Y, INDArray Z, int k) {
+    private double Rec(INDArray Y, INDArray Z, INDArray Zi, int k) {
     if(Y.sumNumber().doubleValue() == 0) return 0.; // there is no relevant label
     double sum = 0;
-    INDArray[] z = Nd4j.sortWithIndices(Z.dup(), -1, false); // index,value
-    INDArray Zi = z[0]; // ranked indexes
     for(int i = 0; i < k; i++) {
       int idx = Zi.getInt(i); // index of top-i prediction
       if(Y.getDouble(idx) > 0.) sum++;
@@ -388,6 +389,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
   }
   
   protected double getAUC(int c) {
+    if(evalROC.getNumClasses() <= 0) return 0.0; // ROC might not have been calculated due to too many classes
     double auc = evalROC.calculateAUC(c);
     return Double.isNaN(auc) ? 0.5 : auc;
   }

@@ -13,8 +13,6 @@ import de.datexis.models.sector.encoder.ClassEncoder;
 import de.datexis.models.sector.encoder.ClassTag;
 import de.datexis.models.sector.encoder.HeadingEncoder;
 import de.datexis.models.sector.encoder.HeadingTag;
-import de.datexis.models.sector.encoder.SegmentEncoder;
-import de.datexis.models.sector.encoder.SegmentTag;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -67,7 +65,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
     INDArray inputMask = createMask(batch.docs, batch.maxDocLength, Sentence.class);
     //INDArray labelMask = createMask(batch.docs, batch.maxDocLength, Sentence.class); // same as input mask
     // return all encodings on Sentence level
-    INDArray bag = tagger.bagEncoder.encodeMatrix(batch.docs, batch.maxDocLength, Sentence.class);
+    INDArray bag = tagger.bagEncoder.encodeMatrix(batch.docs, batch.maxDocLength, Sentence.class); 
     INDArray emb = tagger.embEncoder.encodeMatrix(batch.docs, batch.maxDocLength, Sentence.class);
     INDArray flag = tagger.flagEncoder.encodeMatrix(batch.docs, batch.maxDocLength, Sentence.class);
 
@@ -82,7 +80,6 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       new INDArray[]{inputMask, inputMask, inputMask},
       new INDArray[]{inputMask, inputMask}
     );
-    
   }
   
   public INDArray createMask(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
@@ -120,7 +117,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       for(int t = 0; t < spansToEncode.size(); t++) {
         // TODO: this function is a copy from Encoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
-        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec.dup());
       }
       
     }
@@ -139,9 +136,6 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       HeadingTag heading = s.getTag(source, HeadingTag.class);
       if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(heading.getTag());
       else return ((HeadingEncoder) enc).encode(heading.getTag());
-    } else if(enc instanceof SegmentEncoder) {
-      SegmentTag seg = s.getTag(source, SegmentTag.class);
-      return ((SegmentEncoder) enc).encode(seg.getTag());
     } else if(enc instanceof ClassEncoder) {
       ClassTag clss = s.getTag(source, ClassTag.class);
       return ((ClassEncoder) enc).encode(clss.getTag());

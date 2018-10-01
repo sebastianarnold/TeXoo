@@ -69,11 +69,11 @@ public class SectorEvaluationTest {
     labels2D.getRow(9).assign(Nd4j.create(new double[]{ .9, .0 }));
     
     assertEquals(3, labels.rank());
-    assertArrayEquals(new int[] { batchSize, outputSize, maxTimeSteps }, labels.shape());
+    assertArrayEquals(new long[] { batchSize, outputSize, maxTimeSteps }, labels.shape());
     assertEquals(2, outputMask.rank());
-    assertArrayEquals(new int[] { batchSize, maxTimeSteps }, outputMask.shape());
+    assertArrayEquals(new long[] { batchSize, maxTimeSteps }, outputMask.shape());
     assertEquals(2, labels2D.rank());
-    assertArrayEquals(new int[] { 3 + 2 + 5, outputSize }, labels2D.shape());
+    assertArrayEquals(new long[] { 3 + 2 + 5, outputSize }, labels2D.shape());
 
     //Reshaping here: basically RnnToFeedForwardPreProcessor...
     //Dup to f order, to ensure consistent buffer for reshaping
@@ -82,7 +82,7 @@ public class SectorEvaluationTest {
     // This function should normally work:
     Pair<INDArray, INDArray> test = EvaluationUtils.extractNonMaskedTimeSteps(labels, labels, outputMask);
     assertEquals(2, test.getFirst().rank());
-    assertArrayEquals(new int[] { 10, outputSize }, test.getFirst().shape());
+    assertArrayEquals(new long[] { 10, outputSize }, test.getFirst().shape());
     assertEquals(labels2D.sumNumber().doubleValue(), test.getFirst().sumNumber().doubleValue(), 1e-5);
     // order is not maintained!
     //assertEquals(labels2D, test.getFirst());

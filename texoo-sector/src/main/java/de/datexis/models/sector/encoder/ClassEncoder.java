@@ -44,7 +44,7 @@ public class ClassEncoder extends LookupCacheEncoder {
   }
 
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     return vocab.numWords();
   }
 
@@ -56,15 +56,22 @@ public class ClassEncoder extends LookupCacheEncoder {
   
   @Override
   public INDArray encode(String classLabel) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
-    String w = preprocessor.preProcess(classLabel);
-    int i = vocab.indexOf(w);
-    if(i>=0) vector.put(i, 0, 1.0);
-    else log.warn("could not encode class '{}'. is it contained in training set?", classLabel);
-    //else vector.put(getVectorSize() - 1, 0, 1.0);
-    return vector;
+    return oneHot(classLabel);
   }
 
+  public int getIndex(String word) {
+    String w = preprocessor.preProcess(word);
+    return vocab.indexOf(w);
+  }
+  
+  public INDArray oneHot(String word) {
+    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    int i = getIndex(word);
+    if(i>=0) vector.put(i, 0, 1.0);
+    else log.warn("could not encode class '{}'. is it contained in training set?", word);
+    return vector;
+  }
+  
   public boolean isUnknown(String classLabel) {
     String w = preprocessor.preProcess(classLabel);
     return !vocab.containsWord(w);
@@ -121,7 +128,7 @@ public class ClassEncoder extends LookupCacheEncoder {
   @Override
   public Collection<String> getNearestNeighbours(INDArray v, int k) {
     // create copy
-    final Double[] data = new Double[v.length()];
+    final Double[] data = new Double[(int) v.length()];
     for(int j=0; j<v.length(); j++) {
       data[j] = v.getDouble(j);
     }
@@ -144,7 +151,7 @@ public class ClassEncoder extends LookupCacheEncoder {
   
   public Collection<Entry<String,Double>> getNearestNeighbourEntries(INDArray v, int k) {
     // create copy
-    final Double[] data = new Double[v.length()];
+    final Double[] data = new Double[(int) v.length()];
     for(int j=0; j<v.length(); j++) {
       data[j] = v.getDouble(j);
     }
