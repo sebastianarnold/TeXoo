@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lombok.NonNull;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.deeplearning4j.models.embeddings.WeightLookupTable;
@@ -81,7 +80,7 @@ public class KNNArticleIndex extends LuceneArticleIndex {
       ids.transferBackToVocabCache(vocabCache, true);
 
       // append vectors
-      lookupVectors = new InMemoryLookupTable<>(vocabCache, encoder.getVectorSize(), true, 0.01, Nd4j.getRandom(), 0, true);
+      lookupVectors = new InMemoryLookupTable<>(vocabCache, (int) encoder.getVectorSize(), true, 0.01, Nd4j.getRandom(), 0, true);
       lookupVectors.resetWeights();
       
       // create index of vectors
@@ -113,7 +112,7 @@ public class KNNArticleIndex extends LuceneArticleIndex {
    * @param vec
    * @param outputStream 
    */
-  private static void writeBinaryModel(@NonNull WeightLookupTable<VocabWord> vec, @NonNull OutputStream outputStream) throws IOException {
+  private static void writeBinaryModel(WeightLookupTable<VocabWord> vec, OutputStream outputStream) throws IOException {
     
     int words = 0;
     

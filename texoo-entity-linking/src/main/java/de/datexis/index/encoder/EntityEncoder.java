@@ -49,7 +49,7 @@ public class EntityEncoder extends Encoder {
   }
   
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     if(strategy.equals(Strategy.NAME)) return parvec.getLayerSize();
     else if(strategy.equals(Strategy.NAME_CONTEXT)) return parvec.getLayerSize() * 2;
     else throw new IllegalArgumentException("invalid strategy");
