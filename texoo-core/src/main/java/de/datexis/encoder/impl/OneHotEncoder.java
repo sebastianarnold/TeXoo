@@ -10,7 +10,6 @@ import java.util.Collection;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -94,7 +93,7 @@ public class OneHotEncoder extends LookupCacheEncoder {
   @Override
   public Collection<String> getNearestNeighbours(INDArray v, int n) {
     // create copy
-    final Double[] data = new Double[v.length()];
+    final Double[] data = new Double[(int)v.length()];
     for(int j=0; j<v.length(); j++) {
       data[j] = v.getDouble(j);
     }

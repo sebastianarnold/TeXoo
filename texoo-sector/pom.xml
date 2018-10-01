@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>de.datexis</groupId>
+    <artifactId>texoo</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+  
+  <groupId>de.datexis</groupId>
+  <artifactId>texoo-sector</artifactId>
+  <packaging>jar</packaging>
+  
+  <name>TeXoo-sector</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>de.datexis</groupId>
+      <artifactId>texoo-core</artifactId>
+      <version>${texoo.version}</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-ui_2.11</artifactId>
+      <version>${dl4j.version}</version>
+      <type>jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-parallel-wrapper_2.11</artifactId>
+      <version>${dl4j.version}</version>
+      <type>jar</type>
+    </dependency>
+    
+    <!-- Testing Frameworks -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>java-hamcrest</artifactId>
+      <version>${java-hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito-core.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

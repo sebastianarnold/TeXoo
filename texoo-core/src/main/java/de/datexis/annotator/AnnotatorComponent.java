@@ -5,7 +5,6 @@ import de.datexis.common.Resource;
 import de.datexis.common.Timer;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
-import de.datexis.tagger.AbstractIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +34,8 @@ public abstract class AnnotatorComponent {
   protected String id;
   
   protected Timer timer = new Timer();
-  private final StringBuilder trainLog = new StringBuilder();
-  private final StringBuilder testLog = new StringBuilder();
+  private StringBuilder trainLog = new StringBuilder();
+  private StringBuilder testLog = new StringBuilder();
   
   // TODO: howto model EncoderSet?
   private final List<Tagger> taggers = new ArrayList<>();
@@ -207,4 +206,12 @@ public abstract class AnnotatorComponent {
     return testLog.toString();
   }
 
+  protected void clearTrainLog() {
+    trainLog = new StringBuilder();
+  }
+  
+  protected void clearTestLog() {
+    testLog = new StringBuilder();
+  }
+ 
 }

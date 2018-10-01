@@ -8,10 +8,8 @@ import de.datexis.model.Span;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -45,7 +43,7 @@ public class PositionEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public int getVectorSize() {
+  public long getVectorSize() {
     return wordAsVector("", false, false, false, false).length();
   }
   

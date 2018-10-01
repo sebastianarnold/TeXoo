@@ -11,7 +11,6 @@ import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -37,7 +36,7 @@ public class StructureEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public int getVectorSize() {
+  public long getVectorSize() {
     return encode("Test").length();
   }
   

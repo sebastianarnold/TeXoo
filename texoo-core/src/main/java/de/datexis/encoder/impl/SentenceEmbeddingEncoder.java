@@ -57,7 +57,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   }
 
   @Override
-  public int getVectorSize() {
+  public long getVectorSize() {
     return vec.getVectorSize();
   }
 
@@ -89,7 +89,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
     timer.stop();
     
     // phase 2: compute first principal component
-    INDArray v = Nd4j.zeros(new int[]{d, getVectorSize()});
+    INDArray v = Nd4j.zeros(new long[]{d, getVectorSize()});
     d = 0;
     for(Document doc : documents) {
       for(Sentence s : doc.getSentences()) {
@@ -168,7 +168,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   @Override
   public Collection<String> getNearestNeighbours(INDArray v, int n) {
     // create copy
-    final Double[] data = new Double[v.length()];
+    final Double[] data = new Double[(int)v.length()];
     for(int j=0; j<v.length(); j++) {
       data[j] = v.getDouble(j);
     }

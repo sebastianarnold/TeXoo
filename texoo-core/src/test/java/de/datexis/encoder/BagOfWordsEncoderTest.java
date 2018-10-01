@@ -6,6 +6,7 @@ import de.datexis.common.WordHelpers;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
+import java.io.IOException;
 import java.util.Arrays;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -62,7 +63,7 @@ public class BagOfWordsEncoderTest {
     enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
     INDArray a = enc.encode("laden");
     // this has to pass for all Encoders. Don't change!
-    int size = enc.getVectorSize();
+    long size = enc.getVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());
@@ -72,7 +73,7 @@ public class BagOfWordsEncoderTest {
   }
   
   @Test
-  public void saveLoadEncoderTest() {
+  public void saveLoadEncoderTest() throws IOException {
     Document doc = DocumentFactory.fromText(text);
     BagOfWordsEncoder enc = new BagOfWordsEncoder();
     enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
@@ -94,6 +95,22 @@ public class BagOfWordsEncoderTest {
     assertTrue(idx >= 0);
     word = enc2.getWord(idx);
     assertEquals("laden", word);
+  }
+  
+  @Test
+  public void testNearestNeighbours() {
+    Document doc = DocumentFactory.fromText(text);
+    BagOfWordsEncoder enc = new BagOfWordsEncoder();
+    enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
+    INDArray a = enc.encode("laden");
+    INDArray b = enc.encode("torture");
+    assertEquals("laden", enc.getNearestNeighbour(a));
+    assertEquals("[laden]", enc.getNearestNeighbours(a, 1).toString());
+    assertEquals("torture", enc.getNearestNeighbour(b));
+    INDArray c = a.mul(0.6).add(b.mul(0.2));
+    assertEquals("laden", enc.getNearestNeighbour(c));
+    assertEquals("[laden]", enc.getNearestNeighbours(c, 1).toString());
+    assertArrayEquals(new String[] { "laden","torture" }, enc.getNearestNeighbours(c, 2).toArray());
   }
   
 }

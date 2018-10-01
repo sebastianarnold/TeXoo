@@ -1,14 +1,14 @@
 package de.datexis.examples;
 
 import de.datexis.common.DialogHelpers;
-import de.datexis.models.ner.MentionAnnotator;
+import de.datexis.ner.MentionAnnotator;
 import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
-import de.datexis.models.index.encoder.EntityEncoder;
-import de.datexis.models.ner.GenericMentionAnnotator;
-import de.datexis.models.ner.MentionAnnotation;
+import de.datexis.index.encoder.EntityEncoder;
+import de.datexis.ner.GenericMentionAnnotator;
+import de.datexis.ner.MentionAnnotation;
 import de.datexis.preprocess.DocumentFactory;
 import java.io.IOException;
 import javax.swing.filechooser.FileNameExtensionFilter;

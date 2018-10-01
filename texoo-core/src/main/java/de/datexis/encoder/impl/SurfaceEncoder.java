@@ -41,7 +41,7 @@ public class SurfaceEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public int getVectorSize() {
+  public long getVectorSize() {
     return encode("Test").length();
   }
 

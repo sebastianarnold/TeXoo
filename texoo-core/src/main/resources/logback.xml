@@ -17,7 +17,7 @@
   <logger name="org.deeplearning4j.ui" level="WARN"/>
   <logger name="com.optimaize.langdetect" level="WARN"/>
   <logger name="edu.stanford.nlp" level="WARN"/>
-  <logger name="org.reflections" level="WARN"/>
+  <logger name="org.reflections" level="ERROR"/>
   <logger name="de.datexis" level="DEBUG"/>
   
 </configuration>

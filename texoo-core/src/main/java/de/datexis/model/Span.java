@@ -30,7 +30,7 @@ public abstract class Span implements Comparable<Span> {
   /**
    * Reference to the Document that this Span belongs to.
    */
-  private Document doc;
+  private Document documentRef;
   
   /**
    * The cursor positions of the Span in the Document (exclusive end)
@@ -60,11 +60,17 @@ public abstract class Span implements Comparable<Span> {
    */
   @JsonIgnore
   public Document getDocumentRef() {
-    return doc;
+    return documentRef;
+  }
+  
+  //@JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonIgnore
+  public Long getDocumentRefUid() {
+    return this.getDocumentRef().getUid();
   }
   
   public void setDocumentRef(Document doc) {
-    this.doc = doc;
+    this.documentRef = doc;
   }
   
   /**
@@ -183,6 +189,14 @@ public abstract class Span implements Comparable<Span> {
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
       return null;// Nd4j.zeros(1,1);//(Encoder)type).getVectorSize(), 1);
     }
+  }
+  
+  public boolean hasVector(Class<? extends Encoder> type) {
+    return hasVector(type.getCanonicalName());
+  }
+  
+  public boolean hasVector(String identifier) {
+    return vectors != null && vectors.containsKey(identifier);
   }
   
   /**

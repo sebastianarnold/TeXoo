@@ -9,30 +9,183 @@
   
   <name>TeXoo</name>
   
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <java.version>1.8</java.version>
+    <texoo.version>1.0.0-SNAPSHOT</texoo.version>
+    <log4j.version>1.2.17</log4j.version>
+    <corenlp.version>3.8.0</corenlp.version>
+    <dl4j.version>1.0.0-beta2</dl4j.version>
+    <nd4j.backend>nd4j-native</nd4j.backend>
+    <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
+    <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
+    <mockito-core.version>2.10.0</mockito-core.version>
+    <java-hamcrest.version>2.0.0.0</java-hamcrest.version>
+    <lucene.version>6.1.0</lucene.version>
+  </properties>
+  
   <modules>
     <module>texoo-core</module>
-    <module>texoo-models</module>
+    <module>texoo-entity-recognition</module>
+    <module>texoo-entity-linking</module>
+    <module>texoo-sector</module>
     <module>texoo-examples</module>
   </modules>  
 
+  <profiles>
+    <profile>
+      <!-- automatically used for normal building -->
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>!override</name>
+        </property>
+      </activation>
+    </profile>
+    <profile>
+      <!-- use this profile to package a clean JAR (e.g. for maven deployment) -->
+      <id>deploy-jar</id>
+      <activation>
+        <property>
+          <name>override</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- build sources jar -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- use this profile to package a shaded "fat"-JAR (e.g. to run in Spark) -->
+      <id>deploy-fatjar</id>
+      <activation>
+        <property>
+          <name>override</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.1</version>
+            <configuration>
+              <source>${java.version}</source>
+              <target>${java.version}</target>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- shaded JAR configuration from dl4j-examples-->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>${maven-shade-plugin.version}</version>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>bin</shadedClassifierName>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>org/datanucleus/**</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                      <resource>reference.conf</resource>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>licenses</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>1.16</version>
+            <executions>
+              <execution>
+                <id>download-licenses</id>
+                <goals>
+                  <goal>download-licenses</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
   <build>
     <plugins>
       <plugin>
-        <!-- Set Max RAM usage -->
+        <!-- Set Max RAM usage for unit tests -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.19.1</version>
         <configuration>
-          <skipTests>true</skipTests>
           <forkCount>1</forkCount>
           <reuseForks>true</reuseForks>
-          <argLine>-Xmx8096m -XX:+UseG1GC</argLine>
+          <argLine>-Xms1G -Xmx4G -XX:+UseG1GC -Dorg.bytedeco.javacpp.maxbytes=24G -Dorg.bytedeco.javacpp.maxphysicalbytes=24G</argLine>
         </configuration>
       </plugin>
       <plugin>
+        <!-- Plugin for mvn:exec-java -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${exec-maven-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <!-- build javadoc jar -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>2.10.4</version>
         <configuration>
           <!-- Default configuration for all reports -->
           <additionalparam>-Xdoclint:none</additionalparam>
@@ -48,18 +201,59 @@
         </configuration>
         <executions>
           <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+          <execution>
             <id>aggregate</id>
             <goals>
               <goal>aggregate</goal>
             </goals>
             <phase>site</phase>
-            <configuration>
-              <!-- Specific configuration for the aggregate report -->
-            </configuration>
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>net.revelc.code.formatter</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
+        <version>2.0.1</version>
+        <configuration>
+          <configFile>${project.basedir}/formatter.xml</configFile>
+        </configuration>
+      </plugin>
     </plugins>
+    
+    <pluginManagement>
+    	<plugins>
+    		<plugin>
+          <!-- Store Eclipse m2e settings -->
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>org.apache.maven.plugins</groupId>
+    								<artifactId>maven-antrun-plugin</artifactId>
+    								<versionRange>[1.7,)</versionRange>
+    								<goals>
+    									<goal>run</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
 
   </build>
 </project>
