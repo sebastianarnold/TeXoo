@@ -39,6 +39,12 @@
       <artifactId>deeplearning4j-parallel-wrapper_2.11</artifactId>
       <version>${dl4j.version}</version>
       <type>jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <!-- String search algorithms -->
