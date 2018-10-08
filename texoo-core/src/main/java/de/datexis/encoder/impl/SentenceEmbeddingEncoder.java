@@ -51,6 +51,12 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
     sent.vec = Word2VecEncoder.load(word2vecPath);
     return sent;
   }
+
+  public static SentenceEmbeddingEncoder create(Encoder encoder){
+    SentenceEmbeddingEncoder sent = new SentenceEmbeddingEncoder();
+    sent.vec = encoder;
+    return sent;
+  }
   
   @Override
   public String getName() {
