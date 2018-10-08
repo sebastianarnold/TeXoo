@@ -35,7 +35,7 @@ public class CharClassEncoder extends StaticEncoder {
   
   @Override
   public String getName() {
-    return "Character Class Encoder";
+    return "Character Class AbstractEncoder";
   }
 
   @Override

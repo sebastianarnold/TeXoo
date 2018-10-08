@@ -53,7 +53,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   
   @Override
   public String getName() {
-    return "Simple Sentence Embedding Encoder";
+    return "Simple Sentence Embedding AbstractEncoder";
   }
 
   @Override

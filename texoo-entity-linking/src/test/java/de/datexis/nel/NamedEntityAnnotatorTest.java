@@ -2,7 +2,7 @@ package de.datexis.nel;
 
 import de.datexis.ner.MentionAnnotator;
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.impl.LetterNGramEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -24,7 +24,7 @@ public class NamedEntityAnnotatorTest {
   
   MentionAnnotator recognize;
   ArticleIndex search;
-  Encoder disambiguate;
+  AbstractEncoder disambiguate;
   
   NamedEntityAnnotator ann;
   

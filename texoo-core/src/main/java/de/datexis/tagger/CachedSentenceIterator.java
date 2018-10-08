@@ -1,6 +1,6 @@
 package de.datexis.tagger;
 
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
@@ -83,7 +83,7 @@ public abstract class CachedSentenceIterator extends AbstractIterator {
   protected void encodeDocument(Document d) {
     docsInUse.add(d);
     // TODO: we could check if the encoding already exists
-    for(Encoder enc : encoders) {
+    for(AbstractEncoder enc : encoders) {
       //log.info("Processing " + enc.getName() + " for " + d.countSentences() + " sentences...");
       enc.encodeEach(d, Token.class);
     }

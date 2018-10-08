@@ -25,7 +25,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Stub for Bloom Filter Encoder on top of Bag Of Words
+ * A Stub for Bloom Filter AbstractEncoder on top of Bag Of Words
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public class BloomEncoder extends BagOfWordsEncoder {
@@ -48,7 +48,7 @@ public class BloomEncoder extends BagOfWordsEncoder {
   
   @Override
   public String getName() {
-    return "Bloom Filter Encoder";
+    return "Bloom Filter AbstractEncoder";
   }
 
   @Override

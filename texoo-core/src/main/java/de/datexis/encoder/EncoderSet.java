@@ -14,34 +14,34 @@ import org.slf4j.LoggerFactory;
  * A set of Encoders for vectors that will be concatenated as input
  * @author sarnold
  */
-// TODO: Extends Encoder would be handy
-public class EncoderSet implements Iterable<Encoder> {
+// TODO: Extends AbstractEncoder would be handy
+public class EncoderSet implements Iterable<AbstractEncoder> {
   
   protected static final org.slf4j.Logger log = LoggerFactory.getLogger(EncoderSet.class);
   
-  protected List<Encoder> encoders;
+  protected List<AbstractEncoder> encoders;
   protected int size;
   
-  public EncoderSet(Encoder... encoders) {
+  public EncoderSet(AbstractEncoder... encoders) {
     this.encoders = new ArrayList<>(encoders.length);
     this.size = 0;
-    for(Encoder enc : encoders) {
+    for(AbstractEncoder enc : encoders) {
       addEncoder(enc);
     }
   }
   
-  public final void addEncoder(Encoder e) {
+  public final void addEncoder(AbstractEncoder e) {
     encoders.add(e);
-    if(e.getVectorSize() == 0) log.warn("Adding uninitialized Encoder " + e.getName());
+    if(e.getVectorSize() == 0) log.warn("Adding uninitialized AbstractEncoder " + e.getName());
     this.size += e.getVectorSize();
   }
   
   /**
-   * Recalculates vector size in case one Encoder has changed
+   * Recalculates vector size in case one AbstractEncoder has changed
    */
   public void updateVectorSize() {
     this.size = 0;
-    for(Encoder enc : this.encoders) {
+    for(AbstractEncoder enc : this.encoders) {
       this.size += enc.getVectorSize();
     }
   }
@@ -50,12 +50,12 @@ public class EncoderSet implements Iterable<Encoder> {
     return size;
   }
   
-  public Iterable<Encoder> iterable() {
+  public Iterable<AbstractEncoder> iterable() {
     return encoders;
   }
 
   @Override
-  public Iterator<Encoder> iterator() {
+  public Iterator<AbstractEncoder> iterator() {
     return encoders.iterator();
   }
   
@@ -65,7 +65,7 @@ public class EncoderSet implements Iterable<Encoder> {
   public INDArray encode(String word) {
     INDArray result = Nd4j.create(getVectorSize());
     int i = 0;
-    for(Encoder enc : encoders) {
+    for(AbstractEncoder enc : encoders) {
       final INDArray vec = enc.encode(word);
       result.get(NDArrayIndex.interval(i, i + enc.getVectorSize())).assign(vec);
       i += enc.getVectorSize();
@@ -76,7 +76,7 @@ public class EncoderSet implements Iterable<Encoder> {
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray result = Nd4j.create(getVectorSize());
     int i = 0;
-    for(Encoder enc : encoders) {
+    for(AbstractEncoder enc : encoders) {
       final INDArray vec = enc.encode(spans);
       result.get(NDArrayIndex.interval(i, i + enc.getVectorSize())).assign(vec);
       i += enc.getVectorSize();

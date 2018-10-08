@@ -35,7 +35,7 @@ public class ClassEncoder extends LookupCacheEncoder {
   
   @Override
   public String getName() {
-    return "Classification Encoder";
+    return "Classification AbstractEncoder";
   }
 
   @Override

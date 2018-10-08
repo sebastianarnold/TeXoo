@@ -36,7 +36,7 @@ public class SurfaceEncoder extends StaticEncoder {
   
   @Override
   public String getName() {
-    return "Surface Form Encoder";
+    return "Surface Form AbstractEncoder";
   }
 
   @Override
@@ -47,7 +47,7 @@ public class SurfaceEncoder extends StaticEncoder {
 
   public void setVectorSize(int size) {
     if(size != getVectorSize()) {
-      throw new IllegalArgumentException("Vector size of saved Encoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
+      throw new IllegalArgumentException("Vector size of saved AbstractEncoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
     }
   }
   

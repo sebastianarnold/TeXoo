@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * Outline for a simple cache-based 1-hot encoder
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public abstract class LookupCacheEncoder extends Encoder {
+public abstract class LookupCacheEncoder extends AbstractEncoder {
 
   /** a cache of all existing n-grams */
   protected VocabularyHolder vocab;

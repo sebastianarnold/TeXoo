@@ -2,7 +2,7 @@ package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.tag.Tag;
 import java.util.EnumMap;
@@ -122,12 +122,12 @@ public abstract class Span implements Comparable<Span> {
   public abstract String getText();
   
   /**
-   * Add an INDArray from an Encoder to this Span.
+   * Add an INDArray from an AbstractEncoder to this Span.
    * Existing vectors of the same class will be overridden.
-   * @param type The Encoder class that generated the vector.
+   * @param type The AbstractEncoder class that generated the vector.
    * @param vec  The Vector itself. Will be cached in memory.
    */
-  public void putVector(Class<? extends Encoder> type, INDArray vec) {
+  public void putVector(Class<? extends AbstractEncoder> type, INDArray vec) {
     putVector(type.getCanonicalName(), vec);
   }
   
@@ -155,7 +155,7 @@ public abstract class Span implements Comparable<Span> {
   /**
    * Clear all Vectors of a given type cached in this Span.
    */
-  public void clearVectors(Class<? extends Encoder> type) {
+  public void clearVectors(Class<? extends AbstractEncoder> type) {
     clearVectors(type.getCanonicalName());
   }
   
@@ -169,10 +169,10 @@ public abstract class Span implements Comparable<Span> {
   
   /**
    * Get the Vector/Embedding added to this Span. If no Vector was added, return null.
-   * @param type The Encoder class that generated the vector.
+   * @param type The AbstractEncoder class that generated the vector.
    * @return A previously added INDArray or null
    */
-  public INDArray getVector(Class<? extends Encoder> type) {
+  public INDArray getVector(Class<? extends AbstractEncoder> type) {
     return getVector(type.getCanonicalName());
   }
   
@@ -187,11 +187,11 @@ public abstract class Span implements Comparable<Span> {
     } else {
       // TODO: find a safer/nicer way to report missing vectors without stopping everything. Or maybe stop.
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
-      return null;// Nd4j.zeros(1,1);//(Encoder)type).getVectorSize(), 1);
+      return null;// Nd4j.zeros(1,1);//(AbstractEncoder)type).getVectorSize(), 1);
     }
   }
   
-  public boolean hasVector(Class<? extends Encoder> type) {
+  public boolean hasVector(Class<? extends AbstractEncoder> type) {
     return hasVector(type.getCanonicalName());
   }
   
@@ -208,7 +208,7 @@ public abstract class Span implements Comparable<Span> {
     //TODO: better use Nd4j.hstack(arrs)
     INDArray result = Nd4j.create(encoders.getVectorSize());
     int i = 0;
-    for(Encoder enc : encoders) {
+    for(AbstractEncoder enc : encoders) {
       INDArray vec = getVector(enc.getClass());
       result.get(NDArrayIndex.interval(i, i + enc.getVectorSize())).assign(vec);
       i += enc.getVectorSize();

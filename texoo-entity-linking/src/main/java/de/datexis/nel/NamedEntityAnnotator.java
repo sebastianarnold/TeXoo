@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import de.datexis.annotator.Annotator;
 import de.datexis.ner.MentionAnnotator;
 import de.datexis.common.Timer;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.model.Document;
 import de.datexis.ner.MentionAnnotation;
 import de.datexis.model.Annotation;
@@ -31,9 +31,9 @@ public class NamedEntityAnnotator extends Annotator {
   
   protected final MentionAnnotator ner;
   protected final ArticleIndex index;
-  protected final Encoder encoder;
+  protected final AbstractEncoder encoder;
     
-  public NamedEntityAnnotator(MentionAnnotator recognize, ArticleIndex search, Encoder disambiguate) {
+  public NamedEntityAnnotator(MentionAnnotator recognize, ArticleIndex search, AbstractEncoder disambiguate) {
     this.ner = recognize;
     this.index = search;
     this.encoder = disambiguate;

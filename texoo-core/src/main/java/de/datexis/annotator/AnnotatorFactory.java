@@ -2,7 +2,7 @@ package de.datexis.annotator;
 
 import de.datexis.tagger.Tagger;
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +29,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 import org.reflections.Configuration;
 import org.reflections.Reflections;
-import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,13 +128,13 @@ public class AnnotatorFactory {
     xmlComp.appendChild(xmlConf);
     if(component.getEncoders().iterator().hasNext()) {
       Element xmlEncoders = xmlDoc.createElement("encoders");
-      for(Encoder e : component.getEncoders()) {
+      for(AbstractEncoder e : component.getEncoders()) {
         Element xmlEncoder = xmlDoc.createElement("encoder");
         xmlEncoder.setAttribute("type", "input");
         xmlEncoder.setAttribute("id", e.getId());
         xmlEncoders.appendChild(xmlEncoder);
       }
-      for(Encoder e : component.getTargetEncoders()) {
+      for(AbstractEncoder e : component.getTargetEncoders()) {
         Element xmlEncoder = xmlDoc.createElement("encoder");
         xmlEncoder.setAttribute("type", "target");
         xmlEncoder.setAttribute("id", e.getId());
@@ -208,7 +207,7 @@ public class AnnotatorFactory {
           xmlEncs = ((Element)xmlEncs.item(0)).getElementsByTagName("encoder");
           for(int j = 0; j < xmlEncs.getLength(); j++) {
             Element xmlEnc = (Element) xmlEncs.item(j); 
-            Encoder enc = (Encoder) ann.components.get(xmlEnc.getAttribute("id"));
+            AbstractEncoder enc = (AbstractEncoder) ann.components.get(xmlEnc.getAttribute("id"));
             if(xmlEnc.getAttribute("type").equals("input")) comp.addInputEncoder(enc);
             else if(xmlEnc.getAttribute("type").equals("target")) comp.addTargetEncoder(enc);
             else comp.addEncoder(enc);

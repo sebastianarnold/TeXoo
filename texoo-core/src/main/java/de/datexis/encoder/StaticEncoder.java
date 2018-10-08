@@ -8,7 +8,7 @@ import java.util.Collection;
  * An encoder that does not need to be trained.
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public abstract class StaticEncoder extends Encoder {
+public abstract class StaticEncoder extends AbstractEncoder {
 
   public StaticEncoder(String id) {
     super(id);
@@ -27,7 +27,7 @@ public abstract class StaticEncoder extends Encoder {
   
   @Override
   public void trainModel(Collection<Document> documents) {
-    log.debug("Static Encoder does not need to be trained.");
+    log.debug("Static AbstractEncoder does not need to be trained.");
   }
   
 }

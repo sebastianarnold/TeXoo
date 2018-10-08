@@ -1,7 +1,7 @@
 package de.datexis.sector.encoder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -162,7 +162,7 @@ public class ClassTag implements Tag {
       doc.setTagAvailable(source, ClassTag.class, true);
     }
     
-    public void attachFromSentenceVectors(Document doc, Class<? extends Encoder> encoder, Annotation.Source source) {
+    public void attachFromSentenceVectors(Document doc, Class<? extends AbstractEncoder> encoder, Annotation.Source source) {
       for(Sentence s : doc.getSentences()) {
         s.putTag(source, create(s.getVector(encoder)));
       }

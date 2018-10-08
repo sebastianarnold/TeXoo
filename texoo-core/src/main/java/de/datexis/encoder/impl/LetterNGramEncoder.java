@@ -38,7 +38,7 @@ public class LetterNGramEncoder extends LookupCacheEncoder {
   
   @Override
   public String getName() {
-    return Integer.toString(n)+"-gram Encoder";
+    return Integer.toString(n)+"-gram AbstractEncoder";
   }
 
   public int getN() {

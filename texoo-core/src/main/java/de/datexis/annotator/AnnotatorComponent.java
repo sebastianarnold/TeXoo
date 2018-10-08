@@ -1,9 +1,9 @@
 package de.datexis.annotator;
 
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.tagger.Tagger;
 import de.datexis.common.Resource;
 import de.datexis.common.Timer;
-import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -131,15 +131,15 @@ public abstract class AnnotatorComponent {
   }
   
   @Deprecated // use addInputEncoder
-  public void addEncoder(Encoder e) {
+  public void addEncoder(AbstractEncoder e) {
     encoders.addEncoder(e);
   }
   
-  public void addInputEncoder(Encoder e) {
+  public void addInputEncoder(AbstractEncoder e) {
     encoders.addEncoder(e);
   }
 
-  public void addTargetEncoder(Encoder e) {
+  public void addTargetEncoder(AbstractEncoder e) {
     targetEncoders.addEncoder(e);
   }
   

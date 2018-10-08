@@ -1,10 +1,10 @@
 package de.datexis.sector;
 
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.annotator.Annotator;
 import de.datexis.annotator.AnnotatorComponent;
 import de.datexis.common.WordHelpers;
-import de.datexis.encoder.Encoder;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.model.Annotation;
@@ -615,7 +615,7 @@ public class SectorAnnotator extends Annotator {
     SectorAnnotator ann;
     SectorTagger tagger;
     
-    protected Encoder[] encoders = new Encoder[0];
+    protected AbstractEncoder[] encoders = new AbstractEncoder[0];
     protected ILossFunction lossFunc = LossFunctions.LossFunction.MCXENT.getILossFunction();
     protected Activation activation = Activation.SOFTMAX;
     protected boolean requireSubsampling = false;
@@ -678,7 +678,7 @@ public class SectorAnnotator extends Annotator {
       return this;
     }
         
-    public Builder withInputEncoders(String desc, Encoder bagEncoder, Encoder embEncoder, Encoder flagEncoder) {
+    public Builder withInputEncoders(String desc, AbstractEncoder bagEncoder, AbstractEncoder embEncoder, AbstractEncoder flagEncoder) {
       tagger.setInputEncoders(bagEncoder, embEncoder, flagEncoder);
       ann.getProvenance().setFeatures(desc);
       ann.addComponent(bagEncoder);
@@ -687,7 +687,7 @@ public class SectorAnnotator extends Annotator {
       return this;
     }
     
-    public Builder withTargetEncoder(Encoder targetEncoder) {
+    public Builder withTargetEncoder(AbstractEncoder targetEncoder) {
       tagger.setTargetEncoder(targetEncoder);
       ann.addComponent(targetEncoder);
       return this;
@@ -708,7 +708,7 @@ public class SectorAnnotator extends Annotator {
     
     /** pretrain encoders */
     public Builder pretrain(Dataset train) {
-      for(Encoder e : encoders) {
+      for(AbstractEncoder e : encoders) {
         e.trainModel(train.streamDocuments());
       }
       return this;
@@ -729,11 +729,11 @@ public class SectorAnnotator extends Annotator {
       StringBuilder line = new StringBuilder();
       line.append("TRAINING PARAMS: ").append(tagger.getName()).append("\n");
       line.append("\nInput Encoders:\n");
-      for(Encoder e : tagger.getEncoders()) {
+      for(AbstractEncoder e : tagger.getEncoders()) {
         line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getVectorSize()).append("\n");
       }
       line.append("\nTarget Encoders:\n");
-      for(Encoder e : tagger.getTargetEncoders()) {
+      for(AbstractEncoder e : tagger.getTargetEncoders()) {
         line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getVectorSize()).append("\n");
       }
       line.append("\nNetwork Params:\n");

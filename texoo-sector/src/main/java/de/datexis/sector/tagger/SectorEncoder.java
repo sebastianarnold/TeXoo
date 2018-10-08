@@ -2,7 +2,7 @@ package de.datexis.sector.tagger;
 
 import de.datexis.annotator.AnnotatorComponent;
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
@@ -17,10 +17,10 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
 
 /**
- * An Encoder that capsules SectorTagger and returns the hidden layer embedding.
+ * An AbstractEncoder that capsules SectorTagger and returns the hidden layer embedding.
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public class SectorEncoder extends Encoder {
+public class SectorEncoder extends AbstractEncoder {
 
   protected SectorTagger tagger;
   
@@ -158,12 +158,12 @@ public class SectorEncoder extends Encoder {
   }
 
   @Override
-  public void addInputEncoder(Encoder e) {
+  public void addInputEncoder(AbstractEncoder e) {
     tagger.addInputEncoder(e);
   }
 
   @Override
-  public void addTargetEncoder(Encoder e) {
+  public void addTargetEncoder(AbstractEncoder e) {
     tagger.addTargetEncoder(e);
   }
   

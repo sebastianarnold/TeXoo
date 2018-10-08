@@ -8,7 +8,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 
 /**
- * A an empty dummy Encoder with vector size 1 that returns always [0].
+ * A an empty dummy AbstractEncoder with vector size 1 that returns always [0].
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)

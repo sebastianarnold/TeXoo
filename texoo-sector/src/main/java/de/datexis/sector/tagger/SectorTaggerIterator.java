@@ -1,7 +1,7 @@
 package de.datexis.sector.tagger;
 
 import com.google.common.collect.Lists;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
@@ -115,7 +115,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
 
       for(int t = 0; t < spansToEncode.size(); t++) {
-        // TODO: this function is a copy from Encoder and only this line is changed:
+        // TODO: this function is a copy from AbstractEncoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
         encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec.dup());
       }
@@ -124,14 +124,14 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
     return encoding;
   }
   
-  /*protected INDArray encode(Encoder enc, Sentence s, Optional<SectionAnnotation> ann) {
+  /*protected INDArray encode(AbstractEncoder enc, Sentence s, Optional<SectionAnnotation> ann) {
     String sectionTitle = ann.isPresent() ? ann.get().getSectionTitle() : "other";
     String sectionClass = ann.isPresent() ? ann.get().getSectionClass(): "other";
     if(enc instanceof HeadingEncoder) return ((HeadingEncoder) enc).encodeSubsampled(sectionTitle);
     else return Nd4j.create(0);
   }*/
   
-  protected INDArray encodeTag(Encoder enc, Span s, Annotation.Source source) {
+  protected INDArray encodeTag(AbstractEncoder enc, Span s, Annotation.Source source) {
     if(enc instanceof HeadingEncoder) {
       HeadingTag heading = s.getTag(source, HeadingTag.class);
       if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(heading.getTag());

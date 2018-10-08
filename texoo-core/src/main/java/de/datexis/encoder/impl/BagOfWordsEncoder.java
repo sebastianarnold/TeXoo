@@ -22,7 +22,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Bag-Of-Words N-Hot Encoder with stopword and minFreq training
+ * A Bag-Of-Words N-Hot AbstractEncoder with stopword and minFreq training
  * @author sarnold
  */
 public class BagOfWordsEncoder extends LookupCacheEncoder {
@@ -45,7 +45,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
   
   @Override
   public String getName() {
-    return "Bag-of-words Encoder";
+    return "Bag-of-words AbstractEncoder";
   }
 
   @Override

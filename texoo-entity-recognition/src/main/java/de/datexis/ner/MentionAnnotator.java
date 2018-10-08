@@ -4,7 +4,7 @@ import de.datexis.annotator.Annotator;
 import de.datexis.common.Resource;
 import de.datexis.common.Timer;
 import de.datexis.common.WordHelpers;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.tagger.Tagger;
 import de.datexis.model.Document;
@@ -213,7 +213,7 @@ public class MentionAnnotator extends Annotator {
     
     protected String types = MentionAnnotation.Type.GENERIC;
     protected Class tagset = BIOESTag.class;
-    protected Encoder[] encoders = new Encoder[0];
+    protected AbstractEncoder[] encoders = new AbstractEncoder[0];
     
     private int trainingSize = -1;
     private int ffwLayerSize = 300;
@@ -259,13 +259,13 @@ public class MentionAnnotator extends Annotator {
       return this;
     }
     
-    public Builder withEncoders(String desc, Encoder... encoders) {
+    public Builder withEncoders(String desc, AbstractEncoder... encoders) {
       ann.getProvenance().setFeatures(desc);
       withEncoders(encoders);
       return this;
     }
     
-    public Builder withEncoders(Encoder... encoders) {
+    public Builder withEncoders(AbstractEncoder... encoders) {
       this.encoders = encoders;
       ann.getProvenance().setArchitecture(this.encoders.toString());
       return this;
@@ -278,14 +278,14 @@ public class MentionAnnotator extends Annotator {
     
     /** pretrain encoders */
     public Builder pretrain(Dataset train) {
-      for(Encoder e : encoders) {
+      for(AbstractEncoder e : encoders) {
         e.trainModel(train.streamDocuments());
       }
       return this;
     }
     
     public MentionAnnotator build() {
-      for(Encoder e : encoders) {
+      for(AbstractEncoder e : encoders) {
         if(!e.isModelAvailable()) throw new IllegalArgumentException("encoder " + e.getId() + " has no model available, please consider pretrain()");
         ann.addComponent(e);
       }

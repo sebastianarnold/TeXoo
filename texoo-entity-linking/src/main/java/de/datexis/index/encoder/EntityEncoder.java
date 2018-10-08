@@ -1,7 +1,7 @@
 package de.datexis.index.encoder;
 
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public class EntityEncoder extends Encoder {
+public class EntityEncoder extends AbstractEncoder {
 
   protected final static Logger log = LoggerFactory.getLogger(EntityEncoder.class);
 

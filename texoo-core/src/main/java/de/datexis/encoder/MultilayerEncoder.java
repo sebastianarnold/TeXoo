@@ -27,7 +27,7 @@ import org.nd4j.linalg.factory.Nd4j;
  * An encoder feed-forward multilayer network that can be trained with datasets.
  * @author sarnold
  */
-public abstract class MultilayerEncoder extends Encoder {
+public abstract class MultilayerEncoder extends AbstractEncoder {
   
   protected static final Logger log = LoggerFactory.getLogger(MultilayerEncoder.class);
 

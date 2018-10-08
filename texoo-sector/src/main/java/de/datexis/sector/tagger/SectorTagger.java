@@ -1,7 +1,7 @@
 package de.datexis.sector.tagger;
 
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.evaluation.ModelEvaluation;
@@ -10,7 +10,6 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.sector.eval.ClassificationScoreCalculator;
 import de.datexis.sector.tagger.DocumentSentenceIterator.Stage;
-import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -29,7 +28,6 @@ import org.nd4j.shade.jackson.annotation.JsonIgnore; // it is import to use the 
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
-import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import org.nd4j.linalg.learning.config.Adam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,13 +65,13 @@ public class SectorTagger extends Tagger {
   protected final Object lock = new Object();
   
   // n-hot encoder, such as bag-of-words or trigrams
-  protected Encoder bagEncoder = null;
+  protected AbstractEncoder bagEncoder = null;
   // embedding encoder from lower layers
-  protected Encoder embEncoder = null;
+  protected AbstractEncoder embEncoder = null;
   // flag encoder, such as position
-  protected Encoder flagEncoder = null;
+  protected AbstractEncoder flagEncoder = null;
   // a single target encoder
-  protected Encoder targetEncoder = null;
+  protected AbstractEncoder targetEncoder = null;
   
   protected int batchSize = 16;
   protected int numExamples = -1;
@@ -115,13 +113,13 @@ public class SectorTagger extends Tagger {
     this.requireSubsampling = requireSubsampling;
   }
   
-  public void setInputEncoders(Encoder bagEncoder, Encoder embEncoder, Encoder flagEncoder) {
+  public void setInputEncoders(AbstractEncoder bagEncoder, AbstractEncoder embEncoder, AbstractEncoder flagEncoder) {
     this.bagEncoder = bagEncoder;
     this.embEncoder = embEncoder;
     this.flagEncoder = flagEncoder;
   }
   
-  public void setTargetEncoder(Encoder targetEncoder) {
+  public void setTargetEncoder(AbstractEncoder targetEncoder) {
     this.targetEncoder = targetEncoder;
   }
 
@@ -146,7 +144,7 @@ public class SectorTagger extends Tagger {
   }
 
   @Override
-  public void addInputEncoder(Encoder e) {
+  public void addInputEncoder(AbstractEncoder e) {
     if(bagEncoder == null) bagEncoder = e;
     else if(embEncoder == null) embEncoder = e;
     else if(flagEncoder == null) flagEncoder = e;
@@ -160,12 +158,12 @@ public class SectorTagger extends Tagger {
   }
 
   @JsonIgnore
-  public Encoder getTargetEncoder() {
+  public AbstractEncoder getTargetEncoder() {
     return targetEncoder;
   }
   
   @Override
-  public void addTargetEncoder(Encoder e) {
+  public void addTargetEncoder(AbstractEncoder e) {
     if(targetEncoder == null) targetEncoder = e;
     else throw new IllegalArgumentException("target encoder is already set");
   }
@@ -183,7 +181,7 @@ public class SectorTagger extends Tagger {
   
   @Override
   @Deprecated
-  public void addEncoder(Encoder e) {
+  public void addEncoder(AbstractEncoder e) {
     // FIXME: we should add input and target encodersets to the XML
     throw new UnsupportedOperationException("multi encoders not implemented yet.");
   }
@@ -474,7 +472,7 @@ public class SectorTagger extends Tagger {
     
   }
   
-  public void attachVectors(Collection<Document> docs, Stage stage, Class<? extends Encoder> targetClass, boolean alignFWBWlayers) {
+  public void attachVectors(Collection<Document> docs, Stage stage, Class<? extends AbstractEncoder> targetClass, boolean alignFWBWlayers) {
     
     SectorTaggerIterator it = new SectorTaggerIterator(stage, docs, this, batchSize, false, requireSubsampling);
     
@@ -502,7 +500,7 @@ public class SectorTagger extends Tagger {
     
   }
   
-  protected void attachVectors(DocumentSentenceIterator.DocumentBatch batch, Class<? extends Encoder> targetClass, boolean alignFWBWlayers) {
+  protected void attachVectors(DocumentSentenceIterator.DocumentBatch batch, Class<? extends AbstractEncoder> targetClass, boolean alignFWBWlayers) {
     
       Map<String,INDArray> weights = encodeMatrix(batch);
       

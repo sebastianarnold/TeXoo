@@ -38,7 +38,7 @@ public class PositionEncoder extends StaticEncoder {
   
   @Override
   public String getName() {
-    return "Positional Encoder";
+    return "Positional AbstractEncoder";
   }
 
   @Override
@@ -49,7 +49,7 @@ public class PositionEncoder extends StaticEncoder {
   
   public void setVectorSize(int size) {
     if(size != getVectorSize()) {
-      throw new IllegalArgumentException("Vector size of saved Encoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
+      throw new IllegalArgumentException("Vector size of saved AbstractEncoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
     }
   }
 

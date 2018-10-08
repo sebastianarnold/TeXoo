@@ -2,7 +2,7 @@ package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.datexis.common.*;
-import de.datexis.encoder.Encoder;
+import de.datexis.encoder.AbstractEncoder;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import de.datexis.model.*;
 import de.datexis.model.Token;
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 //@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
-public class Word2VecEncoder extends Encoder {
+public class Word2VecEncoder extends AbstractEncoder {
 
 	private static final Logger log = LoggerFactory.getLogger(Word2VecEncoder.class);
 

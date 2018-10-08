@@ -3,7 +3,7 @@ package de.datexis.encoder.impl;
 import org.slf4j.LoggerFactory;
 
 /**
- * More readable Version of our heavily-used Trigram-Encoder
+ * More readable Version of our heavily-used Trigram-AbstractEncoder
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public class TrigramEncoder extends LetterNGramEncoder {

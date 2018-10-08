@@ -296,7 +296,7 @@ public class MentionTagger extends Tagger {
   
   /**
    * Predicts labels for all Tokens in the Iterator and assigns Tags (BIO2 or BIOES).
-   * requires: Encoder.class on Token.class (using parallelized DocumentIterator batches)
+   * requires: AbstractEncoder.class on Token.class (using parallelized DocumentIterator batches)
    * attaches: BIO2Tag.class to Token.class
    */
   @Override
