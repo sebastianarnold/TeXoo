@@ -1,6 +1,7 @@
 package de.datexis.encoder.impl;
 
 import de.datexis.common.Resource;
+import de.datexis.encoder.Encoder;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
 import de.datexis.encoder.LookupCacheEncoder;
@@ -27,7 +28,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   
   /** underlying pretrained word2vec model */
-  protected Word2VecEncoder vec;
+  protected Encoder vec;
   
   /** principal component */
   protected INDArray principal;
