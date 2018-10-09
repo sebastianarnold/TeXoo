@@ -47,6 +47,14 @@ public class WordHelpers {
     stopWords = new TreeSet<>(readStopWords(lang));
   }
   
+  public static Language getLanguage(String language) {
+    try {
+      return Language.valueOf(language.trim().toUpperCase());
+    } catch(IllegalArgumentException e) {
+      return Language.EN;
+    }
+  }
+  
   private List<String> readStopWords(Language lang) {
     Resource stop = Resource.fromJAR("stopwords/stopwords_" + lang.toString().toLowerCase() + ".csv");
     List<String> stopWords = new ArrayList<>();
