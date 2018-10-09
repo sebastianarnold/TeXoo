@@ -39,7 +39,7 @@ public class TrainSectorAnnotator {
       new TrainSectorAnnotator().runTraining(params);
     } catch(ParseException e) {
       HelpFormatter formatter = new HelpFormatter();
-      formatter.printHelp("texoo-train-ner-seed", "TeXoo: train MentionAnnotator with seed list", params.setUpCliOptions(), "", true);
+      formatter.printHelp("texoo-train-sector", "TeXoo: train SectorAnnotator from WikiSection dataset", params.setUpCliOptions(), "", true);
     }
    
   }

@@ -80,7 +80,18 @@
       <artifactId>nd4j-native</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
-    
+    <!-- ND4j CUDA -->
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-cuda-9.0-platform</artifactId>
+      <version>${dl4j.version}</version>
+    </dependency>
+    <!-- DL4j cuDNN -->
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-cuda-9.0</artifactId>
+      <version>${dl4j.version}</version>
+    </dependency>
     <!-- Stanford CoreNLP -->
     <!-- GPL v3 License https://stanfordnlp.github.io/CoreNLP/ -->
     <dependency>
