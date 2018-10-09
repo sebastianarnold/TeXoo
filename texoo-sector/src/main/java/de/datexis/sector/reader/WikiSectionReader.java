@@ -25,7 +25,7 @@ public class WikiSectionReader {
   public static Dataset readDatasetFromJSON(Resource path) throws IOException {
     log.info("Reading Wiki Articles from JSON...");
     ObjectSerializer.getObjectMapper().registerSubtypes(SectionAnnotation.class);
-    Dataset result = new Dataset(path.getFileName());
+    Dataset result = new Dataset(path.getFileName().replace(".json", ""));
     Iterator<Document> it = ObjectSerializer.readJSONDocumentIterable(path);
     while(it.hasNext()) {
       Document doc = it.next();
