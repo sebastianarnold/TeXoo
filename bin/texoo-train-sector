@@ -1,4 +1,8 @@
 #!/bin/sh
-export OMP_NUM_THREADS=8
+export CUDA_VISIBLE_DEVICES=1
+export OMP_NUM_THREADS=4
+export BACKEND_PRIORITY_CPU=2
+export BACKEND_PRIORITY_GPU=1
 export MAVEN_OPTS="-XX:+UseG1GC -Xms1G -Xmx4G -Dorg.bytedeco.javacpp.maxbytes=24G -Dorg.bytedeco.javacpp.maxphysicalbytes=24G"
 mvn -e -B -q -pl texoo-sector package exec:java -DskipTests=true -Dexec.mainClass="de.datexis.sector.exec.TrainSectorAnnotator" -Dexec.args="$*"
+# TODO: we might run java directly with java -cp module1/target/classes:module2/target/classes.... com.MyClass
