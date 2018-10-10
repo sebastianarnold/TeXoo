@@ -318,7 +318,7 @@ public class SectorAnnotator extends Annotator {
   protected static void applySectionsFromTargetLabels(Document doc, LookupCacheEncoder targetEncoder, int k) {
     // start first section
     String lastSection = "";
-    INDArray sectionPredictions = Nd4j.create(targetEncoder.getVectorSize()).transposei();
+    INDArray sectionPredictions = Nd4j.create(1, targetEncoder.getVectorSize()).transposei();
     int sectionLength = 0;
     SectionAnnotation section = new SectionAnnotation(Annotation.Source.PRED);
     section.setBegin(doc.getBegin());
@@ -332,7 +332,7 @@ public class SectorAnnotator extends Annotator {
         section = new SectionAnnotation(Annotation.Source.PRED);
         section.setBegin(s.getBegin());
         sectionLength = 0;
-        sectionPredictions = Nd4j.create(targetEncoder.getVectorSize()).transposei();
+        sectionPredictions = Nd4j.create(1, targetEncoder.getVectorSize()).transposei();
       }
       // update current section
       sectionPredictions.addi(pred);

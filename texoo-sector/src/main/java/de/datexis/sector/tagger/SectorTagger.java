@@ -436,7 +436,7 @@ public class SectorTagger extends Tagger {
             net.getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
                     : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
     
-    try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
+    //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
     
       INDArray[] features = next.getFeatures();
       INDArray[] featuresMasks = next.getFeaturesMaskArrays();
@@ -464,12 +464,12 @@ public class SectorTagger extends Tagger {
         weights.put("target", fw.add(bw).divi(2)); // average
       }
       
-      return weights;
     
-    } finally {
+    //} finally {
       clearLayerStates(net);
       net.getConfiguration().setTrainingWorkspaceMode(cMode);
-    }
+      return weights;
+    //}
     
   }
   
@@ -486,14 +486,14 @@ public class SectorTagger extends Tagger {
     // label batches of documents
     while(it.hasNext()) {
 
-      try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
+      //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
 
         attachVectors(it.nextDocumentBatch(), targetClass, alignFWBWlayers);
         
       
-      } finally {
+      //} finally {
         clearLayerStates(getNN());
-      }
+      //}
         
     }
     
