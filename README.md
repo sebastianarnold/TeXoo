@@ -15,14 +15,30 @@ TeXoo is an tagging framework developed at DATEXIS, Beuth University of Applied 
 | de.datexis.annotator.**AnnotatorFactory**   | Factory to create and load models from the zoo |
 | de.datexis.common.**ObjectSerializer**      | Helper methods to import/export JSON          |
 	
-### **texoo-models** – Model Zoo implementations using Deeplearning4j
+### **texoo-entity-recognition** NER implementation using Deeplearning4j
 
 | Package / Class                               | Description / Reference                                                |
 | --------------------------------------------- | ---------------------------------------------------------------------- |
-| de.datexis.models.ner.**GenericMentionAnnotator** | Robust Named Entity Recognition (NER) with pre-trained models for English and German <http://arxiv.org/abs/1608.06757> |
-| de.datexis.models.nel.**NamedEntityAnnotator**    | Named Entity Linking used in TASTY <https://www.aclweb.org/anthology/C/C16/C16-2024.pdf> |
-| de.datexis.models.index.**ArticleIndexFactory**   | Knowledge Base implemented as local Lucene Index which imports Wikidata entities |
-| de.datexis.models.sector.**SectorAnnotator**      | Topic Segmentation and Classification for Long Documents               |
+| de.datexis.ner.**GenericMentionAnnotator** | Robust Named Entity Recognition (NER) with pre-trained models for English and German <http://arxiv.org/abs/1608.06757> |
+
+### **texoo-entity-linking** NEL implementation using Deeplearning4j
+
+Training functions Named Entity Linking models from various datasets (currently under development)
+
+| Package / Class                               | Description / Reference                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| de.datexis.nel.**NamedEntityAnnotator**    | Named Entity Linking used in TASTY <https://www.aclweb.org/anthology/C/C16/C16-2024.pdf> |
+| de.datexis.index.**ArticleIndexFactory**   | Knowledge Base implemented as local Lucene Index which imports Wikidata entities |
+
+### **texoo-sector** – topic classification and text segmentation using LSTM
+
+Training functions SECTOR models from WikiSection dataset (currently under development)
+
+| Package / Class                               | Description / Reference                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| de.datexis.sector.**SectorAnnotator**      | Topic Segmentation and Classification for Long Documents               |
+
+
 
 ### **texoo-examples** – Examples to Start your Implementation
 
@@ -31,19 +47,21 @@ TeXoo is an tagging framework developed at DATEXIS, Beuth University of Applied 
 
 ### Prerequisites
 
-- **Docker** - run ```./install-docker.sh```
-- Local (optional): **Oracle Java 8**
-- Local (optional): **Apache Maven** Build system for Java  
+- **Oracle Java 8**
+- **Apache Maven** Build system for Java  
 <https://maven.apache.org/guides/index.html>
+
+### Installation
+
+- [optional] Create a configuration file and adapt your local model paths:  
+`vim texoo-core/src/main/resources/texoo.properties`
+- Compile, test and install Texoo:  
+`cd texoo-core && mvn install`
 
 ### Usage
 
-This repository consists of different examples how to use TeXoo.
-
-- Docker: start an interactive shell in the texoo container:  
-`./run-docker.sh`
-- Local: Run the example with maven:  
-`cd texoo-examples && mvn exec:java -Dexec.mainClass=de.datexis.examples.AnnotateEntityRecognition`
+- Run the example:  
+`cd texoo-core && mvn exec:java -Dexec.mainClass=de.datexis.examples.AnnotateEntityRecognition`
 
 ## Documentation
 
@@ -59,12 +77,6 @@ This repository consists of different examples how to use TeXoo.
 ### TeXoo Data Model
 
 <p align="center"><img src="doc/texoo_model_document.png" width="80%"></p>
-
-### References
-
-If you use this work, please cite:
-
-Sebastian Arnold, Felix A. Gers, Torsten Kilias, Alexander Löser: Robust Named Entity Recognition in Idiosyncratic Domains. arXiv:1608.06757 [cs.CL] 2016
 
 ## License
 
