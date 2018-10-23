@@ -32,7 +32,7 @@ public class OneHotEncoder extends LookupCacheEncoder {
   
   @Override
   public String getName() {
-    return "1-hot AbstractEncoder";
+    return "1-hot Encoder";
   }
 
   @Override
