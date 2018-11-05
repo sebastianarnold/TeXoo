@@ -15,27 +15,32 @@ TeXoo is an tagging framework developed at DATEXIS, Beuth University of Applied 
 | de.datexis.annotator.**AnnotatorFactory**   | Factory to create and load models from the zoo |
 | de.datexis.common.**ObjectSerializer**      | Helper methods to import/export JSON          |
 	
-### **texoo-models** – Model Zoo implementations using Deeplearning4j
+### **texoo-entity-recognition** NER implementation using Deeplearning4j
 
 | Package / Class                               | Description / Reference                                                |
 | --------------------------------------------- | ---------------------------------------------------------------------- |
-| de.datexis.models.ner.**GenericMentionAnnotator** | Robust Named Entity Recognition (NER) with pre-trained models for English and German <http://arxiv.org/abs/1608.06757> |
-| de.datexis.models.nel.**NamedEntityAnnotator**    | Named Entity Linking used in TASTY <https://www.aclweb.org/anthology/C/C16/C16-2024.pdf> |
-| de.datexis.models.index.**ArticleIndexFactory**   | Knowledge Base implemented as local Lucene Index which imports Wikidata entities |
-| de.datexis.models.sector.**SectorAnnotator**      | Topic Segmentation and Classification for Long Documents               |
+| de.datexis.ner.**GenericMentionAnnotator** | Robust Named Entity Recognition (NER) with pre-trained models for English and German <http://arxiv.org/abs/1608.06757> |
+
+### **texoo-entity-linking** NEL implementation using Deeplearning4j
+
+Training functions Named Entity Linking models from various datasets (currently under development)
+
+| Package / Class                               | Description / Reference                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| de.datexis.nel.**NamedEntityAnnotator**    | Named Entity Linking used in TASTY <https://www.aclweb.org/anthology/C/C16/C16-2024.pdf> |
+| de.datexis.index.**ArticleIndexFactory**   | Knowledge Base implemented as local Lucene Index which imports Wikidata entities |
+
+### **texoo-sector** – topic classification and text segmentation using LSTM
+
+Training functions SECTOR models from WikiSection dataset (currently under development)
+
+| Package / Class                               | Description / Reference                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| de.datexis.sector.**SectorAnnotator**      | Topic Segmentation and Classification for Long Documents               |
+
+
 
 ### **texoo-examples** – Examples to Start your Implementation
-
-
-## Modules in TeXoo-develop (internal)
-
-| Module                 | Description                                                                       |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| **texoo-train-nel**    | Training functions Named Entity Linking models from various datasets (currently under development) |
-| **texoo-train-sector** | Training functions SECTOR models from WikiSection dataset (currently under development) |
-| **texoo-import-wikidata** | Import functions for texoo-models from raw Wikidata dumps (uses Apache Spark)        |
-| **texoo-export-sdw** | export functions for Smart Data Web project (compilation may fail due to external dependencies) |
-| **texoo-training** | a large bunch of old stuff that could be reused or integrated at some point (unit tests likely fail) |
 
 
 ## Installation and Usage
@@ -45,11 +50,6 @@ TeXoo is an tagging framework developed at DATEXIS, Beuth University of Applied 
 - **Oracle Java 8**
 - **Apache Maven** Build system for Java  
 <https://maven.apache.org/guides/index.html>
-
-### Configure Maven Repositories
-
-- to use DATEXIS Maven repository, you need to add (or merge) our read-only credentials into your Maven settings file: `cp settings.xml ~/.m2/`
-- if you have your own credentials and want to encrypt your password, please see <https://maven.apache.org/guides/mini/guide-encryption.html>
 
 ### Installation
 
