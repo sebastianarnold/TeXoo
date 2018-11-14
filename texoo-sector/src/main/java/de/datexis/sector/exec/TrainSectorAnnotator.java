@@ -4,6 +4,7 @@ import de.datexis.common.*;
 import de.datexis.encoder.*;
 import de.datexis.encoder.impl.*;
 import de.datexis.model.*;
+import de.datexis.parvec.encoder.ParVecWordsEncoder;
 import de.datexis.rnn.loss.MultiClassDosSantosPairwiseRankingLoss;
 import de.datexis.sector.SectorAnnotator;
 import de.datexis.sector.encoder.*;
@@ -48,12 +49,14 @@ public class TrainSectorAnnotator {
 
     protected String inputFile;
     protected String outputPath = null;
+    protected String embeddingsFile = null;
     protected boolean trainingUI = false;
 
     @Override
     public void setParams(CommandLine parse) {
       inputFile = parse.getOptionValue("i");
       outputPath = parse.getOptionValue("o");
+      embeddingsFile = parse.getOptionValue("e");
       trainingUI = parse.hasOption("u");
     }
 
@@ -62,6 +65,7 @@ public class TrainSectorAnnotator {
       Options op = new Options();
       op.addRequiredOption("i", "input", true, "file name of WikiSection training dataset");
       op.addRequiredOption("o", "output", true, "path to create and store the model");
+      op.addOption("e", "embedding", true, "path to word embedding model");
       op.addOption("u", "ui", false, "enable training UI (http://127.0.0.1:9000)");
       return op;
     }
@@ -85,7 +89,12 @@ public class TrainSectorAnnotator {
     // Configure encoders and model
     LookupCacheEncoder targetEncoder = initializeClassLabelsTarget(train, lang);
     //LookupCacheEncoder targetEncoder = initializeHeadingsTask(train, lang);
-    SectorAnnotator.Builder builder = initializeClassLabelsModel_bloom(train, lang);
+    SectorAnnotator.Builder builder;
+    if(params.embeddingsFile != null) {
+      builder = initializeClassLabelsModel_wemb(train, lang, Resource.fromFile(params.embeddingsFile));
+    } else {
+      builder = initializeClassLabelsModel_bloom(train, lang);
+    }
     SectorAnnotator sector = builder.withDataset(train.getName(), lang)
                                     .withTargetEncoder(targetEncoder)
                                     .enableTrainingUI(params.trainingUI)
@@ -180,6 +189,21 @@ public class TrainSectorAnnotator {
         .withLossFunction(new MultiClassDosSantosPairwiseRankingLoss(), Activation.IDENTITY, false)
         .withModelParams(0, 256, 128)
         .withTrainingParams(0.001, 0.0, 2048, 16, 1);
+  }
+  
+  protected SectorAnnotator.Builder initializeClassLabelsModel_wemb(Dataset train, WordHelpers.Language lang, Resource embeddingModel) throws IOException {
+    
+    ParVecWordsEncoder wordEmb = new ParVecWordsEncoder();
+    wordEmb.loadModel(embeddingModel);
+    StructureEncoder structure = new StructureEncoder();
+    for(Document doc : train.getDocuments()) structure.encodeEach(doc, Sentence.class);
+    
+    return new SectorAnnotator.Builder()
+        .withId("SECTOR_class")
+        .withInputEncoders("wemb+mxcent+128", new DummyEncoder(), wordEmb, structure)
+        .withLossFunction(new LossMCXENT(), Activation.SOFTMAX, false)
+        .withModelParams(0, 256, 128)
+        .withTrainingParams(0.01, 0.5, 2048, 16, 1);
   }
   
 }
