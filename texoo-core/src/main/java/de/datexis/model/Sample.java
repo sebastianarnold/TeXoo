@@ -95,8 +95,10 @@ public class Sample extends Document {
     else return getDocumentRef().streamAnnotations()
         .filter(a -> a.getBegin() >= this.getBegin() && a.getEnd() <= this.getEnd());
   }
-  
-  
-  
+
+  @Override
+  public long countAnnotations() {
+    return streamAnnotations().count();
+  }
 
 }
