@@ -1,2 +1,0 @@
-#!/bin/sh
-mvn -e -DskipTests=true package
