@@ -7,10 +7,10 @@
 texoo-env
 
 # main class to run:
-CLASS=de.datexis.sector.exec.TrainSectorAnnotator
+CLASS=de.datexis.ner.exec.TrainMentionAnnotatorSeedList
 
 # TODO: check if texoo is already compiled
 
 # exec Maven:
 mvn -e -B -q -DskipTests=true \
-  -pl texoo-sector exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
+  -pl texoo-entity-recognition exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
