@@ -209,13 +209,12 @@ public class MentionAnnotation extends Annotation {
    * @param source
    * @return 
    */
-  private static List<MentionAnnotation> createFromBIO2Tags(Document doc, Annotation.Source source, String annotationType) {
+  private static List<MentionAnnotation> createFromBIO2Tags(Document doc, Annotation.Source source, String defaultType) {
     List<MentionAnnotation> annotations = new ArrayList<>();
     List<Token> tokens = new ArrayList<>();
     
     double confidence = 0.;
-    // FIXME: Predicted Tags do not have Types yet. We could pass a parameter to this function.
-    String type = annotationType;
+    String type = defaultType;
     for(Sentence s : doc.getSentences()) {
       for(Token t : s.getTokens()) {
         BIO2Tag tag = t.getTag(source, BIO2Tag.class);
@@ -223,11 +222,11 @@ public class MentionAnnotation extends Annotation {
           if(tag.isB()) {
             tokens.add(t);
             confidence = tag.getConfidence();
-            //type = tag.getType();
+            if(tag.getType() != null && !tag.getType().isEmpty()) type = tag.getType();
           } else if(tag.isI()) { // I after O, treat as B
             tokens.add(t);
             confidence = tag.getConfidence();
-            //type = tag.getType();
+            if(tag.getType() != null && !tag.getType().isEmpty()) type = tag.getType();
           } else { // O after O
           }
         } else {
@@ -236,7 +235,7 @@ public class MentionAnnotation extends Annotation {
             tokens.clear();
             tokens.add(t);
             confidence = tag.getConfidence();
-            //type = tag.getType();
+            if(tag.getType() != null && !tag.getType().isEmpty()) type = tag.getType();
           } else if(tag.isI()) {
             tokens.add(t);
             confidence += tag.getConfidence();
@@ -244,7 +243,7 @@ public class MentionAnnotation extends Annotation {
             annotations.add(new MentionAnnotation(s.getDocumentRef(), source, tokens, type, confidence / tokens.size()));
             tokens.clear();
             confidence = 0.;
-            type = annotationType;
+            type = defaultType;
           }
         }
       }
