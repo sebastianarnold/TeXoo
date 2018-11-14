@@ -1,0 +1,101 @@
+-DOCSTART- -X- O O
+
+SOCCER NNP I-NP O
+- : O O
+INTERNATIONAL NNP I-NP O
+GAME NNP I-NP O
+RESULT NNP I-NP O
+. . O O
+
+LONDON VB I-VP I-LOC
+1996-08-15 CD I-NP O
+
+Result NN I-NP O
+in IN I-PP O
+an DT I-NP O
+international JJ I-NP O
+
+basketball NN I-NP O
+tournament NN I-NP O
+on IN I-PP O
+Saturday NNP I-NP O
+: : O O
+
+Green NNP I-NP I-ORG
+Star NNP I-NP I-ORG
+( ( O O
+Germany NNP I-NP I-LOC
+) ) O O
+beat VB I-VP O
+Dynamo NNP I-NP I-ORG
+( ( O O
+France NNP I-NP I-LOC
+) ) O O
+90-91 CD I-NP O
+( ( I-NP O
+halftime NN I-NP O
+
+46-46 CD I-ADVP O
+) ) O O
+
+-DOCSTART- -X- O O
+
+BASKETBALL NN I-NP O
+- : O O
+ITALY NNP I-NP I-LOC
+BEAT NN I-INTJ O
+FRANCE NNP I-NP I-LOC
+IN IN I-PP O
+UNDER-21 NNP I-NP O
+MATCH NNP I-NP O
+. . O O
+
+MILANO RB I-NP I-LOC
+1996-08-20 CD I-NP O
+
+Italy NNP I-NP I-LOC
+beat VBD I-VP O
+France NNP I-NP I-LOC
+2-1 CD I-NP O
+( ( I-NP O
+halftime NN I-NP O
+1-1 CD I-NP O
+) ) O O
+in IN I-PP O
+their PRP$ I-NP O
+European JJ I-NP I-MISC
+under-21 JJ I-NP O
+basketball NN I-NP O
+match NN I-NP O
+on IN I-PP O
+Wednesday NNP I-NP O
+. . O O
+
+Scorers NNS I-NP O
+: : O O
+
+Italy NNP I-NP I-LOC
+- : O O
+Cosmin NNP I-NP I-PER
+Contra NNP I-NP I-PER
+( ( O O
+31st CD I-NP O
+) ) O O
+, , O O
+Mihai NNP I-NP I-PER
+Tararache NNP I-NP I-PER
+( ( O O
+75th JJ I-NP O
+) ) O O
+
+France NNP I-NP I-LOC
+- : O O
+Danius NNP I-NP I-PER
+Gleveckas NNP I-NP I-PER
+( ( O O
+13rd CD I-NP O
+) ) O O
+
+Attendance NN I-NP O
+: : O O
+500 CD I-NP O

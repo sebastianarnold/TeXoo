@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# build and install TeXoo modules
+#
+
+mvn -e -DskipTests=true -Dmaven.javadoc.skip=true install

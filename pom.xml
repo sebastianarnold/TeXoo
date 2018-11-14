@@ -15,7 +15,8 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <java.version>1.8</java.version>
     <texoo.version>1.0.0-SNAPSHOT</texoo.version>
-    <log4j.version>1.2.17</log4j.version>
+    <slf4j.version>1.7.25</slf4j.version>
+    <logback.version>1.2.3</logback.version>
     <corenlp.version>3.8.0</corenlp.version>
     <dl4j.version>1.0.0-beta2</dl4j.version>
     <nd4j.backend>nd4j-native</nd4j.backend>

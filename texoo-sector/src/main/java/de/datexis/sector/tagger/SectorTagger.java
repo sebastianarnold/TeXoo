@@ -10,7 +10,6 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.sector.eval.ClassificationScoreCalculator;
 import de.datexis.sector.tagger.DocumentSentenceIterator.Stage;
-import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -29,7 +28,6 @@ import org.nd4j.shade.jackson.annotation.JsonIgnore; // it is import to use the 
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
-import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import org.nd4j.linalg.learning.config.Adam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,8 +229,9 @@ public class SectorTagger extends Tagger {
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.updater(new Adam(learningRate))
         .l2(0.0001)
-        .trainingWorkspaceMode(WorkspaceMode.SEPARATE) // SINGLE faster vs. SEPARATE less memory - use SEPARATE for CUDA...?
-        .inferenceWorkspaceMode(WorkspaceMode.SEPARATE) // NONE required because of async access of sub-models in SectorTaggerIterator
+        .dropOut(0.0)
+        .trainingWorkspaceMode(WorkspaceMode.ENABLED)
+        .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
         //.cacheMode(CacheMode.HOST)
 	.graphBuilder()
     // INPUT LAYERS
@@ -263,7 +262,7 @@ public class SectorTagger extends Tagger {
           .nIn(sentenceVectorSize).nOut(lstmLayerSize)
           .activation(Activation.TANH)
           .gateActivationFunction(Activation.SIGMOID)
-          .dropOut(dropout)
+          //.dropOut(dropout) // not working in beta2 https://github.com/deeplearning4j/deeplearning4j/issues/6326
           .weightInit(WeightInit.XAVIER)
           .build()), "sentence");
       //gb.addVertex("BLSTMFW", new PreprocessorVertex(new RnnToFeedForwardPreProcessor()), "BLSTM");
@@ -437,7 +436,7 @@ public class SectorTagger extends Tagger {
             net.getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
                     : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
     
-    try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
+    //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
     
       INDArray[] features = next.getFeatures();
       INDArray[] featuresMasks = next.getFeaturesMaskArrays();
@@ -465,12 +464,12 @@ public class SectorTagger extends Tagger {
         weights.put("target", fw.add(bw).divi(2)); // average
       }
       
-      return weights;
     
-    } finally {
+    //} finally {
       clearLayerStates(net);
       net.getConfiguration().setTrainingWorkspaceMode(cMode);
-    }
+      return weights;
+    //}
     
   }
   
@@ -487,14 +486,14 @@ public class SectorTagger extends Tagger {
     // label batches of documents
     while(it.hasNext()) {
 
-      try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
+      //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
 
         attachVectors(it.nextDocumentBatch(), targetClass, alignFWBWlayers);
         
       
-      } finally {
+      //} finally {
         clearLayerStates(getNN());
-      }
+      //}
         
     }
     
