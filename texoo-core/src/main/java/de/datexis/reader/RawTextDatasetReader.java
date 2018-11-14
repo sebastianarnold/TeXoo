@@ -19,10 +19,22 @@ import org.slf4j.LoggerFactory;
  * Reads all files from a directory into a Dataset.
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public class DirectoryDatasetReader {
+public class RawTextDatasetReader implements DatasetReader {
 
-  protected final static Logger log = LoggerFactory.getLogger(DirectoryDatasetReader.class);
+  protected final static Logger log = LoggerFactory.getLogger(RawTextDatasetReader.class);
   
+  /**
+   * Read Dataset from a given directory of files.
+   */
+  @Override
+  public Dataset read(Resource path) throws IOException {
+    return readDatasetFromDirectory(path, ".+");
+  }
+  
+  /**
+   * Read Dataset from a given directory of files.
+   * @param pattern REGEX pattern to match only selected file names
+   */
   public static Dataset readDatasetFromDirectory(Resource path, String pattern) throws IOException {
     log.info("Reading Documents from {}", path.toString());
     Dataset data = new Dataset(path.getPath().getFileName().toString());
@@ -35,6 +47,9 @@ public class DirectoryDatasetReader {
     return data;
   }
   
+  /**
+   * Read a single Document from file.
+   */
   public static Document readDocumentFromFile(Resource file) {
     try(InputStream in = file.getInputStream()) {
         CharsetDecoder utf8 = StandardCharsets.UTF_8.newDecoder();
@@ -50,6 +65,6 @@ public class DirectoryDatasetReader {
       throw new RuntimeException(ex.toString(), ex.getCause());
     }
   }
-  
+
 
 }
