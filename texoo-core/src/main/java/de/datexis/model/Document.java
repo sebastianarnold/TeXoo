@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * A Document is a piece of text that mayu contain Sentences, Tokens and Annotations.
  * @author sarnold, fgrimme
  */
-@JsonPropertyOrder({ "class", "id", "uid", "refUid", "language", "type", "begin", "length", "text", "annotations" })
+@JsonPropertyOrder({ "class", "id", "uid", "refUid", "title", "language", "type", "begin", "length", "text", "annotations" })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=Document.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Document extends Span {
@@ -55,6 +55,11 @@ public class Document extends Span {
    * The type of this document
    */
   private String type = null;
+  
+  /**
+   * The title of this document
+   */
+  private String title = null;
   
   /**
    * An arbitrary document source that can be used for provenance.
@@ -495,6 +500,14 @@ public class Document extends Span {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
   }
   
   /**
