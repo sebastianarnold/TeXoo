@@ -446,7 +446,7 @@ public class Document extends Span {
     return (int) streamTokens().count();
   }
   
-  public int countAnnotations() {
+  public long countAnnotations() {
     if(annotations == null) return 0;
     else return (int) annotations.size();
   }
