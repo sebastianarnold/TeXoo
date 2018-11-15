@@ -190,6 +190,7 @@
         <configuration>
           <!-- Default configuration for all reports -->
           <additionalparam>-Xdoclint:none</additionalparam>
+          <additionalOptions>-Xdoclint:none</additionalOptions>
           <failOnError>false</failOnError>
           <additionalDependencies>
             <additionalDependency>

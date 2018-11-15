@@ -130,7 +130,7 @@
     <dependency>
       <groupId>info.debatty</groupId>
       <artifactId>java-string-similarity</artifactId>
-      <version>RELEASE</version>
+      <version>1.1.0</version>
       <!-- MIT License https://github.com/tdebatty/java-string-similarity/ -->
     </dependency>
     <dependency>
