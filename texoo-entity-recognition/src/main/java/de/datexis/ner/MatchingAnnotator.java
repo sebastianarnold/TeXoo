@@ -16,10 +16,14 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -91,9 +95,23 @@ public class MatchingAnnotator extends Annotator {
   }
   
   public void loadTermsToMatch(Resource path) throws IOException {
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(path.getInputStream(), "UTF-8"))) {
-      loadTermsToMatch(br.lines());
-    }
+    if(path.isDirectory()) {
+      Files.walk(path.getPath())
+        .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+        //.filter(p -> p.getFileName().toString().matches(".+"))
+        .forEach(p -> {
+          try {
+            loadTermsToMatch(Resource.fromFile(p.toString()));
+          } catch(IOException ex) {
+            // IOException is now allowed in Stream
+            log.error(ex.toString());
+          }
+        });
+    } else if(path.isFile()) {
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(path.getInputStream(), "UTF-8"))) {
+        loadTermsToMatch(br.lines());
+      }
+    } else throw new FileNotFoundException("cannot open path: " + path.toString());
   }
   
   public void deleteTermsToMatch(Collection<String> terms) {
