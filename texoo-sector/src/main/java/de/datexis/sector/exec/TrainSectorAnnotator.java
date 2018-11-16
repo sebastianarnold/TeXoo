@@ -38,9 +38,11 @@ public class TrainSectorAnnotator {
     try {
       parser.parse(args);
       new TrainSectorAnnotator().runTraining(params);
+      System.exit(0);
     } catch(ParseException e) {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp("texoo-train-sector", "TeXoo: train SectorAnnotator from WikiSection dataset", params.setUpCliOptions(), "", true);
+      System.exit(1);
     }
    
   }
