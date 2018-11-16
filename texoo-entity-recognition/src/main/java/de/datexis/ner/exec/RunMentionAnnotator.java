@@ -32,9 +32,11 @@ public class RunMentionAnnotator {
     try {
       parser.parse(args);
       new RunMentionAnnotator().runAnnotator(params);
+      System.exit(0);
     } catch(ParseException e) {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp("texoo-annotate-ner", "TeXoo: run pre-trained MentionAnnotator model", params.setUpCliOptions(), "", true);
+      System.exit(1);
     }
    
   }

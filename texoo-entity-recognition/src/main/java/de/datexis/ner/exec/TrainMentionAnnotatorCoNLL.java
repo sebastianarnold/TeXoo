@@ -35,9 +35,11 @@ public class TrainMentionAnnotatorCoNLL {
     try {
       parser.parse(args);
       new TrainMentionAnnotatorCoNLL().runTraining(params);
+      System.exit(0);
     } catch(ParseException e) {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp("texoo-train-ner", "TeXoo: train MentionAnnotator with CoNLL annotations", params.setUpCliOptions(), "", true);
+      System.exit(1);
     }
    
   }
@@ -48,7 +50,7 @@ public class TrainMentionAnnotatorCoNLL {
     protected String validationPath;
     protected String testPath;
     protected String outputPath;
-    protected String language = "en";
+    protected String language;
     protected boolean trainingUI = false;
 
     @Override
@@ -58,6 +60,7 @@ public class TrainMentionAnnotatorCoNLL {
       testPath = parse.getOptionValue("t");
       outputPath = parse.getOptionValue("o");
       trainingUI = parse.hasOption("u");
+      language = parse.getOptionValue("l", "en");
     }
 
     protected void TrainMentionAnnotatorCoNLL() {}
@@ -98,6 +101,7 @@ public class TrainMentionAnnotatorCoNLL {
         .build();
 
     // Train model
+    // TODO: add parameters for learning rate, epochs etc.
     ner.trainModel(train, Annotation.Source.GOLD, lang, -1, false, true);
     
     // Save model
