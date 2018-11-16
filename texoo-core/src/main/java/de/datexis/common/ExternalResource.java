@@ -83,4 +83,19 @@ public class ExternalResource extends Resource {
     return new ExternalResource(this.path.replaceFirst("/$", "") + "/" + path.replaceFirst("^/", ""));
   }
 
+  @Override
+  public boolean exists() {
+    return toFile().exists();
+  }
+
+  @Override
+  public boolean isFile() {
+    return toFile().isFile();
+  }
+
+  @Override
+  public boolean isDirectory() {
+    return toFile().isDirectory();
+  }
+  
  }

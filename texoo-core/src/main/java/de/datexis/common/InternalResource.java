@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -87,6 +88,24 @@ public class InternalResource extends Resource {
   @Override
   public Resource resolve(String path) {
     return new InternalResource(this.path.replaceFirst("/$", "") + "/" + path.replaceFirst("^/", ""));
+  }
+  
+  @Override
+  public boolean exists() {
+    URL u = Configuration.class.getClassLoader().getResource(path);
+    return u != null;
+  }
+
+  @Override
+  public boolean isFile() {
+    //URL u = Configuration.class.getClassLoader().getResource(path);
+    //return u != null && u.getProtocol().equals("file");
+    throw new UnsupportedOperationException("cannot access JAR resource as directory");
+  }
+
+  @Override
+  public boolean isDirectory() {
+    throw new UnsupportedOperationException("cannot access JAR resource as directory");
   }
 
 }

@@ -43,6 +43,12 @@ public abstract class Resource {
     return path;
   }
   
+  public abstract boolean exists();
+  
+  public abstract boolean isFile();
+  
+  public abstract boolean isDirectory();
+  
   /**
    * Creates access to an internal file from JAR or resources folder.
    * @param file
