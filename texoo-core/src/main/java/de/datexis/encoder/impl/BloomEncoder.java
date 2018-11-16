@@ -66,13 +66,13 @@ public class BloomEncoder extends BagOfWordsEncoder {
   }
   
   @Override
-  public long getVectorSize() {
-    return (int) bloom.bitSize();
+  public long getEmbeddingVectorSize() {
+    return bloom.bitSize();
   }
   
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     for(Span s : spans) {
       double[] bits = bloom.getBitArray(s.getText());
       INDArray x = Nd4j.create(bits);
@@ -150,7 +150,7 @@ public class BloomEncoder extends BagOfWordsEncoder {
       
       setModel(modelFile);
       setModelAvailable(true);
-      log.info("loaded bloom filter with size " + getVectorSize());
+      log.info("loaded bloom filter with size " + getEmbeddingVectorSize());
       
     } catch(IOException ex) {
       log.error(ex.toString());

@@ -148,7 +148,7 @@ public class NGramEncoderTest {
       25 3-grams, 24 unique, 2 twice (ime) (ist)
     */
     
-    assertEquals(23, ngram.getVectorSize());
+    assertEquals(23, ngram.getEmbeddingVectorSize());
     
     assertFalse(ngram.isUnknown("Prime"));
     assertTrue(ngram.isUnknown("Kengo"));
@@ -173,7 +173,7 @@ public class NGramEncoderTest {
     ngram.trainModel(data.getDocuments());
     INDArray a = ngram.encode("Minister");
     // this has to pass for all Encoders. Don't change!
-    long size = ngram.getVectorSize();
+    long size = ngram.getEmbeddingVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());

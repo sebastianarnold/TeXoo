@@ -48,7 +48,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     super(experimentName, expected, predicted);
     this.K = K;
     this.encoder = encoder;
-    this.numClasses = (int) encoder.getVectorSize();
+    this.numClasses = (int) encoder.getEmbeddingVectorSize();
     log = LoggerFactory.getLogger(ClassificationEvaluation.class);
     clear();
   }

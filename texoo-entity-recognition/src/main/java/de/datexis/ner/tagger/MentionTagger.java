@@ -90,7 +90,7 @@ public class MentionTagger extends Tagger {
     return tagset;
   }
   
-  public static ComputationGraph createBLSTM(int inputVectorSize, int ffwLayerSize, int lstmLayerSize, int outputVectorSize, int iterations, double learningRate) {
+  public static ComputationGraph createBLSTM(long inputVectorSize, long ffwLayerSize, long lstmLayerSize, long outputVectorSize, int iterations, double learningRate) {
 
 		log.info("initializing BLSTM network " + inputVectorSize + ":" + ffwLayerSize + ":" + ffwLayerSize + ":" + lstmLayerSize + ":" + outputVectorSize);
 		ComputationGraphConfiguration.GraphBuilder gb = new NeuralNetConfiguration.Builder()
@@ -215,7 +215,7 @@ public class MentionTagger extends Tagger {
   @Override
   public MentionTagger setEncoders(EncoderSet encoderSet) {
     super.setEncoders(encoderSet);
-    this.inputVectorSize = encoderSet.getVectorSize();
+    this.inputVectorSize = encoderSet.getEmbeddingVectorSize();
     return this;
   }
   

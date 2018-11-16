@@ -57,8 +57,8 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   }
 
   @Override
-  public long getVectorSize() {
-    return vec.getVectorSize();
+  public long getEmbeddingVectorSize() {
+    return vec.getEmbeddingVectorSize();
   }
 
   @Override
@@ -89,7 +89,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
     timer.stop();
     
     // phase 2: compute first principal component
-    INDArray v = Nd4j.zeros(new long[]{d, getVectorSize()});
+    INDArray v = Nd4j.zeros(new long[]{d, getEmbeddingVectorSize()});
     d = 0;
     for(Document doc : documents) {
       for(Sentence s : doc.getSentences()) {
@@ -104,7 +104,7 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   
   private INDArray weightedSum(Iterable<? extends Span> it, double a) {
     int i = 0;
-    INDArray sum = Nd4j.create(getVectorSize(), 1);
+    INDArray sum = Nd4j.create(getEmbeddingVectorSize(), 1);
     INDArray v;
     double p, f;
     for(Span s : it) {

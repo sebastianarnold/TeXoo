@@ -80,7 +80,7 @@ public class KNNArticleIndex extends LuceneArticleIndex {
       ids.transferBackToVocabCache(vocabCache, true);
 
       // append vectors
-      lookupVectors = new InMemoryLookupTable<>(vocabCache, (int) encoder.getVectorSize(), true, 0.01, Nd4j.getRandom(), 0, true);
+      lookupVectors = new InMemoryLookupTable<>(vocabCache, (int) encoder.getEmbeddingVectorSize(), true, 0.01, Nd4j.getRandom(), 0, true);
       lookupVectors.resetWeights();
       
       // create index of vectors

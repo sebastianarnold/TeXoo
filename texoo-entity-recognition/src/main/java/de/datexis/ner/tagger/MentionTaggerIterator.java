@@ -1,6 +1,5 @@
 package de.datexis.ner.tagger;
 
-import com.google.common.collect.Iterables;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -42,7 +41,7 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
     this.encoders = encoders;
     this.tagset = tagset;
     try {
-      this.inputSize = encoders.getVectorSize();
+      this.inputSize = encoders.getEmbeddingVectorSize();
       this.labelSize = this.tagset.newInstance().getVectorSize();
     } catch (InstantiationException | IllegalAccessException ex) {
       log.error("Could not instantiate target class " + tagset.getName());
@@ -70,10 +69,10 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
   @Override
   public DataSet generateDataSet(ArrayList<Sentence> examples, int num, int exampleSize) {
     Sentence example;
-    INDArray input = Nd4j.zeros(new int[]{num, inputSize, exampleSize});
-		INDArray label = Nd4j.zeros(new int[]{num, labelSize, exampleSize});
-    INDArray featuresMask =  Nd4j.zeros(new int[]{num, exampleSize});
-    INDArray labelsMask =  Nd4j.zeros(new int[]{num, exampleSize});
+    INDArray input = Nd4j.zeros(new long[]{num, inputSize, exampleSize});
+		INDArray label = Nd4j.zeros(new long[]{num, labelSize, exampleSize});
+    INDArray featuresMask =  Nd4j.zeros(new long[]{num, exampleSize});
+    INDArray labelsMask =  Nd4j.zeros(new long[]{num, exampleSize});
     DataSet result = new DataSet(input, label, featuresMask, labelsMask);
     for(int batchNum=0; batchNum<num; batchNum++ ) {
       //log.info("Training " + cursor + ": " + s.toString());

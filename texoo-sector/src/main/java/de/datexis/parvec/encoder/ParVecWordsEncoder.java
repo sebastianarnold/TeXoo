@@ -18,7 +18,7 @@ public class ParVecWordsEncoder extends ParVecEncoder {
   protected final static Logger log = LoggerFactory.getLogger(ParVecWordsEncoder.class);
   
   @Override
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     // return size of the embedding!
     return layerSize;
   }
@@ -30,7 +30,7 @@ public class ParVecWordsEncoder extends ParVecEncoder {
               .trim()
               .replaceAll("\n", " *NL* ")
               .replaceAll("\t", " *t* ");
-      INDArray sum = Nd4j.zeros(getVectorSize(), 1);
+      INDArray sum = Nd4j.zeros(getEmbeddingVectorSize(), 1);
       int len = 0;
       for(String w : WordHelpers.splitSpaces(text)) {
         if(w.trim().isEmpty()) continue;
@@ -44,7 +44,7 @@ public class ParVecWordsEncoder extends ParVecEncoder {
     } else if(span instanceof Token) {
       INDArray arr = model.getWordVectorMatrix(preprocessor.preProcess(((Token)span).getText()));
       if(arr != null) return arr;
-      else return Nd4j.zeros(getVectorSize(), 1);
+      else return Nd4j.zeros(getEmbeddingVectorSize(), 1);
     } else {
       return encode(span.getText());
     }

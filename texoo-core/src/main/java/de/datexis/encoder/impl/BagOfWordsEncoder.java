@@ -152,7 +152,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
    */
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     //vector.subi(1.);
     int i;
     for(Span s : spans) {
@@ -179,7 +179,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
    * Tokenizes the String and encodes one word out of it with given distribution.
    */
   public INDArray encodeSubsampled(String phrase) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     List<Token> tokens = DocumentFactory.createTokensFromText(phrase);
     if(tokens.size() == 1) return encode(tokens.get(0));
     List<Pair<String,Double>> itemWeights = new ArrayList<>(5);
@@ -275,9 +275,9 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
 
   @JsonIgnore
   public INDArray subsampleWeights() {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     String w;
-    for(int i=0; i<getVectorSize(); ++i) {
+    for(int i=0; i<getEmbeddingVectorSize(); ++i) {
       w = getWord(i);
       vector.put(i, 0, samplingRate(getProbability(w)));
     }

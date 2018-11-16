@@ -72,7 +72,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
     // target encodings
     INDArray targets;
     if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(batch.docs, batch.maxDocLength, Sentence.class);
-    else targets = Nd4j.zeros(batch.size, tagger.targetEncoder.getVectorSize(), batch.maxDocLength);
+    else targets = Nd4j.zeros(batch.size, tagger.targetEncoder.getEmbeddingVectorSize(), batch.maxDocLength);
     
     return new org.nd4j.linalg.dataset.MultiDataSet(
       new INDArray[]{bag, emb, flag},
@@ -104,7 +104,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   
   public INDArray encodeTarget(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     
-    INDArray encoding = Nd4j.zeros(input.size(), tagger.targetEncoder.getVectorSize(), maxTimeSteps);
+    INDArray encoding = Nd4j.zeros(input.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {

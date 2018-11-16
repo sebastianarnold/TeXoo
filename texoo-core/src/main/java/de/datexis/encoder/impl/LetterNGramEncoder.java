@@ -57,7 +57,7 @@ public class LetterNGramEncoder extends LookupCacheEncoder {
 
   @Override
   public INDArray encode(String phrase) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     List<String> ngrams = generateNGrams(phrase);
     int i;
     for(String ngram : ngrams) {

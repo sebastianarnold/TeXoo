@@ -36,19 +36,19 @@ public class StructureEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return encode("Test").length();
   }
   
   public void setVectorSize(int size) {
-    if(size != getVectorSize()) {
-      throw new IllegalArgumentException("Vector size of saved Encoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
+    if(size != getEmbeddingVectorSize()) {
+      throw new IllegalArgumentException("Vector size of saved Encoder (" + getEmbeddingVectorSize() + ") differs from implementation (" + size + ")");
     }
   }
 
   @Override
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
-    INDArray encoding = Nd4j.zeros(input.size(), getVectorSize(), maxTimeSteps);
+    INDArray encoding = Nd4j.zeros(input.size(), getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {

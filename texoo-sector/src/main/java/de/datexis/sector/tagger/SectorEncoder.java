@@ -50,7 +50,7 @@ public class SectorEncoder extends Encoder {
   }
   
   @Override
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return tagger.getEmbeddingLayerSize();
   }
 

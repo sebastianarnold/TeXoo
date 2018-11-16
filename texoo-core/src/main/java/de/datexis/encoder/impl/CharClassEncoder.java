@@ -39,7 +39,7 @@ public class CharClassEncoder extends StaticEncoder {
   }
 
   @Override
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return encode("Test").length();
   }
 

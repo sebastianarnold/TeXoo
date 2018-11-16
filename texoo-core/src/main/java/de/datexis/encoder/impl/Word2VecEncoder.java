@@ -255,7 +255,7 @@ public class Word2VecEncoder extends Encoder {
 	}
 
 	@Override
-	public long getVectorSize() {
+	public long getEmbeddingVectorSize() {
 		return length;
 	}
 
@@ -266,7 +266,7 @@ public class Word2VecEncoder extends Encoder {
    */
 	@Override
 	public INDArray encode(String word) {
-    INDArray sum = Nd4j.zeros(getVectorSize(), 1);
+    INDArray sum = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     int len = 0;
     for(String w : WordHelpers.splitSpaces(word)) {
       if(w.trim().isEmpty()) continue;

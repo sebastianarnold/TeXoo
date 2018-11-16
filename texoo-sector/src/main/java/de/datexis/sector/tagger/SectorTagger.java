@@ -175,7 +175,7 @@ public class SectorTagger extends Tagger {
   @Override
   public SectorTagger setEncoders(EncoderSet encoders) {
     this.encoders = encoders;
-    this.inputVectorSize = encoders.getVectorSize();
+    this.inputVectorSize = encoders.getEmbeddingVectorSize();
     return this;
   }
   
@@ -240,9 +240,9 @@ public class SectorTagger extends Tagger {
         .addInputs("flag");
     // FF LAYERS
     if(ffwLayerSize > 0) {
-      sentenceVectorSize = ffwLayerSize + embEncoder.getVectorSize() + flagEncoder.getVectorSize();
+      sentenceVectorSize = ffwLayerSize + embEncoder.getEmbeddingVectorSize() + flagEncoder.getEmbeddingVectorSize();
       gb.addLayer("FF1", new DenseLayer.Builder()
-            .nIn(bagEncoder.getVectorSize()).nOut(ffwLayerSize)
+            .nIn(bagEncoder.getEmbeddingVectorSize()).nOut(ffwLayerSize)
             .activation(Activation.ELU)
             .weightInit(WeightInit.RELU)
             .build(), "bag")
@@ -254,7 +254,7 @@ public class SectorTagger extends Tagger {
         .addVertex("surf", new PreprocessorVertex(new FeedForwardToRnnPreProcessor()), "FF2")
         .addVertex("sentence", new MergeVertex(), "surf", "emb", "flag");
     } else {
-      sentenceVectorSize = bagEncoder.getVectorSize() + embEncoder.getVectorSize() + flagEncoder.getVectorSize();
+      sentenceVectorSize = bagEncoder.getEmbeddingVectorSize() + embEncoder.getEmbeddingVectorSize() + flagEncoder.getEmbeddingVectorSize();
       gb.addVertex("sentence", new MergeVertex(), "bag", "emb", "flag");
     }
     // LSTM LAYERS
@@ -285,23 +285,23 @@ public class SectorTagger extends Tagger {
         //.addVertex("prev", new LastTimeStepVertex("bag"), "target")
       //gb.addVertex("embedding", new ElementWiseVertex(ElementWiseVertex.Op.Average), "embeddingFW", "embeddingBW").allowDisconnected(true);
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
-            .nIn(embeddingLayerSize).nOut(targetEncoder.getVectorSize())
+            .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
             .weightInit(WeightInit.XAVIER)
             .build(), "embeddingFW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
-            .nIn(embeddingLayerSize).nOut(targetEncoder.getVectorSize())
+            .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
             .weightInit(WeightInit.XAVIER)
             .build(), "embeddingBW");
     } else {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
-            .nIn(lstmLayerSize).nOut(targetEncoder.getVectorSize())
+            .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
             .weightInit(WeightInit.XAVIER)
             .build(), "FW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
-            .nIn(lstmLayerSize).nOut(targetEncoder.getVectorSize())
+            .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
             .weightInit(WeightInit.XAVIER)
             .build(), "BW");

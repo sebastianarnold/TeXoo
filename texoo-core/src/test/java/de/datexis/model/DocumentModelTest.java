@@ -202,13 +202,13 @@ public class DocumentModelTest {
     SurfaceEncoder encoder = new SurfaceEncoder();
     INDArray vec = encoder.encode(t);
     INDArray vec2 = Nd4j.create(new double[]{1., 0., .5});
-    assertEquals(encoder.getVectorSize(), vec.length());
+    assertEquals(encoder.getEmbeddingVectorSize(), vec.length());
     INDArray test = t.getVector(SurfaceEncoder.class);
     assertNull(test);
     t.putVector(encoder.getClass(), vec);
     test = t.getVector(SurfaceEncoder.class);
     assertNotNull(test);
-    assertEquals(encoder.getVectorSize(), test.length());
+    assertEquals(encoder.getEmbeddingVectorSize(), test.length());
     assertEquals(vec, test);
     t.putVector(PositionEncoder.class, vec2);
     s.clearVectors();

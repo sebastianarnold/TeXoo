@@ -21,7 +21,7 @@ public class Word2VecEncoderTest {
   @Test
   public void testLoadModel() {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
-    assertEquals(150, vec.getVectorSize());
+    assertEquals(150, vec.getEmbeddingVectorSize());
     assertTrue(vec.isUnknown("DATEXIS"));
     assertFalse(vec.isUnknown("berlin"));
     assertFalse(vec.isUnknown("Berlin"));
@@ -37,11 +37,11 @@ public class Word2VecEncoderTest {
   @Test
   public void testSaveBinaryModel() {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
-    assertEquals(150, vec.getVectorSize());
+    assertEquals(150, vec.getEmbeddingVectorSize());
     Resource temp = Resource.createTempDirectory();
     vec.saveModel(temp, "word2vec", Word2VecEncoder.ModelType.BINARY);
     Word2VecEncoder bin = Word2VecEncoder.load(temp.resolve("word2vec.bin"));
-    assertEquals(150, bin.getVectorSize());
+    assertEquals(150, bin.getEmbeddingVectorSize());
     assertTrue(bin.isUnknown("DATEXIS"));
     assertFalse(bin.isUnknown("berlin"));
     assertFalse(bin.isUnknown("Berlin"));
@@ -68,7 +68,7 @@ public class Word2VecEncoderTest {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
     INDArray a = vec.encode("berlin");
     // this has to pass for all Encoders. Don't change!
-    long size = vec.getVectorSize();
+    long size = vec.getEmbeddingVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());

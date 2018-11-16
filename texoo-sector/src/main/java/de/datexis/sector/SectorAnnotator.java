@@ -254,7 +254,7 @@ public class SectorAnnotator extends Annotator {
     // attach PRED vectors and labels from empty Annotations
     for(SectionAnnotation ann : doc.getAnnotations(Annotation.Source.PRED, SectionAnnotation.class)) {
       int count = 0;
-      INDArray pred = Nd4j.zeros(targetEncoder.getVectorSize(), 1);
+      INDArray pred = Nd4j.zeros(targetEncoder.getEmbeddingVectorSize(), 1);
       for(Sentence s : doc.streamSentencesInRange(ann.getBegin(), ann.getEnd(), false).collect(Collectors.toList())) {
         pred.addi(s.getVector(targetEncoder.getClass()));
         count++;
@@ -318,7 +318,7 @@ public class SectorAnnotator extends Annotator {
   protected static void applySectionsFromTargetLabels(Document doc, LookupCacheEncoder targetEncoder, int k) {
     // start first section
     String lastSection = "";
-    INDArray sectionPredictions = Nd4j.create(1, targetEncoder.getVectorSize()).transposei();
+    INDArray sectionPredictions = Nd4j.create(1, targetEncoder.getEmbeddingVectorSize()).transposei();
     int sectionLength = 0;
     SectionAnnotation section = new SectionAnnotation(Annotation.Source.PRED);
     section.setBegin(doc.getBegin());
@@ -332,7 +332,7 @@ public class SectorAnnotator extends Annotator {
         section = new SectionAnnotation(Annotation.Source.PRED);
         section.setBegin(s.getBegin());
         sectionLength = 0;
-        sectionPredictions = Nd4j.create(1, targetEncoder.getVectorSize()).transposei();
+        sectionPredictions = Nd4j.create(1, targetEncoder.getEmbeddingVectorSize()).transposei();
       }
       // update current section
       sectionPredictions.addi(pred);
@@ -351,7 +351,7 @@ public class SectorAnnotator extends Annotator {
     int PCA_DIMS = 8;
     
     // preprocess PCA
-    INDArray docTargets = Nd4j.zeros(doc.countSentences(), targetEncoder.getVectorSize());
+    INDArray docTargets = Nd4j.zeros(doc.countSentences(), targetEncoder.getEmbeddingVectorSize());
     int t = 0;
     for(Sentence s : doc.getSentences()) {
       docTargets.getRow(t++).assign(s.getVector(targetEncoder.getClass()));
@@ -730,11 +730,11 @@ public class SectorAnnotator extends Annotator {
       line.append("TRAINING PARAMS: ").append(tagger.getName()).append("\n");
       line.append("\nInput Encoders:\n");
       for(Encoder e : tagger.getEncoders()) {
-        line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getVectorSize()).append("\n");
+        line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getEmbeddingVectorSize()).append("\n");
       }
       line.append("\nTarget Encoders:\n");
       for(Encoder e : tagger.getTargetEncoders()) {
-        line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getVectorSize()).append("\n");
+        line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getEmbeddingVectorSize()).append("\n");
       }
       line.append("\nNetwork Params:\n");
       line.append("FF").append("\t").append(ffwLayerSize).append("\n");

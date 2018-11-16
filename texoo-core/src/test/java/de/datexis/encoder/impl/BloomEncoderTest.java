@@ -37,7 +37,7 @@ public class BloomEncoderTest {
     assertFalse(enc.isModelAvailable());
     enc.trainModel(Arrays.asList(doc), 0, WordHelpers.Language.EN);
     assertTrue(enc.isModelAvailable());
-    long vectorSize = enc.getVectorSize();
+    long vectorSize = enc.getEmbeddingVectorSize();
     assertTrue(vectorSize >= 8);
     INDArray word1 = enc.encode("nuthatch");
     INDArray word2 = enc.encode("songbird");
@@ -55,7 +55,7 @@ public class BloomEncoderTest {
     Document doc = DocumentFactory.fromText(text);
     BloomEncoder enc = new BloomEncoder(1024, 4);
     enc.trainModel(Arrays.asList(doc), 0, WordHelpers.Language.EN);
-    assertEquals(1024, enc.getVectorSize());
+    assertEquals(1024, enc.getEmbeddingVectorSize());
     INDArray sent1 = enc.encode(doc.getSentence(0));
     INDArray sent2 = enc.encode(doc.getSentence(1));
     INDArray word1 = enc.encode("Sitta");
@@ -81,7 +81,7 @@ public class BloomEncoderTest {
     INDArray sent1 = enc.encode(doc.getSentence(0));
     INDArray word1 = enc.encode("carolinensis");
     assertFalse(sent1.equals(word1));
-    assertEquals(1024, enc.getVectorSize());
+    assertEquals(1024, enc.getEmbeddingVectorSize());
     assertEquals(1024, sent1.length());
     assertEquals(1024, word1.length());
     enc.saveModel(temp, "bloom");
@@ -93,7 +93,7 @@ public class BloomEncoderTest {
     INDArray sent2 = enc2.encode(doc.getSentence(0));
     INDArray word2 = enc2.encode("carolinensis");
     assertFalse(sent2.equals(word2));
-    assertEquals(1024, enc2.getVectorSize());
+    assertEquals(1024, enc2.getEmbeddingVectorSize());
     assertEquals(1024, sent2.length());
     assertEquals(1024, word2.length());
     

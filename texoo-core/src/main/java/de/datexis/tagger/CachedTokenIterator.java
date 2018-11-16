@@ -115,7 +115,7 @@ public abstract class CachedTokenIterator extends AbstractIterator {
    */
   @Override
   public int inputColumns() {
-    return inputSize;
+    return (int) inputSize;
   }
 
   /**
@@ -124,14 +124,16 @@ public abstract class CachedTokenIterator extends AbstractIterator {
    */
   @Override
   public int totalOutcomes() {
-    return labelSize;
+    return (int) labelSize;
   }
   
-  public int getInputSize() {
+  @Override
+  public long getInputSize() {
     return inputSize;
   }
 
-  public int getLabelSize() {
+  @Override
+  public long getLabelSize() {
     return labelSize;
   }
   

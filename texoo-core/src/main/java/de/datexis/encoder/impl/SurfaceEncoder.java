@@ -41,13 +41,13 @@ public class SurfaceEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return encode("Test").length();
   }
 
   public void setVectorSize(int size) {
-    if(size != getVectorSize()) {
-      throw new IllegalArgumentException("Vector size of saved Encoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
+    if(size != getEmbeddingVectorSize()) {
+      throw new IllegalArgumentException("Vector size of saved Encoder (" + getEmbeddingVectorSize() + ") differs from implementation (" + size + ")");
     }
   }
   

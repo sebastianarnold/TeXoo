@@ -120,12 +120,12 @@ public class SectorTaggerIteratorTest {
 
   private MultiDataSet generateExpectedEncoding(List<Document> batch, SectorTagger tagger, int maxDocLength) {
     // inputs
-    INDArray bag = Nd4j.zeros(batch.size(), tagger.bagEncoder.getVectorSize(), maxDocLength);
-    INDArray emb = Nd4j.zeros(batch.size(), tagger.embEncoder.getVectorSize(), maxDocLength);
-    INDArray flag = Nd4j.zeros(batch.size(), tagger.flagEncoder.getVectorSize(), maxDocLength);
+    INDArray bag = Nd4j.zeros(batch.size(), tagger.bagEncoder.getEmbeddingVectorSize(), maxDocLength);
+    INDArray emb = Nd4j.zeros(batch.size(), tagger.embEncoder.getEmbeddingVectorSize(), maxDocLength);
+    INDArray flag = Nd4j.zeros(batch.size(), tagger.flagEncoder.getEmbeddingVectorSize(), maxDocLength);
     INDArray inputMask = Nd4j.zeros(batch.size(), maxDocLength);
     // targets
-    INDArray targets = Nd4j.zeros(batch.size(), tagger.targetEncoder.getVectorSize(), maxDocLength);
+    INDArray targets = Nd4j.zeros(batch.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxDocLength);
     INDArray labelMask = Nd4j.zeros(batch.size(), maxDocLength);
     // empty data set
     MultiDataSet result = new org.nd4j.linalg.dataset.MultiDataSet(

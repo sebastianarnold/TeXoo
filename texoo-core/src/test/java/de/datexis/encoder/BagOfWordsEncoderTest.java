@@ -43,7 +43,7 @@ public class BagOfWordsEncoderTest {
     assertFalse(enc.isModelAvailable());
     enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
     assertTrue(enc.isModelAvailable());
-    assertTrue(enc.getVectorSize() >= 8);
+    assertTrue(enc.getEmbeddingVectorSize() >= 8);
     assertEquals(6, enc.getFrequency("torture"));
     assertFalse(enc.isUnknown("torture"));
     assertEquals(0, enc.getFrequency("concerned")); // 1 < minFrequency
@@ -63,7 +63,7 @@ public class BagOfWordsEncoderTest {
     enc.trainModel(Arrays.asList(doc), 3, WordHelpers.Language.EN);
     INDArray a = enc.encode("laden");
     // this has to pass for all Encoders. Don't change!
-    long size = enc.getVectorSize();
+    long size = enc.getEmbeddingVectorSize();
     assertEquals(size, a.length());
     assertEquals(size, a.size(0));
     assertEquals(size, a.rows());
@@ -88,7 +88,7 @@ public class BagOfWordsEncoderTest {
     enc.saveModel(temp, "bow");
     BagOfWordsEncoder enc2 = new BagOfWordsEncoder();
     enc2.loadModel(temp.resolve("bow.tsv.gz"));
-    assertEquals(enc.getVectorSize(), enc2.getVectorSize());
+    assertEquals(enc.getEmbeddingVectorSize(), enc2.getEmbeddingVectorSize());
     idx = enc2.getIndex("blubb");
     assertEquals(-1, idx);
     idx = enc2.getIndex("laden");

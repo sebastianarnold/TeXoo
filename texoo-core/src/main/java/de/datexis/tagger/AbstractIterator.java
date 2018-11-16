@@ -34,7 +34,7 @@ public abstract class AbstractIterator implements DataSetIterator {
   protected int totalExamples;
   protected int cursor;
   protected int batchSize;
-  protected int inputSize, labelSize;
+  protected long inputSize, labelSize;
   protected boolean randomize;
   
   protected long startTime;
@@ -131,7 +131,7 @@ public abstract class AbstractIterator implements DataSetIterator {
   @Override
   public int inputColumns() {
     // TODO: is this one word or one sentence?
-    return inputSize;
+    return (int) inputSize;
   }
 
   /**
@@ -140,14 +140,14 @@ public abstract class AbstractIterator implements DataSetIterator {
    */
   @Override
   public int totalOutcomes() {
-    return labelSize;
+    return (int) labelSize;
   }
   
-  public int getInputSize() {
+  public long getInputSize() {
     return inputSize;
   }
 
-  public int getLabelSize() {
+  public long getLabelSize() {
     return labelSize;
   }
   

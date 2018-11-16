@@ -21,7 +21,7 @@ public class DummyEncoder extends StaticEncoder {
   
   @Override
   @JsonIgnore
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return 1;
   }
 

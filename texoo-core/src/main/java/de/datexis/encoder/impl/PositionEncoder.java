@@ -43,13 +43,13 @@ public class PositionEncoder extends StaticEncoder {
 
   @Override
   @JsonIgnore
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return wordAsVector("", false, false, false, false).length();
   }
   
   public void setVectorSize(int size) {
-    if(size != getVectorSize()) {
-      throw new IllegalArgumentException("Vector size of saved Encoder (" + getVectorSize() + ") differs from implementation (" + size + ")");
+    if(size != getEmbeddingVectorSize()) {
+      throw new IllegalArgumentException("Vector size of saved Encoder (" + getEmbeddingVectorSize() + ") differs from implementation (" + size + ")");
     }
   }
 

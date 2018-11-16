@@ -39,12 +39,12 @@ public abstract class Tagger extends AnnotatorComponent {
   /**
    * Size of the input vector
    */
-  protected int inputVectorSize;
+  protected long inputVectorSize;
   
   /**
    * Size of the output vector
    */
-  protected int outputVectorSize;
+  protected long outputVectorSize;
   
   /**
    * The network to train
@@ -56,7 +56,7 @@ public abstract class Tagger extends AnnotatorComponent {
     this.id = id;
   }
   
-  protected Tagger(int inputVectorSize, int outputVectorSize) {
+  protected Tagger(long inputVectorSize, long outputVectorSize) {
     super(false);
     this.inputVectorSize = inputVectorSize; // number of inputs (I)
     this.outputVectorSize = outputVectorSize; // number of outputs (K)

@@ -47,7 +47,7 @@ public abstract class LookupCacheEncoder extends Encoder {
   
   @Override
   //@JsonIgnore
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     return vocab.numWords();
   }
   
@@ -62,7 +62,7 @@ public abstract class LookupCacheEncoder extends Encoder {
    * @return target vector for Vocabulary word or null vector if word dies not exist
    */
   public INDArray oneHot(String word) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     int i = getIndex(word);
     if(i>=0) vector.put(i, 0, 1.0);
     else log.warn("could not encode class '{}'. is it contained in training set?", word);

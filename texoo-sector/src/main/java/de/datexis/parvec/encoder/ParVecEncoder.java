@@ -223,7 +223,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
   }
   
   @Override
-  public long getVectorSize() {
+  public long getEmbeddingVectorSize() {
     //return model.inferVector("test").length();
     // return number of classes!
     return targetSize;

@@ -42,7 +42,7 @@ public class OneHotEncoder extends LookupCacheEncoder {
 
   @Override
   public INDArray encode(String word) {
-    INDArray vector = Nd4j.zeros(getVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     String w = preprocessor.preProcess(word);
     int i = vocab.indexOf(w);
     if(i>=0) vector.put(i, 0, 1.0);

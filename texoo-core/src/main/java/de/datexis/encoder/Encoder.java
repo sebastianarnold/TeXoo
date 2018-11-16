@@ -8,7 +8,6 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import de.datexis.tagger.AbstractIterator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -20,10 +19,11 @@ import org.nd4j.linalg.indexing.INDArrayIndex;
 import static org.nd4j.linalg.indexing.NDArrayIndex.*;
 
 /**
- * Encodes a Span into a Vector
- * @author sarnold
+ * An Encoder converts text (Span) to embedding vectors (INDArray).
+ * E.g. word embedding
+ * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public abstract class Encoder extends AnnotatorComponent {
+public abstract class Encoder extends AnnotatorComponent implements IEncoder {
 
   public Encoder() {
     this("");
@@ -33,27 +33,14 @@ public abstract class Encoder extends AnnotatorComponent {
     super(false);
     this.id = id;
   }
-  
-	/**
-	 * Get the size of the result vector
-	 * @return INDArray scalar length
-	 */
-	public abstract long getVectorSize();
-
-	/**
-	 * Generate a fixed-size vector of a Token
-   * @param span the Span to encode
-	 * @return INDArray containing the encoded Token
-	 */
-	public abstract INDArray encode(Span span);
-  
+    
   /**
-   * Encode a fixed-size vector from multiple Tokens
+   * Encode a fixed-size vector from multiple Spans
    * @param spans the Spans to encode
    * @return INDArray containing all Tokens combined
    */
   public INDArray encode(Iterable<? extends Span> spans) {
-    INDArray avg = Nd4j.create(getVectorSize(), 1);
+    INDArray avg = Nd4j.create(getEmbeddingVectorSize(), 1);
     INDArray vec;
     int i = 0;
     for(Span s : spans) {
@@ -65,13 +52,6 @@ public abstract class Encoder extends AnnotatorComponent {
     }
     return avg.divi(i);
   }
-
-	/**
-	 * Generate a fixed-size vector of a String
-	 * @param word
-	 * @return
-	 */
-	public abstract INDArray encode(String word);
 
   /**
    * Encodes each element in the input and attaches the vectors to the element.
@@ -93,7 +73,7 @@ public abstract class Encoder extends AnnotatorComponent {
    */
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
 
-    INDArray encoding = Nd4j.zeros(input.size(), getVectorSize(), maxTimeSteps);
+    INDArray encoding = Nd4j.zeros(input.size(), getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {

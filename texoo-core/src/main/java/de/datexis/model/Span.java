@@ -206,12 +206,12 @@ public abstract class Span implements Comparable<Span> {
    */  
   public INDArray getVector(EncoderSet encoders) {
     //TODO: better use Nd4j.hstack(arrs)
-    INDArray result = Nd4j.create(encoders.getVectorSize());
+    INDArray result = Nd4j.create(encoders.getEmbeddingVectorSize());
     int i = 0;
     for(Encoder enc : encoders) {
       INDArray vec = getVector(enc.getClass());
-      result.get(NDArrayIndex.interval(i, i + enc.getVectorSize())).assign(vec);
-      i += enc.getVectorSize();
+      result.get(NDArrayIndex.interval(i, i + enc.getEmbeddingVectorSize())).assign(vec);
+      i += enc.getEmbeddingVectorSize();
     }
     return result;
   }
