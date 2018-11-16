@@ -1,1 +1,16 @@
-#!/bin/bash
+#!/bin/sh
+#
+# TeXoo run script
+#
+
+# configure environment:
+texoo-env
+
+# main class to run:
+CLASS=de.datexis.ner.exec.RunMentionAnnotator
+
+# TODO: check if texoo is already compiled
+
+# exec Maven:
+mvn -e -B -q -DskipTests=true \
+  -pl texoo-entity-recognition exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
