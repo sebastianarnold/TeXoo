@@ -15,6 +15,36 @@
   
   <name>TeXoo-core</name>
 
+  <profiles>
+    <profile>
+      <id>deploy-jar</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <!-- don't include user texoo.properties in deployment -->
+                    <delete file="${project.build.outputDirectory}/texoo.properties"/>
+                    <copy   file="${project.build.outputDirectory}/texoo.properties.template"
+                          tofile="${project.build.outputDirectory}/texoo.properties"/>
+                    <delete file="${project.build.outputDirectory}/texoo.properties.template"/>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <resources>
       <resource>
