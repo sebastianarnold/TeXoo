@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-parallel-wrapper_2.11</artifactId>
+      <artifactId>deeplearning4j-parallel-wrapper</artifactId>
       <version>${dl4j.version}</version>
       <type>jar</type>
       <exclusions>

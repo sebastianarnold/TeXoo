@@ -14,18 +14,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.apache.commons.lang3.tuple.Pair;
 import org.deeplearning4j.api.storage.StatsStorage;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
-import org.deeplearning4j.nn.conf.layers.GravesBidirectionalLSTM;
 import org.deeplearning4j.nn.conf.layers.LSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional.Mode;
-import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
-import org.deeplearning4j.nn.conf.preprocessor.RnnToFeedForwardPreProcessor;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -33,11 +29,11 @@ import org.deeplearning4j.parallelism.ParallelWrapper;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
+import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.learning.config.Adam;
-import org.nd4j.linalg.learning.config.RmsProp;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +54,7 @@ public class MentionTagger extends Tagger {
   protected int batchSize = 32;
   protected int numEpochs = 1;
   protected boolean randomize = true;
-  protected int workers = 4;
+  protected int workers = 1;
   
   protected Class<? extends Tag> tagset = BIOESTag.class;
   protected String types = Tag.GENERIC;
@@ -134,7 +130,7 @@ public class MentionTagger extends Tagger {
             .build(), "BLSTM")
         .setOutputs("output")
         .setInputTypes(InputType.recurrent(inputVectorSize))
-				.pretrain(false).backprop(true).backpropType(BackpropType.Standard)
+				.backpropType(BackpropType.Standard)
         .build();
 
     ComputationGraphConfiguration conf = gb.build();
@@ -142,58 +138,6 @@ public class MentionTagger extends Tagger {
 		lstm.init();
 		return lstm;
     
-  }
-  
-  /**
-	 * creates a GravesLSTM with given configuration
-	 * 
-	 * @param inputVectorSize
-   * @param ffwLayerSize
-	 * @param lstmLayerSize
-	 * @param outputVectorSize
-   * @param iterations
-   * @param learningRate
-	 * @return
-	 */
-  @Deprecated
-	public static MultiLayerNetwork createBLSTMNet(int inputVectorSize, int ffwLayerSize, int lstmLayerSize, int outputVectorSize, int iterations, double learningRate) {
-
-		log.info("initializing FF+BLSTM network " + inputVectorSize + ":" + ffwLayerSize + ":" + ffwLayerSize + ":" + lstmLayerSize + ":" + outputVectorSize);
-		MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-        .l2(0.0001)
-        .weightInit(WeightInit.XAVIER)
-				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-        //.updater(Updater.RMSPROP).rmsDecay(0.95)
-        //.updater(Updater.NESTEROVS).momentum(0.9) // momentum
-        .updater(new Adam(learningRate, 0.9, 0.999, 1e-8))
-				.list()
-        .layer(0, new DenseLayer.Builder().nIn(inputVectorSize).nOut(ffwLayerSize)
-                .activation(Activation.RELU)
-                .weightInit(WeightInit.RELU)
-                .build())
-        .layer(1, new DenseLayer.Builder().nIn(ffwLayerSize).nOut(ffwLayerSize)
-                .activation(Activation.RELU)
-                .weightInit(WeightInit.RELU)
-                .build())
-        .layer(2, new GravesBidirectionalLSTM.Builder().nIn(ffwLayerSize).nOut(lstmLayerSize)
-								.activation(Activation.TANH)
-                .weightInit(WeightInit.XAVIER)
-                //.dropOut(0.5)
-                .build())
-        .layer(3, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT).nIn(lstmLayerSize).nOut(outputVectorSize)
-                .activation(Activation.SOFTMAX)
-                .weightInit(WeightInit.XAVIER)
-                .build())
-				.inputPreProcessor(0, new RnnToFeedForwardPreProcessor())
-        .inputPreProcessor(2, new FeedForwardToRnnPreProcessor())
-				.setInputType(InputType.recurrent(inputVectorSize))
-				.backprop(true).pretrain(false)
-        .build();
-
-		MultiLayerNetwork lstm = new MultiLayerNetwork(conf);
-		lstm.init();
-    lstm.setLearningRate(learningRate);
-		return lstm;
   }
   
   public MentionTagger setTagset(Class<? extends Tag> tagset) {
@@ -269,8 +213,8 @@ public class MentionTagger extends Tagger {
         .workers(workers)          // set number of workers equal or higher then number of available devices. x1-x2 are good values to start with
         //.averagingFrequency(1) // rare averaging improves performance, but might reduce model accuracy
         //.reportScoreAfterAveraging(false) // if set to TRUE, on every averaging model score will be reported
-        .trainingMode(ParallelWrapper.TrainingMode.SHARED_GRADIENTS)
-        .workspaceMode(WorkspaceMode.SINGLE)
+        .trainingMode(ParallelWrapper.TrainingMode.AVERAGING)
+        .workspaceMode(WorkspaceMode.ENABLED)
         .build();
     }
     eval = new MentionTaggerEval(getName(), tagset);

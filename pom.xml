@@ -18,7 +18,7 @@
     <slf4j.version>1.7.25</slf4j.version>
     <logback.version>1.2.3</logback.version>
     <corenlp.version>3.8.0</corenlp.version>
-    <dl4j.version>1.0.0-beta2</dl4j.version>
+    <dl4j.version>1.0.0-beta3</dl4j.version>
     <nd4j.backend>nd4j-native</nd4j.backend>
     <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
     <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
@@ -74,6 +74,41 @@
             <configuration>
               <skip>true</skip>
             </configuration>
+          </plugin>
+          <plugin>
+            <!-- build javadoc jar -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <!-- Default configuration for all reports -->
+              <additionalparam>-Xdoclint:none</additionalparam>
+              <additionalOptions>-Xdoclint:none</additionalOptions>
+              <failOnError>false</failOnError>
+              <additionalDependencies>
+                <additionalDependency>
+                  <groupId>com.google.code.findbugs</groupId>
+                  <artifactId>annotations</artifactId>
+                  <version>2.0.1</version>
+                  <type>jar</type>
+                </additionalDependency>
+              </additionalDependencies>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>aggregate</id>
+                <goals>
+                  <goal>aggregate</goal>
+                </goals>
+                <phase>site</phase>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
@@ -180,41 +215,6 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>${exec-maven-plugin.version}</version>
-      </plugin>
-      <plugin>
-        <!-- build javadoc jar -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.4</version>
-        <configuration>
-          <!-- Default configuration for all reports -->
-          <additionalparam>-Xdoclint:none</additionalparam>
-          <additionalOptions>-Xdoclint:none</additionalOptions>
-          <failOnError>false</failOnError>
-          <additionalDependencies>
-            <additionalDependency>
-              <groupId>com.google.code.findbugs</groupId>
-              <artifactId>annotations</artifactId>
-              <version>2.0.1</version>
-              <type>jar</type>
-            </additionalDependency>
-          </additionalDependencies>
-        </configuration>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>aggregate</id>
-            <goals>
-              <goal>aggregate</goal>
-            </goals>
-            <phase>site</phase>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>

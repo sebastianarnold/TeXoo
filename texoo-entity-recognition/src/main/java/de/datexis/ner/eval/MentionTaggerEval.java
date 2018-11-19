@@ -6,12 +6,11 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Token;
 import de.datexis.model.tag.BIO2Tag;
-import de.datexis.model.tag.BIOESTag;
 import de.datexis.model.tag.Tag;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-import org.deeplearning4j.eval.ConfusionMatrix;
-import org.deeplearning4j.eval.Evaluation;
+import org.nd4j.evaluation.classification.ConfusionMatrix;
+import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
@@ -59,14 +58,6 @@ public class MentionTaggerEval extends ModelEvaluation {
     this.predictedSource = predicted;
   }
 
-  // please set the test and train datasets after training!
-  @Deprecated
-  public MentionTaggerEval(String experimentName, Dataset train, Dataset test, Class tagset) {
-    this(experimentName, tagset, Annotation.Source.GOLD, Annotation.Source.PRED);
-    setTestDataset(test, 0, 0);
-    setTrainDataset(train, 0, 0);
-  }
-  
   @Override
   public void clear() {
     super.clear();

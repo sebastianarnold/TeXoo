@@ -28,8 +28,8 @@ public class ScoreImprovementMinEpochsTerminationCondition extends ScoreImprovem
      * @return Whether training should be terminated at this epoch
      */
  @Override
-  public boolean terminate(int epochNum, double score) {
-    boolean terminate = super.terminate(epochNum, score);
+  public boolean terminate(int epochNum, double score, boolean minimize) {
+    boolean terminate = super.terminate(epochNum, score, minimize);
     if((epochNum + 1) < minEpochs) return false;
     else if((epochNum + 1) >= maxEpochs) return true;
     else return terminate;
