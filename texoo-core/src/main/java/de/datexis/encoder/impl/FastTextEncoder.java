@@ -27,6 +27,7 @@ public class FastTextEncoder extends Encoder {
 
 	private FastText ft;
   private String modelName;
+  private long size = 0;
   private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   
 	public FastTextEncoder() {
@@ -47,15 +48,11 @@ public class FastTextEncoder extends Encoder {
   public void loadModel(Resource modelFile) throws IOException {
     log.info("Loading FastText model: " +  modelFile.getFileName());
     ft = FastText.load(modelFile.toString());
+    size = ft.getWordVector("the").size();
     //setModel(modelFile);
     setModelAvailable(true);
-    log.info("Loaded FastText model {} with nlabels={}, ntokens={}, nwords={}, size={}, '", 
-      modelFile.getFileName(),
-      ft.getDictionary().nlabels(),
-      ft.getDictionary().ntokens(),
-      ft.getDictionary().nwords(),
-      ft.getDictionary().size()
-    );
+    log.info("Loaded FastText model '{}' with {} words and vector size {}", 
+              modelFile.getFileName(), ft.getDictionary().size(), size);
 	}
   
   @Override
@@ -73,6 +70,9 @@ public class FastTextEncoder extends Encoder {
 		return modelName;
 	}
   
+  /**
+   * @return FastText Vector as INDArray
+   */
   protected INDArray asINDArray(Vector vec) {
     INDArray arr = Nd4j.createUninitialized(vec.size(), 1);
     int i = 0;
@@ -87,8 +87,17 @@ public class FastTextEncoder extends Encoder {
 	 * @param word
 	 * @return
 	 */
-	private INDArray getWordVector(String word) {
-		return asINDArray(ft.getWordVector(word));//(preprocessor.preProcess(word));
+	protected INDArray getWordVector(String word) {
+		return asINDArray(ft.getWordVector(word));
+	}
+  
+  /**
+	 * Use this function to access sentence vectors
+	 * @param word
+	 * @return
+	 */
+	protected INDArray getSentenceVector(String sentence) {
+		return asINDArray(ft.getSentenceVector(sentence));
 	}
 
 	public boolean isUnknown(String word) {
@@ -97,13 +106,14 @@ public class FastTextEncoder extends Encoder {
 
 	@Override
 	public INDArray encode(Span span) {
-    if(span instanceof Token) return encode(preprocessor.preProcess(span.getText()));
+    if(span instanceof Token) return getWordVector(span.getText());
+    else if(span instanceof Sentence) return getSentenceVector(span.getText()); // TODO: should we use a tokenized string?
     else return encode(span.getText());
 	}
 
 	@Override
 	public long getEmbeddingVectorSize() {
-		return ft.getWordVector("the").size();
+		return size;
 	}
 
   /**
@@ -123,11 +133,5 @@ public class FastTextEncoder extends Encoder {
 	public Collection<String> getNearestNeighbours(INDArray v, int k) {
 		throw new UnsupportedOperationException("not implemented");
 	}
-
-	public String getNearestNeighbour(INDArray v) {
-		Collection<String> result = getNearestNeighbours(v, 1);
-    if(result.isEmpty()) return "_";
-    else return result.iterator().next();
-  }
 
 }
