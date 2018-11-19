@@ -144,6 +144,13 @@
       </exclusions>
     </dependency>
     
+    <!-- FastText for Java (BSD license with additional Facebook patent grant )-->
+    <dependency>
+      <groupId>com.github.sszuev</groupId>
+      <artifactId>fasttext</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    
     <!-- updated XML helpers -->
     <dependency>
         <groupId>xerces</groupId>
