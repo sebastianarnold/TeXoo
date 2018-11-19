@@ -519,7 +519,7 @@ public class SectorAnnotator extends Annotator {
   }
   
   protected static INDArray getLayerMatrix(Document doc, Class layerClass) {
-    return getLayerMatrix(doc, layerClass.getSimpleName());
+    return getLayerMatrix(doc, layerClass.getCanonicalName());
   }
   
   /**
