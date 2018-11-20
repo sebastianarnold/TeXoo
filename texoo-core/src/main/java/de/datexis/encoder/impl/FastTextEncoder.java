@@ -10,6 +10,8 @@ import de.datexis.model.*;
 import de.datexis.model.Token;
 import java.io.IOException;
 import java.util.Collection;
+import org.apache.commons.io.FileUtils;
+import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -27,6 +29,7 @@ public class FastTextEncoder extends Encoder {
 
 	private FastText ft;
   private String modelName;
+  private Resource modelPath;
   private long size = 0;
   private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   
@@ -49,7 +52,7 @@ public class FastTextEncoder extends Encoder {
     log.info("Loading FastText model: " +  modelFile.getFileName());
     ft = FastText.load(modelFile.toString());
     size = ft.getWordVector("the").size();
-    //setModel(modelFile);
+    setModel(modelFile);
     setModelAvailable(true);
     log.info("Loaded FastText model '{}' with {} words and vector size {}", 
               modelFile.getFileName(), ft.getDictionary().size(), size);
@@ -57,7 +60,13 @@ public class FastTextEncoder extends Encoder {
   
   @Override
   public void saveModel(Resource modelPath, String name) {
-    throw new UnsupportedOperationException("model saving not implemented");
+     try {
+      Resource modelFile = modelPath.resolve(name + ".bin");
+      FileUtils.copyFile(Resource.fromFile(getModel()).toFile(), modelFile.toFile());
+      setModel(modelFile);
+    } catch(IOException ex) {
+      log.error(ex.toString());
+    }
   }
   
   @Override
