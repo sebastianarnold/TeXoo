@@ -5,12 +5,51 @@ import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.*;
 
 import org.junit.Test;
+import org.nd4j.linalg.activations.IActivation;
+import org.nd4j.linalg.activations.impl.ActivationIdentity;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 
 public class StructurePreservingEmbeddingLossTest {
 
+
+  /*
+    Check if the correct score is computed for two 2D Embeddings with data points aligned like the following
+    figure: 
+    +3                           
+   
+    +2             1o            
+   
+    +1                           
+   
+    +0       1x       2x 3x      
+   
+    -1             2o            
+   
+    -2             3o            
+   
+    -3                           
+   
+    -5 -4 -3 -2 -1 +0 +1 +2 +4 +5
+   */
   @Test
   public void computeScore() {
+    StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
+    INDArray preOutput = Nd4j.create(3,4);
+    preOutput.putRow(0, Nd4j.create(new float[]{2,0,0,-2}));
+    preOutput.putRow(1, Nd4j.create(new float[]{-1,0,2,0}));
+    preOutput.putRow(2, Nd4j.create(new float[]{-2,0,0,2}));
+
+    INDArray labels = Nd4j.create(preOutput.shape());
+    INDArray mask = null;
+
+    IActivation activation = new ActivationIdentity();
+    boolean average = false;
+
+    double actualScore = loss.computeScore(labels, preOutput, activation, mask, average);
+    
+    assertThat(actualScore, is(closeTo(4.356, 0.001)));
   }
 
   @Test
