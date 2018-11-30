@@ -21,13 +21,13 @@ public class StructurePreservingEmbeddingLossTest {
    
     +2             1o            
    
-    +1                           
+    +1             2o            
    
-    +0       1x       2x 3x      
+    +0       1x 2x    3x 4x      
    
-    -1             2o            
+    -1             3o            
    
-    -2             3o            
+    -2             4o            
    
     -3                           
    
@@ -36,10 +36,11 @@ public class StructurePreservingEmbeddingLossTest {
   @Test
   public void computeScore() {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
-    INDArray preOutput = Nd4j.create(3,4);
-    preOutput.putRow(0, Nd4j.create(new float[]{2,0,0,-2}));
-    preOutput.putRow(1, Nd4j.create(new float[]{-1,0,2,0}));
-    preOutput.putRow(2, Nd4j.create(new float[]{-2,0,0,2}));
+    INDArray preOutput = Nd4j.create(4,4);
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
+    preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
+    preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
 
     INDArray labels = Nd4j.create(preOutput.shape());
     INDArray mask = null;
@@ -49,7 +50,7 @@ public class StructurePreservingEmbeddingLossTest {
 
     double actualScore = loss.computeScore(labels, preOutput, activation, mask, average);
     
-    assertThat(actualScore, is(closeTo(4.356, 0.001)));
+    assertThat(actualScore, is(closeTo(7.54, 0.01)));
   }
 
   @Test
