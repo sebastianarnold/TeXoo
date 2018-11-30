@@ -51,6 +51,26 @@ public class StructurePreservingEmbeddingLossTest {
     double actualScore = loss.computeScore(labels, preOutput, activation, mask, average);
     
     assertThat(actualScore, is(closeTo(7.54, 0.01)));
+  }  
+  
+  @Test
+  public void computeScoreShouldReturnZeroForOptimalSituation() {
+    StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
+    INDArray preOutput = Nd4j.create(4,4);
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,0,2}));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,0,1}));
+    preOutput.putRow(2, Nd4j.create(new float[]{1,0,1,0}));
+    preOutput.putRow(3, Nd4j.create(new float[]{2,0,2,0}));
+
+    INDArray labels = Nd4j.create(preOutput.shape());
+    INDArray mask = null;
+
+    IActivation activation = new ActivationIdentity();
+    boolean average = false;
+
+    double actualScore = loss.computeScore(labels, preOutput, activation, mask, average);
+    
+    assertThat(actualScore, is(closeTo(0, 0.01)));
   }
 
   @Test
