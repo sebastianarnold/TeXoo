@@ -12,6 +12,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,12 +57,21 @@ public class RawTextDatasetReader implements DatasetReader {
   public Dataset readDatasetFromDirectory(Resource path, String pattern) throws IOException {
     log.info("Reading Documents from {}", path.toString());
     Dataset data = new Dataset(path.getPath().getFileName().toString());
+    AtomicInteger progress = new AtomicInteger();
     Files.walk(path.getPath())
         .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
         .filter(p -> p.getFileName().toString().matches(pattern))
-        .sorted()
+        //.sorted()
         .map(p -> readDocumentFromFile(Resource.fromFile(p.toString())))
-        .forEach(d -> data.addDocument(d));
+        .forEach(d -> {
+          data.addDocument(d);
+          int n = progress.incrementAndGet();
+          if(n % 1000 == 0) {
+            double free = Runtime.getRuntime().freeMemory() / (1024. * 1024. * 1024.);
+            double total = Runtime.getRuntime().totalMemory() / (1024. * 1024. * 1024.);
+            log.debug("read {}k documents, memory usage {} GB", n / 1000, (int)((total-free) * 10) / 10.);
+          }
+        });
     return data;
   }
   
