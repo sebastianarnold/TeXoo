@@ -60,7 +60,7 @@ public class Word2VecEncoder extends Encoder {
 	private WordVectors vec;
 	private long length;
   private String modelName;
-  private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
+  private TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   
 	public Word2VecEncoder() {
     super("EMB");
@@ -143,14 +143,18 @@ public class Word2VecEncoder extends Encoder {
       log.error("Could not save model: " + ex.toString());
     }
   }
+
+  public void setPreprocessor(TokenPreProcess preprocessor) {
+    this.preprocessor = preprocessor;
+  }
   
   @Override
   public void trainModel(Collection<Document> documents) {
-    int batchSize = 1000;
-    int windowSize = 5;
-    int minWordFrequency = 2;
-    int layerSize = 150;
-    int iterations = 1;
+    int batchSize = 16;
+    int windowSize = 10;
+    int minWordFrequency = 3;
+    int layerSize = 256;
+    int iterations = 5;
     int epochs = 1;
     trainModel(documents.stream().flatMap(d -> d.streamSentences()).collect(Collectors.toList()),
       batchSize, windowSize, minWordFrequency, layerSize, iterations, epochs, new ArrayList<>());
@@ -205,9 +209,9 @@ public class Word2VecEncoder extends Encoder {
             .iterations(iterations) // # iterations to train
             .epochs(epochs)
             .stopWords(stopWords)
-            .learningRate(0.05) // 
-            .minLearningRate(1e-6) // learning rate decays wrt # words. floor learning
-            .negativeSample(25) // sample size 10 words
+            .learningRate(0.025) // 
+            .minLearningRate(0.001) // learning rate decays wrt # words. floor learning
+            .negativeSample(10) // sample size 10 words
             .iterate(iter) //
             .tokenizerFactory(t)
             .build();
