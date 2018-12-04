@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.tag.Tag;
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +44,9 @@ public abstract class Span implements Comparable<Span> {
   protected Long uid = null;
   
   /**
-   * Encoded vectors of this Span. Only initialized when used.
+   * Encoded column vectors of this Span. Only initialized when used.
    */
-  private Map<String,INDArray> vectors = null;
+  private Map<String,double[]> vectors = null;
   
   /**
    * List of Tags that were assigned to this Span from Gold, Prediction or User sources.
@@ -135,11 +136,11 @@ public abstract class Span implements Comparable<Span> {
    * Add an INDArray to this Span.
    * Existing vectors with same identifier will be overridden.
    * @param identifier An identifier for this vector.
-   * @param vec  The Vector itself. Will be cached in memory.
+   * @param vec  The column vector itself. Will be duplicated to heap.
    */
   public void putVector(String identifier, INDArray vec) {
     if(vectors == null) vectors = new TreeMap<>();
-    vectors.put(identifier, vec.detach());
+    vectors.put(identifier, vec.transpose().toDoubleVector());
   }
   
   /**
@@ -183,11 +184,11 @@ public abstract class Span implements Comparable<Span> {
    */
   public INDArray getVector(String identifier) {
     if(vectors != null && vectors.containsKey(identifier)) {
-      return vectors.get(identifier);
+      final double[] vec = vectors.get(identifier);
+      return Nd4j.create(vec).transposei();
     } else {
-      // TODO: find a safer/nicer way to report missing vectors without stopping everything. Or maybe stop.
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
-      return null;// Nd4j.zeros(1,1);//(Encoder)type).getVectorSize(), 1);
+      return null;
     }
   }
   
