@@ -2,6 +2,7 @@ package de.datexis.ner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.datexis.common.ObjectSerializer;
+import de.datexis.common.Resource;
 
 import de.datexis.model.Annotation;
 import de.datexis.model.Annotation.Source;
@@ -11,10 +12,13 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Token;
 import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
+import de.datexis.ner.reader.CoNLLDatasetReader;
 import de.datexis.preprocess.DocumentFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -337,5 +341,40 @@ public class MentionAnnotationTest {
   // TODO: test annotation equals
   // TODO: test annotation sorting in Document
   // TODO: test annotation evaluation / match in Document
+  
+  @Test
+  public void testTypedBIO2Tags() throws IOException {
+    Resource path = Resource.fromJAR("datasets/CoNLL2003.conll");
+    
+    Dataset data = new CoNLLDatasetReader()
+        .withFirstSentenceAsTitle(true)
+        .withName("CoNLL2003")
+        .read(path);
+    
+    Document doc = data.getDocument(0).get();
+    
+    List<MentionAnnotation> anns = doc.streamAnnotations(Source.GOLD, MentionAnnotation.class).sorted().collect(Collectors.toList());
+    assertEquals("LONDON", anns.get(0).getText());
+    assertEquals("LOC", anns.get(0).getType());
+    assertEquals("Green Star", anns.get(1).getText());
+    assertEquals("ORG", anns.get(1).getType());
+    assertEquals("Germany", anns.get(2).getText());
+    assertEquals("LOC", anns.get(2).getType());
+    
+    MentionAnnotation.createTagsFromAnnotations(doc, Source.GOLD, BIO2Tag.class);
+    doc.clearAnnotations(Source.GOLD, MentionAnnotation.class);
+    assertEquals(0, doc.countAnnotations());
+    MentionAnnotation.annotateFromTags(doc, Source.GOLD, BIO2Tag.class);
+    
+    List<MentionAnnotation> preds = doc.streamAnnotations(Source.GOLD, MentionAnnotation.class).sorted().collect(Collectors.toList());
+    assertEquals("LONDON", preds.get(0).getText());
+    //assertEquals("LOC", preds.get(0).getType());
+    assertEquals("Green Star", preds.get(1).getText());
+    //assertEquals("ORG", preds.get(1).getType());
+    assertEquals("Germany", preds.get(2).getText());
+    //assertEquals("LOC", preds.get(2).getType());
+    
+  }
+  
   
 }
