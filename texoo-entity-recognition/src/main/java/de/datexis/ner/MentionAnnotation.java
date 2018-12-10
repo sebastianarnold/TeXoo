@@ -13,6 +13,7 @@ import de.datexis.model.tag.BIOESTag;
 import de.datexis.model.tag.Tag;
 import de.datexis.tagger.AbstractIterator;
 import java.util.stream.Collectors;
+import org.apache.commons.math3.analysis.solvers.IllinoisSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,7 +199,14 @@ public class MentionAnnotation extends Annotation {
   
   public static void annotateFromTags(Document doc, Annotation.Source source, Class<? extends Tag> tagset, String type) {
     List<? extends Annotation> anns = null;
-    if(tagset.equals(BIO2Tag.class)) anns = createFromBIO2Tags(doc, source, type);
+    if(tagset.equals(BIO2Tag.class)) {
+      anns = createFromBIO2Tags(doc, source, type);
+    } else if(tagset.equals(BIOESTag.class)) {
+      BIOESTag.convertToBIO2(doc, source);
+      anns = createFromBIO2Tags(doc, source, type);
+    } else {
+      throw new IllegalArgumentException("Tagset " + tagset.getCanonicalName() + " not implemented");
+    }
     if(anns != null) doc.addAnnotations(anns);
   }
   
@@ -258,7 +266,14 @@ public class MentionAnnotation extends Annotation {
   }
   
   public static void createTagsFromAnnotations(Document doc, Annotation.Source source, Class<? extends Tag> tagset) {
-    if(tagset.equals(BIOESTag.class)) createBIOESTagsFromAnnotations(doc, source);
+    if(tagset.equals(BIOESTag.class)) {
+      createBIOESTagsFromAnnotations(doc, source);
+    } else if(tagset.equals(BIO2Tag.class)) {
+      createBIOESTagsFromAnnotations(doc, source);
+      BIOESTag.convertToBIO2(doc, source);
+    } else {
+      throw new IllegalArgumentException("Tagset " + tagset.getCanonicalName() + " not implemented");
+    }
   }
   
   private static void createBIOESTagsFromAnnotations(Document doc, Annotation.Source source) {
