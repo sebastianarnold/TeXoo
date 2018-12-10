@@ -1,7 +1,6 @@
 package de.datexis.ner;
 
 import de.datexis.annotator.Annotator;
-import static net.amygdalum.stringsearchalgorithms.search.MatchOption.LONGEST_MATCH;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,11 +22,11 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.amygdalum.stringsearchalgorithms.search.MatchOption;
 import net.amygdalum.stringsearchalgorithms.search.StringFinder;
 import net.amygdalum.stringsearchalgorithms.search.StringMatch;
 import net.amygdalum.stringsearchalgorithms.search.chars.*;
@@ -43,9 +42,11 @@ public class MatchingAnnotator extends Annotator {
   protected final static Logger log = LoggerFactory.getLogger(MatchingAnnotator.class);
   
   public static enum MatchingStrategy { CASE_SENSITIVE, LOWERCASE, LEMMA, SKIP_STOPWORDS };
-  protected final int MIN_WORD_LENGTH = 3;
-  
-  protected Pattern wordLengthMatcher = Pattern.compile("\\b\\w{4,}\\b"); // matches words of length > 3
+
+  protected int minimumWordLength = 3; // absolute minimum word length
+  protected String type = MentionAnnotation.Type.GENERIC;
+
+  protected Pattern wordLengthMatcher = Pattern.compile("\\b\\w{4,}\\b"); // matches words of length > 3, so that "UPS" will never match "ups"
   protected Pattern uppercaseMatcher = Pattern.compile("^[A-Z0-9]+$"); // matches uppercase words 
   protected StringSearchAlgorithm stringSearch;
   protected WordHelpers wordHelpers = new WordHelpers(WordHelpers.Language.EN);
@@ -68,14 +69,24 @@ public class MatchingAnnotator extends Annotator {
     this.source = source;
   }
   
+  public MatchingAnnotator(MatchingStrategy matchLowercase, Annotation.Source source, String type) {
+    this(matchLowercase, source);
+    this.type = type;
+  }
+  
+  public MatchingAnnotator(MatchingStrategy matchLowercase, Annotation.Source source, String type, int minWordLength) {
+    this(matchLowercase, source, type);
+    this.minimumWordLength = minWordLength;
+  }
+  
   protected Collection<String> convertTerms(Stream<String> terms) {
     switch(matchingStrategy) {
       case LOWERCASE:
-        return terms.filter(w -> w.length() >= MIN_WORD_LENGTH).map(w -> convertToLowercase(w)).distinct().collect(Collectors.toList());
+        return terms.filter(w -> w.length() >= minimumWordLength).map(w -> convertToLowercase(w)).distinct().collect(Collectors.toList());
       case LEMMA:
-        return terms.filter(w -> w.length() >= MIN_WORD_LENGTH).map(w -> removePlurals(convertToLowercase(w))).distinct().collect(Collectors.toList());
+        return terms.filter(w -> w.length() >= minimumWordLength).map(w -> removePlurals(convertToLowercase(w))).distinct().collect(Collectors.toList());
       case SKIP_STOPWORDS:
-        return terms.filter(w -> w.length() >= MIN_WORD_LENGTH && !wordHelpers.isStopWord(w)).distinct().collect(Collectors.toList());
+        return terms.filter(w -> w.length() >= minimumWordLength && !wordHelpers.isStopWord(w)).distinct().collect(Collectors.toList());
       default:
         return terms.distinct().collect(Collectors.toList());
     }
@@ -154,6 +165,7 @@ public class MatchingAnnotator extends Annotator {
   }
   
   protected String removePlurals(String text) {
+    // TODO: use OpenNLP Lemmatizer
     throw new UnsupportedOperationException("Lemma matching is not yet implemented.");
   }
   
@@ -178,18 +190,23 @@ public class MatchingAnnotator extends Annotator {
         log.warn("MatchingAnnotator called without terms loaded");
         return;
       }
-      StringFinder finder = stringSearch.createFinder(chars, LONGEST_MATCH);
+      StringFinder finder = stringSearch.createFinder(chars, MatchOption.LONGEST_MATCH, MatchOption.NON_OVERLAP);
       for(StringMatch match : finder.findAll()) {
-        if(spanIsAtTokenBoundaries((int)match.start(), (int)match.end(), doc)) {
-          MentionAnnotation ann = new MentionAnnotation(source, match.text(), (int)match.start(), (int)match.end());
-          // check if there is another overlapping annotation
+        int begin = (int)match.start();
+        int end = (int)match.end();
+        final List<Token> list = doc.streamTokensInRange(begin, end, true).collect(Collectors.toList());
+        if(spanIsAtTokenBoundaries(list, begin, end, doc)) {
+          MentionAnnotation ann = new MentionAnnotation(source, list);
+          ann.setType(type);
           doc.addAnnotation(ann);
-          Collection<MentionAnnotation> existing = doc.getAnnotationsForSpan(source, MentionAnnotation.class, ann);
+          // check if there is another overlapping annotation - should not be required with NON_OVERLAP
+          /*Collection<MentionAnnotation> existing = doc.getAnnotationsForSpan(source, MentionAnnotation.class, ann);
           if(existing.size() > 1) {
+            log.warn("removing overlapping Annotation");
             existing.forEach(a -> doc.removeAnnotation(a));
             ann = Collections.max(existing, Comparator.comparing(MentionAnnotation::getLength));
             doc.addAnnotation(ann);
-          }
+          }*/
         }
       }
     }
@@ -198,11 +215,11 @@ public class MatchingAnnotator extends Annotator {
   /**
    * @return True, if given span is exactly at a word boundary.
    */
-  private boolean spanIsAtTokenBoundaries(int begin, int end, Document doc) {
-    final List<Token> list = doc.streamTokensInRange(begin, end, true).collect(Collectors.toList());
+  private boolean spanIsAtTokenBoundaries(List<Token> list, int begin, int end, Document doc) {
     if(list.isEmpty()) return false;
     else if(list.size() == 1 && list.get(0).getBegin() == begin && list.get(0).getEnd() == end) return true;
     else return list.get(0).getBegin() == begin && list.get(list.size() - 1).getEnd() == end;
   }
+  
   
 }

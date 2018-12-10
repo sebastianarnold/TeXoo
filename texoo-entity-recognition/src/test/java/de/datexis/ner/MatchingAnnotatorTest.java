@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
+import java.util.List;
+import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -119,6 +121,26 @@ public class MatchingAnnotatorTest {
     String lctx = "The immune system, I have known as tumour-associated antigens (TAA). antigens are often proteins or other macromolecules (e.g. carbohydrates C544).";
     MatchingAnnotator ann = new MatchingAnnotator(MatchingAnnotator.MatchingStrategy.LOWERCASE);
     assertEquals(lctx, ann.convertToLowercase(text));
+  }
+  
+  @Test
+  public void testCars() {
+    String text = "Der Volkswagen Caddy (2K), auch VW Caddy Life genannt, ist ein PKW-Modell der Marke Volkswagen Nutzfahrzeuge.";
+    final String[] list = { "Volkswagen Caddy", "VW", "Caddy Life", "IST" };
+    MatchingAnnotator ann = new MatchingAnnotator(MatchingAnnotator.MatchingStrategy.LOWERCASE, Annotation.Source.SILVER, "CAR", 2);
+    ann.loadTermsToMatch(Lists.newArrayList(list));
+    assertEquals(4, ann.countTerms());
+    Document doc = DocumentFactory.fromText(text);
+    ann.annotate(doc);
+    List<MentionAnnotation> matches = doc.streamAnnotations(Annotation.Source.SILVER, MentionAnnotation.class).sorted().collect(Collectors.toList());
+    doc.streamAnnotations(Annotation.Source.SILVER, MentionAnnotation.class).forEach(a -> {
+      System.out.println(a.getText());
+    });
+    assertEquals("Volkswagen Caddy", matches.get(0).getText());
+    assertEquals("VW", matches.get(1).getText()); // "VW Caddy" would also be ok, but then we're missing "Caddy Life"
+    assertEquals("Caddy Life", matches.get(2).getText());
+    assertEquals("CAR", matches.get(0).getType());
+    assertEquals(3, matches.size());
   }
   
 }
