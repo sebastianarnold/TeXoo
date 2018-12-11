@@ -5,8 +5,8 @@ import de.datexis.common.WordHelpers;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
 import de.datexis.encoder.LookupCacheEncoder;
+import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import de.datexis.preprocess.DocumentFactory;
 import de.datexis.preprocess.MinimalLowercaseNewlinePreprocessor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,11 +27,9 @@ import org.slf4j.LoggerFactory;
  */
 public class BagOfWordsEncoder extends LookupCacheEncoder {
   
-  private static final TokenPreProcess preprocessor = new MinimalLowercaseNewlinePreprocessor();
-  private WordHelpers wordHelpers;
-  private WordHelpers.Language language;
-  
-  public static final String WORD_SEPERATOR_REGEX = "[\\s/-]+";
+  protected static final TokenPreProcess preprocessor = new MinimalLowercaseNewlinePreprocessor();
+  protected WordHelpers wordHelpers;
+  protected WordHelpers.Language language;
   
   public BagOfWordsEncoder() {
     this("BOW");
@@ -86,8 +84,8 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     timer.start();
     setLanguage(language);
     for(String s : sentences) {
-      for(Token t : DocumentFactory.createTokensFromText(s)) {
-        String w = preprocessor.preProcess(t.getText());
+      for(String t : WordHelpers.splitSpaces(s)) {
+        String w = preprocessor.preProcess(t);
         if(!w.isEmpty()) {
           totalWords++;
           if(!wordHelpers.isStopWord(w)) {
@@ -103,17 +101,6 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     timer.stop();
     appendTrainLog("trained " + vocab.numWords() + " words (" +  total + " total)", timer.getLong());
     setModelAvailable(true);
-  }
-  
-   private String[] splitWords(String s) {
-    String[] words = s.split(WORD_SEPERATOR_REGEX);
-    List<String> result = new ArrayList<>(words.length);
-    String w;
-    for(String word : words) {
-      word = preprocessor.preProcess(word.trim());
-      if(!word.isEmpty()) result.add(word);
-    }
-    return result.toArray(new String[result.size()]);
   }
   
   @Override
@@ -153,13 +140,27 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
-    //vector.subi(1.);
     int i;
+    // best results were seen with no normalization and 1.0 instead of word frequency
     for(Span s : spans) {
-       i = getIndex(s.getText());
-       // best results were seen with no normalization and 1.0 instead of word frequency
-       if(i>=0) vector.put(i, 0, 1.0);
-       //if(i>=0) vector.put(i, 0, samplingRate(getProbability(s.getText())));
+      i = getIndex(s.getText());
+      if(i>=0) vector.put(i, 0, 1.0);
+    }
+    return vector;
+  }
+  
+  /**
+   * Encode a list of Strings into an n-hot vector
+   * @param spans
+   * @return 
+   */
+  protected INDArray encode(String[] words) {
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
+    int i;
+    // best results were seen with no normalization and 1.0 instead of word frequency
+    for(String w : words) {
+      i = getIndex(w);
+      if(i>=0) vector.put(i, 0, 1.0);
     }
     return vector;
   }
@@ -167,12 +168,18 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
   @Override
   public INDArray encode(Span span) {
     if(span instanceof Token) return encode(Arrays.asList(span));
+    else if(span instanceof Sentence) return encode(((Sentence) span).getTokens());
     else return encode(span.getText());
   }
 
+  /**
+   * Encode a phrase, splitting at spaces.
+   * @param phrase
+   * @return 
+   */
   @Override
   public INDArray encode(String phrase) {
-    return encode(DocumentFactory.createTokensFromText(phrase));
+    return encode(WordHelpers.splitSpaces(phrase));
   }
   
   /**
@@ -180,13 +187,13 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
    */
   public INDArray encodeSubsampled(String phrase) {
     INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
-    List<Token> tokens = DocumentFactory.createTokensFromText(phrase);
-    if(tokens.size() == 1) return encode(tokens.get(0));
+    String[] tokens = WordHelpers.splitSpaces(phrase);
+    if(tokens.length == 1) return encode(tokens[0]);
     List<Pair<String,Double>> itemWeights = new ArrayList<>(5);
     double completeWeight = 0.0;
     String w;
-    for(Token t : tokens) {
-      w = preprocessor.preProcess(t.getText());
+    for(String t : tokens) {
+      w = preprocessor.preProcess(t);
       if(!w.isEmpty() && !wordHelpers.isStopWord(w)) {
         final double weight = samplingRate(super.getProbability(w));
         if(weight == 1.) continue; // word not in vocab

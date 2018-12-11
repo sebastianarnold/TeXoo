@@ -74,7 +74,18 @@ public class BloomEncoder extends BagOfWordsEncoder {
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
     for(Span s : spans) {
-      double[] bits = bloom.getBitArray(s.getText());
+      double[] bits = bloom.getBitArray(preprocessor.preProcess(s.getText()));
+      INDArray x = Nd4j.create(bits);
+      vector.addi(x.transposei());
+    }
+    return vector;
+  }
+  
+  @Override
+  public INDArray encode(String[] words) {
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
+    for(String s : words) {
+      double[] bits = bloom.getBitArray(preprocessor.preProcess(s));
       INDArray x = Nd4j.create(bits);
       vector.addi(x.transposei());
     }
