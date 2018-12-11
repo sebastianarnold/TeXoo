@@ -46,7 +46,7 @@ public abstract class Span implements Comparable<Span> {
   /**
    * Encoded column vectors of this Span. Only initialized when used.
    */
-  private Map<String,double[]> vectors = null;
+  private Map<String,byte[]> vectors = null;
   
   /**
    * List of Tags that were assigned to this Span from Gold, Prediction or User sources.
@@ -140,7 +140,11 @@ public abstract class Span implements Comparable<Span> {
    */
   public void putVector(String identifier, INDArray vec) {
     if(vectors == null) vectors = new TreeMap<>();
-    vectors.put(identifier, vec.transpose().toDoubleVector());
+    try {
+      vectors.put(identifier, Nd4j.toByteArray(vec));
+    } catch(IOException ex) {
+      log.error("IOError in putVector(): {}", ex.toString());
+    }
   }
   
   /**
@@ -184,8 +188,13 @@ public abstract class Span implements Comparable<Span> {
    */
   public INDArray getVector(String identifier) {
     if(vectors != null && vectors.containsKey(identifier)) {
-      final double[] vec = vectors.get(identifier);
-      return Nd4j.create(vec).transposei();
+      try {
+        final byte[] vec = vectors.get(identifier);
+        return Nd4j.fromByteArray(vec);
+      } catch(IOException ex) {
+        log.error("IOError in putVector(): {}", ex.toString());
+        return null;
+      }
     } else {
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
       return null;

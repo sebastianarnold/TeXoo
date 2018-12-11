@@ -7,6 +7,7 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.Tag;
 import de.datexis.sector.model.SectionAnnotation;
+import java.io.IOException;
 import java.util.Iterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -22,14 +23,18 @@ public class HeadingTag implements Tag {
   protected final static Logger log = LoggerFactory.getLogger(HeadingTag.class);
 
   protected final String label;
-  protected final double[] vector;
+  protected byte[] vector = null;
   protected final long length;
   protected double confidence = 0.;
   
   protected HeadingTag(String label, INDArray vector) {
     this.label = label;
     this.length = vector.length();
-    this.vector = vector.transpose().toDoubleVector();
+    try {
+      if(vector != null) this.vector = Nd4j.toByteArray(vector);
+    } catch(IOException ex) {
+      log.error("IOError in HeadingTag: {}", ex.toString());
+    }
   }
   
   @Override
@@ -49,7 +54,12 @@ public class HeadingTag implements Tag {
 
   @Override
   public INDArray getVector() {
-    return Nd4j.create(vector).transposei();
+    try {
+      return Nd4j.fromByteArray(vector);
+    } catch(IOException ex) {
+      log.error("IOError in HeadingTag: {}", ex.toString());
+      return null;
+    }
   }
 
   @Override
