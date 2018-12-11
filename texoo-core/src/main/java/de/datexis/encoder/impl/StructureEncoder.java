@@ -84,20 +84,15 @@ public class StructureEncoder extends StaticEncoder {
   }
   
   protected INDArray createVector(boolean beginDoc, boolean beginParagraph, boolean beginSent, boolean endSent, boolean endParagraph, boolean endDoc, boolean isList) {
-    ArrayList<Boolean> features = new ArrayList<>();
-    features.add(beginDoc); // begin of document
-    features.add(beginParagraph); // begin of paragraph
-    features.add(isList); // sentence is part of list
-    features.add(beginSent); // begin of sentence
-    features.add(endSent); // end of sentence
-    features.add(endParagraph); // end of paragraph
-    features.add(endDoc); // end of document
-    INDArray vector = Nd4j.zeros(features.size(), 1);
-    int i = 0;
-    for(Boolean f : features) {
-      vector.put(i++, 0, f ? 1.0 : 0.0);
-    }
-    return vector;
+    return Nd4j.create(new double[] {
+      beginDoc ? 1.0 : 0.0,       // begin of document
+      beginParagraph ? 1.0 : 0.0, // begin of paragraph
+      isList ? 1.0 : 0.0,         // sentence is part of list
+      beginSent ? 1.0 : 0.0,      // begin of sentence
+      endSent ? 1.0 : 0.0,        // end of sentence
+      endParagraph ? 1.0 : 0.0,   // end of paragraph
+      endDoc ? 1.0 : 0.0          // end of document
+    }).transposei();
   }
   
   @Override
