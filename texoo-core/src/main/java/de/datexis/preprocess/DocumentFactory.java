@@ -107,6 +107,11 @@ public class DocumentFactory {
 		return instance.createFromText(text, newlines);
 	}
   
+  public static Document fromTokenizedText(String text) {
+    final List<Token> tokens = instance.tokenizeFast(text);
+    return instance.createFromTokens(tokens);
+  }
+  
   /**
    * Creates a Document from existing Tokens, processing Span positions and Sentence splitting.
    */
@@ -116,6 +121,7 @@ public class DocumentFactory {
   
   /**
    * Create Tokens from raw text, without sentence splitting.
+   * If you don't need perfect tokenization of punctuation and Token offsets, consider using WordHelpers.splitSpaces()
    */
   public static List<Token> createTokensFromText(String text) {
 		return instance.tokenizeFast(text);

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,30 @@ public class RawTextDatasetReader implements DatasetReader {
   protected final static Logger log = LoggerFactory.getLogger(RawTextDatasetReader.class);
   
   protected boolean useFirstSentenceAsTitle = false;
+  protected boolean isTokenized = false;
+  protected long limit = -1;
   
   /**
    * Use a copy of every first sentence as Document title.
    */
   public RawTextDatasetReader withFirstSentenceAsTitle(boolean useFirstSentence) {
     this.useFirstSentenceAsTitle = useFirstSentence;
+    return this;
+  }
+  
+  /**
+   * Stop after reading a given number of documents.
+   */
+  public RawTextDatasetReader withLimitNumberOfDocuments(long limit) {
+    this.limit = limit;
+    return this;
+  }
+  
+  /**
+   * Set to TRUE if the input files are already tokenized and space-separated.
+   */
+  public RawTextDatasetReader withTokenizedInput(boolean isTokenized) {
+    this.isTokenized = isTokenized;
     return this;
   }
   
@@ -58,20 +77,22 @@ public class RawTextDatasetReader implements DatasetReader {
     log.info("Reading Documents from {}", path.toString());
     Dataset data = new Dataset(path.getPath().getFileName().toString());
     AtomicInteger progress = new AtomicInteger();
-    Files.walk(path.getPath())
+    Stream<Document> docs = Files.walk(path.getPath())
         .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
         .filter(p -> p.getFileName().toString().matches(pattern))
         //.sorted()
         .map(p -> readDocumentFromFile(Resource.fromFile(p.toString())))
-        .forEach(d -> {
-          data.addDocument(d);
-          int n = progress.incrementAndGet();
-          if(n % 1000 == 0) {
-            double free = Runtime.getRuntime().freeMemory() / (1024. * 1024. * 1024.);
-            double total = Runtime.getRuntime().totalMemory() / (1024. * 1024. * 1024.);
-            log.debug("read {}k documents, memory usage {} GB", n / 1000, (int)((total-free) * 10) / 10.);
-          }
-        });
+        .filter(d -> !d.isEmpty());
+    if(limit >= 0) docs = docs.limit(limit);
+    docs.forEach(d -> {
+      data.addDocument(d);
+      int n = progress.incrementAndGet();
+      if(n % 1000 == 0) {
+        double free = Runtime.getRuntime().freeMemory() / (1024. * 1024. * 1024.);
+        double total = Runtime.getRuntime().totalMemory() / (1024. * 1024. * 1024.);
+        log.debug("read {}k documents, memory usage {} GB", n / 1000, (int)((total-free) * 10) / 10.);
+      }
+    });
     return data;
   }
   
@@ -83,7 +104,9 @@ public class RawTextDatasetReader implements DatasetReader {
         CharsetDecoder utf8 = StandardCharsets.UTF_8.newDecoder();
         BufferedReader br = new BufferedReader(new InputStreamReader(in, utf8));
         String text = br.lines().collect(Collectors.joining("\n"));
-        Document doc = DocumentFactory.fromText(text, DocumentFactory.Newlines.KEEP);
+        Document doc = isTokenized ? 
+            DocumentFactory.fromTokens(DocumentFactory.createTokensFromTokenizedText(text)) :
+            DocumentFactory.fromText(text, DocumentFactory.Newlines.KEEP);
         doc.setId(file.getFileName());
         doc.setSource(file.toString());
         if(useFirstSentenceAsTitle) {
