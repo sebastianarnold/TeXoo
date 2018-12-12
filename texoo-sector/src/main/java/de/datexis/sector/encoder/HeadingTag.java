@@ -29,7 +29,7 @@ public class HeadingTag implements Tag {
   
   protected HeadingTag(String label, INDArray vector) {
     this.label = label;
-    this.length = vector.length();
+    this.length = vector == null ? 0 : vector.length();
     try {
       if(vector != null) this.vector = Nd4j.toByteArray(vector);
     } catch(IOException ex) {
@@ -88,6 +88,10 @@ public class HeadingTag implements Tag {
     }
     
     public void attachFromSectionAnnotations(Document doc, Annotation.Source source) {
+      attachFromSectionAnnotations(doc, source, true);
+    }
+    
+    public void attachFromSectionAnnotations(Document doc, Annotation.Source source, boolean attachVectors) {
       
       Iterator<SectionAnnotation> sections = doc.streamAnnotations(source, SectionAnnotation.class).sorted().iterator();
       
@@ -96,7 +100,7 @@ public class HeadingTag implements Tag {
       
       SectionAnnotation ann = sections.next();
       String title = ann.getSectionHeading();
-      INDArray vec = encoder.encode(title);  
+      INDArray vec = attachVectors ? encoder.encode(title) : null;
       HeadingTag tag = new HeadingTag(title, vec);
       
       for(Sentence s : doc.getSentences()) {
@@ -104,7 +108,7 @@ public class HeadingTag implements Tag {
           if(sections.hasNext()) {
             ann = sections.next();
             title = ann.getSectionHeading();
-            vec = encoder.encode(title);
+            vec = attachVectors ? encoder.encode(title) : null;
             tag = new HeadingTag(title, vec);
           } else {
             log.error("Found Document with missing SectionAnnotations for Sentence position {}", s.getBegin());

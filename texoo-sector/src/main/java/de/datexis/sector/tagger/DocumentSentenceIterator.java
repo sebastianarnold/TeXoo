@@ -142,8 +142,7 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   public DocumentBatch nextDocumentBatch(int num) {
     DocumentBatch batch = nextBatch(num);
     batch.dataset = generateDataSet(batch);
-    reportProgress();
-    log.trace("Iterate: example size " + batch.size + " Documents x " + batch.maxDocLength + " Sentences");
+    reportProgress(batch.maxDocLength);
     return batch;
   }
   
@@ -160,7 +159,7 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
     return numExamples;
   }
 
-  protected void reportProgress() {
+  protected void reportProgress(int maxLength) {
     //if(stage.equals(Stage.TEST)) Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
     String timeStr = "??";
     try {
@@ -176,7 +175,7 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
     } catch(Exception e) {
     }
 		int progress = (int) ((float) cursor * 100 / numExamples);
-		log.debug(stage.toString() + ": returning " + cursor + "/" + numExamples + " examples [" + progress + "%, " + timeStr + " remaining]");
+    log.debug("{}: returning {}/{} examples in [{}%, {} remaining] [batch length {}]", stage.toString(), cursor, numExamples, progress, timeStr, maxLength);
 	}
   
   public abstract MultiDataSet generateDataSet(DocumentBatch batch);

@@ -13,6 +13,7 @@ import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
+import java.util.Arrays;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -133,6 +134,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   
   protected INDArray encodeTag(Encoder enc, Span s, Annotation.Source source) {
     if(enc instanceof HeadingEncoder) {
+      // TODO: this is the only position where Tags are needed for training. We could also just access the Annotations to get the label strings.
       HeadingTag heading = s.getTag(source, HeadingTag.class);
       if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(heading.getTag());
       else return ((HeadingEncoder) enc).encode(heading.getTag());

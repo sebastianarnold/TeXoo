@@ -43,6 +43,7 @@ import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
+import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -232,7 +233,7 @@ public class SectorTagger extends Tagger {
         .dropOut(0.0)
         .trainingWorkspaceMode(WorkspaceMode.ENABLED)
         .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
-        //.cacheMode(CacheMode.HOST)
+        .cacheMode(CacheMode.HOST)
 	.graphBuilder()
     // INPUT LAYERS
         .addInputs("bag")
@@ -311,12 +312,13 @@ public class SectorTagger extends Tagger {
       // OUTPUT LAYER
       gb.setOutputs("targetFW", "targetBW")
         .setInputTypes(InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize))
-				.pretrain(false).backprop(true).backpropType(BackpropType.Standard);
+				.backpropType(BackpropType.Standard);
 
     ComputationGraphConfiguration conf = gb.build();
 		ComputationGraph lstm = new ComputationGraph(conf);
 		lstm.init();
     net = lstm;
+    net.setListeners(new PerformanceListener(100, true));
 		return this;
     
   }
@@ -340,12 +342,13 @@ public class SectorTagger extends Tagger {
         .build();*/
     int n = 0;
     for(int i = 1; i <= numEpochs; i++) {
+      appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
       getNN().fit(it);
       //wrapper.fit(it);
       n += numExamples;
       timer.setSplit("epoch");
       appendTrainLog("Completed epoch " + i + " of " + numEpochs + "\t" + n, timer.getLong("epoch"));
-      it.reset();
+      if(i < numEpochs) it.reset(); // shuffling may take some time
     }
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
