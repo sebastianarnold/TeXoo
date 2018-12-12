@@ -122,6 +122,13 @@
       <artifactId>deeplearning4j-cuda-9.2</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
+    <!-- DL4j CUDA + cuDNN binaries -->
+    <dependency>
+     <groupId>org.bytedeco.javacpp-presets</groupId>
+     <artifactId>cuda</artifactId>
+     <version>9.2-7.1-1.4.2</version>
+     <classifier>linux-x86_64-redist</classifier>
+    </dependency>
     <!-- Stanford CoreNLP -->
     <!-- GPL v3 License https://stanfordnlp.github.io/CoreNLP/ -->
     <dependency>
