@@ -341,6 +341,7 @@ public class SectorTagger extends Tagger {
         .reportScoreAfterAveraging(true) // if set to TRUE, on every averaging model score will be reported
         .build();*/
     int n = 0;
+    Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
       appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
       getNN().fit(it);
@@ -349,9 +350,11 @@ public class SectorTagger extends Tagger {
       timer.setSplit("epoch");
       appendTrainLog("Completed epoch " + i + " of " + numEpochs + "\t" + n, timer.getLong("epoch"));
       if(i < numEpochs) it.reset(); // shuffling may take some time
+      Nd4j.getMemoryManager().invokeGc();
     }
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
+    Nd4j.getMemoryManager().togglePeriodicGc(true);
     setModelAvailable(true);
   }
   
