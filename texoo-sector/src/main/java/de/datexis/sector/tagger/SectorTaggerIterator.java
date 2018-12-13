@@ -13,11 +13,8 @@ import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
-import java.util.Arrays;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import static org.nd4j.linalg.indexing.NDArrayIndex.*;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
@@ -118,7 +115,8 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       for(int t = 0; t < spansToEncode.size(); t++) {
         // TODO: this function is a copy from Encoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
-        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec.dup());
+        //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec); // TODO: this takes a long time!
+        encoding.getRow(batchIndex).getColumn(t).assign(vec);
       }
       
     }
