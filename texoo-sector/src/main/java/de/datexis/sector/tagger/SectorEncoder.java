@@ -100,6 +100,7 @@ public class SectorEncoder extends Encoder {
       // append vectors to sentences
       int batchNum = 0; for(Document doc : batch.docs) {
         int t = 0; for(Sentence s : doc.getSentences()) {
+          if(t >= maxTimeSteps) break;
           if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), target.getRow(batchNum).getColumn(t));
           if(embedding != null) s.putVector(SectorEncoder.class, embedding.getRow(batchNum).getColumn(t));
           //s.putVector(SegmentEncoder.class, lstm.getRow(batchNum).getColumn(t));

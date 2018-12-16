@@ -84,7 +84,7 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder {
       if(timeStepClass == Token.class) spansToEncode = Lists.newArrayList(example.getTokens());
       else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
 
-      for(int t = 0; t < spansToEncode.size(); t++) {
+      for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         INDArray vec = encode(spansToEncode.get(t));
         //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
         encoding.getRow(batchIndex).getColumn(t).assign(vec); // this one is faster

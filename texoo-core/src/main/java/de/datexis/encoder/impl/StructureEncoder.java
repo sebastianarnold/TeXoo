@@ -54,18 +54,17 @@ public class StructureEncoder extends StaticEncoder {
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
       
       example = input.get(batchIndex);
-      int i = 0;
       if(timeStepClass == Token.class) {
         List<INDArray> vecs = encodeTokens(example);
-        for(Token t : example.getTokens()) {
-          encoding.getRow(batchIndex).getColumn(i).assign(vecs.get(i));
-          i++;
+        for(int t = 0; t < example.countTokens() && t < maxTimeSteps; t++) {
+          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          t++;
         }
       } else if(timeStepClass == Sentence.class) {
         List<INDArray> vecs = encodeSentences(example);
-        for(Sentence s : example.getSentences()) {
-          encoding.getRow(batchIndex).getColumn(i).assign(vecs.get(i));
-          i++;
+        for(int t = 0; t < example.countSentences() && t < maxTimeSteps; t++) {
+          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          t++;
         }
       } else throw new IllegalArgumentException("Cannot encode class " + timeStepClass.toString() + " from Document");
       

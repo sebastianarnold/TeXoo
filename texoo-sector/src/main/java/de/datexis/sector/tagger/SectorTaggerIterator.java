@@ -92,7 +92,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       if(timeStepClass == Token.class) spanCount = example.countTokens();
       else if(timeStepClass == Sentence.class) spanCount = example.countSentences();
 
-      for(int t = 0; t < spanCount; t++) {
+      for(int t = 0; t < spanCount && t < maxTimeSteps; t++) {
         mask.putScalar(new int[] {batchIndex, t}, 1);
       }
       
@@ -112,7 +112,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       if(timeStepClass == Token.class) spansToEncode = Lists.newArrayList(example.getTokens());
       else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
 
-      for(int t = 0; t < spansToEncode.size(); t++) {
+      for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: this function is a copy from Encoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
         //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec); // TODO: this takes a long time!
