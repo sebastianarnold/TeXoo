@@ -12,6 +12,9 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,9 +29,18 @@ public class RawTextDatasetReader implements DatasetReader {
 
   protected final static Logger log = LoggerFactory.getLogger(RawTextDatasetReader.class);
   
+  protected boolean randomizeDocuments = false;
   protected boolean useFirstSentenceAsTitle = false;
   protected boolean isTokenized = false;
   protected long limit = -1;
+  
+  /**
+   * Use a copy of every first sentence as Document title.
+   */
+  public RawTextDatasetReader withRandomizedDocuments(boolean randomize) {
+    this.randomizeDocuments = randomize;
+    return this;
+  }
   
   /**
    * Use a copy of every first sentence as Document title.
@@ -77,13 +89,21 @@ public class RawTextDatasetReader implements DatasetReader {
     log.info("Reading Documents from {}", path.toString());
     Dataset data = new Dataset(path.getPath().getFileName().toString());
     AtomicInteger progress = new AtomicInteger();
-    Stream<Document> docs = Files.walk(path.getPath())
+    Stream<Path> paths = Files.walk(path.getPath())
         .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
-        .filter(p -> p.getFileName().toString().matches(pattern))
+        .filter(p -> p.getFileName().toString().matches(pattern));
         //.sorted()
+    if(randomizeDocuments) {
+      List<Path> list = paths.collect(Collectors.toList());
+      Collections.shuffle(list);
+      paths = list.stream();
+    }
+    Stream<Document> docs = paths
         .map(p -> readDocumentFromFile(Resource.fromFile(p.toString())))
         .filter(d -> !d.isEmpty());
-    if(limit >= 0) docs = docs.limit(limit);
+    if(limit >= 0) {
+      docs = docs.limit(limit);
+    }
     docs.forEach(d -> {
       data.addDocument(d);
       int n = progress.incrementAndGet();
