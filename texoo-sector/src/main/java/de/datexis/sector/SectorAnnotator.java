@@ -24,6 +24,7 @@ import de.datexis.sector.tagger.SectorTagger;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
@@ -86,13 +87,9 @@ public class SectorAnnotator extends Annotator {
   }
   
   public void annotate(Collection<Document> docs, SegmentationMethod segmentation) {
-    annotate(docs, segmentation, false);
-  }
-  
-  public void annotate(Collection<Document> docs, SegmentationMethod segmentation, boolean alignFwBwEmbeddings) {
     // use tagger to generate and attach PRED vectors to Sentences
     log.info("Running SECTOR neural net encoding...");
-    getTagger().attachVectors(docs, DocumentSentenceIterator.Stage.ENCODE, getTargetEncoder().getClass(), alignFwBwEmbeddings);
+    getTagger().attachVectors(docs, DocumentSentenceIterator.Stage.ENCODE, getTargetEncoder().getClass());
     if(!segmentation.equals(SegmentationMethod.NONE)) segment(docs, segmentation);
   }
   
@@ -266,7 +263,8 @@ public class SectorAnnotator extends Annotator {
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       } else if(targetEncoder.getClass() == HeadingEncoder.class) {
         ann.putVector(HeadingEncoder.class, pred);
-        ann.setSectionHeading(targetEncoder.getNearestNeighbours(pred, 3).toString());
+        Collection<String> preds = targetEncoder.getNearestNeighbours(pred, 5);
+        ann.setSectionHeading(StringUtils.join(preds, "/"));
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       }
     }
@@ -470,6 +468,7 @@ public class SectorAnnotator extends Annotator {
   protected static INDArray detectSectionsFromFWBWEmbeddingMagnitude(Document doc) {
     
     int PCA_DIMS = 16;
+    double SMOOTH_FACTOR = 1.5;
     
     if(doc.countSentences() < 1) return null;
     Sentence sent = doc.getSentence(0);
@@ -487,10 +486,16 @@ public class SectorAnnotator extends Annotator {
       t++;
     }
     
-    INDArray docFwPCA = docFW.mmul(PCA.pca_factor(docFW.dup(), PCA_DIMS, true));
-    INDArray docBwPCA = docBW.mmul(PCA.pca_factor(docBW.dup(), PCA_DIMS, true));
-    INDArray docFwPCAs = gaussianSmooth(docFwPCA, 1.5);
-    INDArray docBwPCAs = gaussianSmooth(docBwPCA, 1.5);
+    INDArray docFwPCA = docFW.mmul(PCA.pca_factor(docFW.dup(), PCA_DIMS, false));
+    INDArray docBwPCA = docBW.mmul(PCA.pca_factor(docBW.dup(), PCA_DIMS, false));
+    // remove first principal components
+    INDArray zeros = Nd4j.zeros(docFW.rows(), 1);
+    docFwPCA.putColumn(0, zeros);
+    docBwPCA.putColumn(0, zeros);
+    docFwPCA.putColumn(1, zeros);
+    docBwPCA.putColumn(1, zeros);
+    INDArray docFwPCAs = gaussianSmooth(docFwPCA, SMOOTH_FACTOR);
+    INDArray docBwPCAs = gaussianSmooth(docBwPCA, SMOOTH_FACTOR);
     INDArray docMag = magnitude(docFwPCAs, docBwPCAs);
     
     return docMag;
@@ -559,9 +564,11 @@ public class SectorAnnotator extends Annotator {
    */
   protected static INDArray magnitude(INDArray fw, INDArray bw) {
     INDArray mag = Nd4j.zeros(fw.rows(), 1);
-    for(int t = 1; t < mag.rows() - 1; t++) {
-      double fwd1 = Transforms.cosineDistance(fw.getRow(t), fw.getRow(t+1)); // first derivative - FW is too late
-      double bwd1 = Transforms.cosineDistance(bw.getRow(t), bw.getRow(t-1)); // first derivative - BW is too early
+    for(int t = 1; t < mag.rows(); t++) { // calculate first derivative in cosine distance
+      double fwd1 = (t < mag.rows() - 1) ? // FW is too late
+          Transforms.cosineDistance(fw.getRow(t), fw.getRow(t+1)) : 0; 
+      double bwd1 = (t > 2) ? // BW is too early
+          Transforms.cosineDistance(bw.getRow(t-1), bw.getRow(t-2)) : 0; 
       //mag.putScalar(t, 0, Math.sqrt(Math.pow(fwd1, 2) + Math.pow(bwd1, 2) / 2.)); // quadratic mean
       double geom = Math.sqrt(fwd1 * bwd1);
       mag.putScalar(t, 0, Double.isNaN(geom) ? 0. : geom); // geometric mean

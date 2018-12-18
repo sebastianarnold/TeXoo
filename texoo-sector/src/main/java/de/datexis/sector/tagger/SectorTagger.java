@@ -341,7 +341,7 @@ public class SectorTagger extends Tagger {
         .reportScoreAfterAveraging(true) // if set to TRUE, on every averaging model score will be reported
         .build();*/
     int n = 0;
-    Nd4j.getMemoryManager().togglePeriodicGc(false);
+    //Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
       appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
       getNN().fit(it);
@@ -354,7 +354,7 @@ public class SectorTagger extends Tagger {
     }
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
-    Nd4j.getMemoryManager().togglePeriodicGc(true);
+    //Nd4j.getMemoryManager().togglePeriodicGc(true);
     setModelAvailable(true);
   }
   
@@ -401,7 +401,7 @@ public class SectorTagger extends Tagger {
   public void testModel(Dataset dataset) {
     //appendTestLog("Testing " + getName() + " with " + n + " examples in " + batches + " batches.");
     timer.start();
-    attachVectors(dataset.getDocuments(), Stage.TEST, targetEncoder.getClass(), false);
+    attachVectors(dataset.getDocuments(), Stage.TEST, targetEncoder.getClass());
     timer.stop();
     appendTestLog("Testing complete", timer.getLong());
   }
@@ -436,78 +436,69 @@ public class SectorTagger extends Tagger {
   
   public static Map<String,INDArray> feedForward(ComputationGraph net, MultiDataSet next) {
     
-    WorkspaceMode cMode = net.getConfiguration().getTrainingWorkspaceMode();
+    /*WorkspaceMode cMode = net.getConfiguration().getTrainingWorkspaceMode();
     net.getConfiguration().setTrainingWorkspaceMode(net.getConfiguration().getInferenceWorkspaceMode());
     MemoryWorkspace workspace =
             net.getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
                     : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
-    
+    */
     //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
     
       INDArray[] features = next.getFeatures();
       INDArray[] featuresMasks = next.getFeaturesMaskArrays();
-      //INDArray[] labels = next.getLabels();
       INDArray[] labelMasks = next.getLabelsMaskArrays();
 
-      net.clear();
-      net.clearLayerMaskArrays();
-      net.rnnClearPreviousState();
+      //net.clear();
+      //net.clearLayerMaskArrays();
+      //net.rnnClearPreviousState();
       net.setLayerMaskArrays(featuresMasks, labelMasks);
-      // FIXME: we have a leak here
-      //Map<String,INDArray> weights = net.feedForward(false, false, true);
-      Map<String,INDArray> weights = net.feedForward(features, false, false);
+      Map<String,INDArray> weights = net.feedForward(features, false, true);
       // migrate weights back into workspace to make sure they are deleted after the batch
-      for(INDArray weight : weights.values()) {
+      /*for(INDArray weight : weights.values()) {
         weight.migrate();
-      }
+      }*/
 
       if(weights.containsKey("target")) {
         //predicted = result.get("target");
       } else if(weights.containsKey("targetFW")) {
-        INDArray fw = weights.get("targetFW");//.dup();
-        INDArray bw = weights.get("targetBW");//.dup();
+        INDArray fw = weights.get("targetFW");
+        INDArray bw = weights.get("targetBW");
         //result.put("target", Transforms.sqrt(fw.mul(fw).add(bw.mul(bw)).div(2.))); // geometric mean
         weights.put("target", fw.add(bw).divi(2)); // average
       }
       
     
     //} finally {
-      clearLayerStates(net);
-      net.getConfiguration().setTrainingWorkspaceMode(cMode);
+      //clearLayerStates(net);
       return weights;
     //}
     
   }
   
-  public void attachVectors(Collection<Document> docs, Stage stage, Class<? extends Encoder> targetClass, boolean alignFWBWlayers) {
+  public void attachVectors(Collection<Document> docs, Stage stage, Class<? extends Encoder> targetClass) {
     
     SectorTaggerIterator it = new SectorTaggerIterator(stage, docs, this, batchSize, false, requireSubsampling);
     
-    WorkspaceMode cMode = getNN().getConfiguration().getTrainingWorkspaceMode();
+    /*WorkspaceMode cMode = getNN().getConfiguration().getTrainingWorkspaceMode();
     getNN().getConfiguration().setTrainingWorkspaceMode(getNN().getConfiguration().getInferenceWorkspaceMode());
     MemoryWorkspace workspace =
             getNN().getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
-                    : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
+                    : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();*/
     
     // label batches of documents
     while(it.hasNext()) {
-
       //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
-
-        attachVectors(it.nextDocumentBatch(), targetClass, alignFWBWlayers);
-        
-      
+        attachVectors(it.nextDocumentBatch(), targetClass);
       //} finally {
-        clearLayerStates(getNN());
+       // clearLayerStates(getNN());
       //}
-        
     }
     
-    getNN().getConfiguration().setTrainingWorkspaceMode(cMode);
+    //getNN().getConfiguration().setTrainingWorkspaceMode(cMode);
     
   }
   
-  protected void attachVectors(DocumentSentenceIterator.DocumentBatch batch, Class<? extends Encoder> targetClass, boolean alignFWBWlayers) {
+  protected void attachVectors(DocumentSentenceIterator.DocumentBatch batch, Class<? extends Encoder> targetClass) {
     
       Map<String,INDArray> weights = encodeMatrix(batch);
       
@@ -521,33 +512,24 @@ public class SectorTagger extends Tagger {
         embeddingBW = weights.get("embeddingBW"); // attach target class vectors
       }
       // append vectors to sentences
-      int batchNum = 0; for(Document doc : batch.docs) {
-        int t = 0; int max = doc.countSentences() - 1;
+      int batchIndex = 0; for(Document doc : batch.docs) {
+        int t = 0;
         for(Sentence s : doc.getSentences()) {
-          INDArray targetVec = target.get(new INDArrayIndex[] {point(batchNum), all(), point(t)});
+          INDArray targetVec = target.getRow(batchIndex).getColumn(t); //target.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
           s.putVector(targetEncoder.getClass(), targetVec);
-          if(alignFWBWlayers == false && embedding != null) {
-            INDArray embeddingVec = embedding.get(new INDArrayIndex[] {point(batchNum), all(), point(t)});
+          if(embedding != null) {
+            INDArray embeddingVec = embedding.getRow(batchIndex).getColumn(t); //embedding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
             s.putVector(SectorEncoder.class, embeddingVec);
           }
           if(embeddingFW != null) {
-            INDArray fw, bw;
-            if(alignFWBWlayers) {
-              fw = embeddingFW.get(new INDArrayIndex[] {point(batchNum), all(), point(Math.max(0, t-1))});
-              bw = embeddingBW.get(new INDArrayIndex[] {point(batchNum), all(), point(Math.min(max, t+1))});
-              // element-wise geometric mean of shifted layers
-              s.putVector(SectorEncoder.class, Transforms.sqrt(fw.mul(fw).add(bw.mul(bw)).div(2.)));
-            } else {
-              fw = embeddingFW.get(new INDArrayIndex[] {point(batchNum), all(), point(t)});
-              bw = embeddingBW.get(new INDArrayIndex[] {point(batchNum), all(), point(t)});
-              // keep existing means
-            }
+            INDArray fw = embeddingFW.getRow(batchIndex).getColumn(t); //embeddingFW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray bw = embeddingBW.getRow(batchIndex).getColumn(t); //embeddingBW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
             s.putVector("embeddingFW", fw);
             s.putVector("embeddingBW", bw);
           }
           t++;
         }
-        batchNum++;
+        batchIndex++;
       }
   }
   
