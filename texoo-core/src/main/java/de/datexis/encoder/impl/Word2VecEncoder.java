@@ -6,6 +6,7 @@ import de.datexis.encoder.Encoder;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import de.datexis.model.*;
 import de.datexis.model.Token;
+import de.datexis.preprocess.LowercasePreprocessor;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -60,7 +61,7 @@ public class Word2VecEncoder extends Encoder {
 	private WordVectors vec;
 	private long length;
   private String modelName;
-  private TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
+  private TokenPreProcess preprocessor = new LowercasePreprocessor();
   
 	public Word2VecEncoder() {
     super("EMB");
@@ -88,7 +89,7 @@ public class Word2VecEncoder extends Encoder {
 
   @Override
   public void loadModel(Resource modelFile) {
-    log.info("Loading Word2Vec model: " +  modelFile.getFileName());
+    log.info("Loading Word2Vec model: {} with preprocessor {}", modelFile.getFileName(), getPreprocessorClass());
 		try {
       switch(getModelType(modelFile.getFileName())) {
         default:
