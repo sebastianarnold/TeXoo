@@ -54,6 +54,12 @@ public class HeadingEncoder extends BagOfWordsEncoder {
   }
   
   @Override
+  public INDArray encode(String phrase) {
+    if(phrase != null ) return encode(WordHelpers.splitSpaces(phrase));
+    else return encode(new String[] { OTHER_CLASS });
+  }
+  
+  @Override
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray vec = super.encode(spans);
     return vec.sumNumber().doubleValue() > 0. ? vec : encode(new String[] { OTHER_CLASS });
