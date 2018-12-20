@@ -12,6 +12,7 @@ import org.nd4j.linalg.primitives.Pair;
 public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
 
+  public static final int RIDICULOUSLY_LARGE_NUMBER = 9001; // Its over 9000!
   private int margin;
   private int kNegativeExamples;
   private int joinTerm2Weight; // lambda1
@@ -23,6 +24,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     structureConstraintXWeight = 1;
     joinTerm2Weight = 1;
     kNegativeExamples = 1;
+    margin = 1;
   }
 
   @Override
@@ -53,43 +55,29 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
   public INDArray scoreArray(INDArray labels, INDArray preOutput, IActivation activationFn, INDArray mask) {
     INDArray scoreArr = activationFn.getActivation(preOutput, true);
-    INDArray x = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(0, 2));
-    INDArray y = scoreArr.get(NDArrayIndex.all(),NDArrayIndex.interval(2,4));
+
+    long singleEmbeddingSize = scoreArr.size(1) / 2L;
+    
+    // Split vectors
+    INDArray x = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
+    INDArray y = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, scoreArr.size(1)));
 
     INDArray yContrastive = Nd4j.create(y.shape());
     INDArray xContrastive = Nd4j.create(x.shape());
 
     long numRows = preOutput.shape()[0];
-    
+
+    // Sample negative examples
     for (long i = 1; i <= numRows * kNegativeExamples; i++) {
       yContrastive.putRow(i - 1, y.getRow(i % numRows));
       xContrastive.putRow(i - 1, x.getRow(i % numRows));
     }
 
-
-    INDArray xNeighbor = Nd4j.create(x.shape());
-    xNeighbor.putRow(0, x.getRow(1));
-    xNeighbor.putRow(1, x.getRow(0));
-    xNeighbor.putRow(2, x.getRow(3));
-    xNeighbor.putRow(3, x.getRow(2));
-    
-    INDArray yNeighbor = Nd4j.create(y.shape());
-    yNeighbor.putRow(0, y.getRow(1));
-    yNeighbor.putRow(1, y.getRow(0));
-    yNeighbor.putRow(2, y.getRow(3));
-    yNeighbor.putRow(3, y.getRow(2));
-    
-    INDArray xNotANeighbor = Nd4j.create(x.shape());
-    xNotANeighbor.putRow(0, x.getRow(3));
-    xNotANeighbor.putRow(1, x.getRow(3));
-    xNotANeighbor.putRow(2, x.getRow(0));
-    xNotANeighbor.putRow(3, x.getRow(0));
-
-    INDArray yNotANeighbor = Nd4j.create(y.shape());
-    yNotANeighbor.putRow(0, y.getRow(3));
-    yNotANeighbor.putRow(1, y.getRow(3));
-    yNotANeighbor.putRow(2, y.getRow(0));
-    yNotANeighbor.putRow(3, y.getRow(0));
+    // Sample Neighbors in original embeddings
+    INDArray xNeighbor = sampleNeighborhood(x, true);
+    INDArray yNeighbor = sampleNeighborhood(y, true);
+    INDArray xNotANeighbor = sampleNeighborhood(x, false);
+    INDArray yNotANeighbor = sampleNeighborhood(y, false);
 
     INDArray distancesXY = euclideanDistanceByRow(x, y);
     INDArray distancesXYContrastive = euclideanDistanceByRow(x, yContrastive);
@@ -98,7 +86,6 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray distancesXXNeighbor = euclideanDistanceByRow(x, xNeighbor);
     INDArray distancesYYNotANeighbor = euclideanDistanceByRow(y, yNotANeighbor);
     INDArray distancesYYNeighbor = euclideanDistanceByRow(y, yNeighbor);
-    margin = 1;
     INDArray add = distancesXY.add(margin);
     INDArray joinTerm1 = add.sub(distancesXYContrastive);
     INDArray joinTerm2 = distancesXY.add(margin).sub(distancesXContrastiveY);
@@ -114,9 +101,31 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
     //multiply with masks, always
     applyMask(mask, scoreArr);
-    
+
     return scoreArr;
   }
+
+  private INDArray sampleNeighborhood(INDArray target, boolean positiveSampling) {
+    INDArray allDistancesXX = Transforms.allEuclideanDistances(target, target, 1);
+    
+    if (positiveSampling){
+      INDArray eye = Nd4j.eye(allDistancesXX.size(1));
+      eye.muli(RIDICULOUSLY_LARGE_NUMBER);
+      allDistancesXX.addi(eye);
+      allDistancesXX.muli(-1);
+    }
+
+    INDArray neighbors = Nd4j.create(target.shape());
+    INDArray argMax = allDistancesXX.argMax(0);
+    
+    for(long i = 0; i < argMax.length(); i++) {
+      long index = argMax.getInt((int) i);
+      INDArray scalar = target.getRow(index);
+      neighbors.putRow((int) i, scalar);
+    }
+    return neighbors;
+  }  
+  
 
   private INDArray euclideanDistanceByRow(INDArray x, INDArray y) {
     return Nd4j.getExecutioner().exec(new EuclideanDistance(x, y, false), 1);
@@ -133,7 +142,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     output = activationFn.backprop(preOutput.dup(), dlDx).getFirst();
     //multiply with masks, always
     applyMask(mask, output);
-    return null;
+    return output;
   }
 
   private INDArray computeDlDx(INDArray labels, INDArray output) {
@@ -150,5 +159,50 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
   @Override
   public String name() {
     return this.getClass().getSimpleName();
+  }
+
+  public int getMargin() {
+    return margin;
+  }
+
+  public StructurePreservingEmbeddingLoss setMargin(int margin) {
+    this.margin = margin;
+    return this;
+  }
+
+  public int getkNegativeExamples() {
+    return kNegativeExamples;
+  }
+
+  public StructurePreservingEmbeddingLoss setkNegativeExamples(int kNegativeExamples) {
+    this.kNegativeExamples = kNegativeExamples;
+    return this;
+  }
+
+  public int getJoinTerm2Weight() {
+    return joinTerm2Weight;
+  }
+
+  public StructurePreservingEmbeddingLoss setJoinTerm2Weight(int joinTerm2Weight) {
+    this.joinTerm2Weight = joinTerm2Weight;
+    return this;
+  }
+
+  public int getStructureConstraintXWeight() {
+    return structureConstraintXWeight;
+  }
+
+  public StructurePreservingEmbeddingLoss setStructureConstraintXWeight(int structureConstraintXWeight) {
+    this.structureConstraintXWeight = structureConstraintXWeight;
+    return this;
+  }
+
+  public int getStructureConstrainYWeight() {
+    return structureConstrainYWeight;
+  }
+
+  public StructurePreservingEmbeddingLoss setStructureConstrainYWeight(int structureConstrainYWeight) {
+    this.structureConstrainYWeight = structureConstrainYWeight;
+    return this;
   }
 }
