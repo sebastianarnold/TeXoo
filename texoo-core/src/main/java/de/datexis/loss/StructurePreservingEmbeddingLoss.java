@@ -86,16 +86,17 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray distancesXXNeighbor = euclideanDistanceByRow(x, xNeighbor);
     INDArray distancesYYNotANeighbor = euclideanDistanceByRow(y, yNotANeighbor);
     INDArray distancesYYNeighbor = euclideanDistanceByRow(y, yNeighbor);
-    INDArray add = distancesXY.add(margin);
-    INDArray joinTerm1 = add.sub(distancesXYContrastive);
+    
+    INDArray joinTerm1 = distancesXY.add(margin).sub(distancesXYContrastive);
     INDArray joinTerm2 = distancesXY.add(margin).sub(distancesXContrastiveY);
     INDArray structureX = distancesXXNeighbor.add(margin).sub(distancesXXNotANeighbor);
     INDArray structureY = distancesYYNeighbor.add(margin).sub(distancesYYNotANeighbor);
+    
     joinTerm1 = Transforms.max(joinTerm1, 0);
     joinTerm2 = Transforms.max(joinTerm2, 0).mul(joinTerm2Weight);
     structureX = Transforms.max(structureX, 0).mul(structureConstraintXWeight);
-
     structureY = Transforms.max(structureY, 0).mul(structureConstrainYWeight);
+    
     scoreArr = joinTerm1.add(joinTerm2).add(structureX).add(structureY);
 
 
