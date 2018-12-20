@@ -3,8 +3,11 @@ package de.datexis.sector.encoder;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.model.Span;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +20,7 @@ public class HeadingEncoder extends BagOfWordsEncoder {
   protected final static Logger log = LoggerFactory.getLogger(HeadingEncoder.class);
   public static final String ID = "HL";
   
-  public static String OTHER_CLASS = "OTHER";
+  public static String OTHER_CLASS = "other";
   
   public HeadingEncoder() {
     super(ID);
@@ -43,7 +46,7 @@ public class HeadingEncoder extends BagOfWordsEncoder {
     }
     int total = vocab.numWords();
     vocab.truncateVocabulary(minWordFrequency);
-    vocab.addWord(OTHER_CLASS);
+    vocab.addWord(preprocessor.preProcess(OTHER_CLASS));
     vocab.updateHuffmanCodes();
     timer.stop();
     appendTrainLog("trained " + vocab.numWords() + " words (" +  total + " total)", timer.getLong());
@@ -53,19 +56,39 @@ public class HeadingEncoder extends BagOfWordsEncoder {
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray vec = super.encode(spans);
-    return vec.sumNumber().doubleValue()> 0. ? vec : encode(new String[] { OTHER_CLASS });
+    return vec.sumNumber().doubleValue() > 0. ? vec : encode(new String[] { OTHER_CLASS });
   }
   
   @Override
   protected INDArray encode(String[] words) {
-    INDArray vec = super.encode(words);
-    return vec.sumNumber().doubleValue()> 0. ? vec : encode(new String[] { OTHER_CLASS });
+    return super.encode(words);
   }
   
   @Override
   public INDArray encodeSubsampled(String phrase) {
     INDArray vec = super.encodeSubsampled(phrase);
-    return vec.sumNumber().doubleValue()> 0. ? vec : encode(new String[] { OTHER_CLASS });
+    return vec.sumNumber().doubleValue() > 0. ? vec : encode(new String[] { OTHER_CLASS });
   }
+  
+  @Override
+  public Collection<String> getNearestNeighbours(INDArray v, int maxN) {
+    // find maximum entries
+    INDArray[] sorted = Nd4j.sortWithIndices(v.dup(), 0, false); // index,value
+    if(sorted[0].sumNumber().doubleValue() == 0.) // TODO: sortWithIndices could be run on -1 / 0 / 1 ?
+      log.warn("NearestNeighbour on zero vector - please check vector alignment!");
+    INDArray idx = sorted[0]; // ranked indexes
+    final double max = sorted[1].getDouble(0);
+    final double med = sorted[1].medianNumber().doubleValue();
+    // get top n
+    ArrayList<String> result = new ArrayList<>(maxN);
+    for(int i=0; i<maxN; i++) {
+      double prob = sorted[1].getDouble(i);
+      // only assign first quantile
+      if(prob > 0. && prob >= (max+med)/2) {
+        result.add(getWord(idx.getInt(i)));
+      }
+    }
+    return result;
+	}
   
 }

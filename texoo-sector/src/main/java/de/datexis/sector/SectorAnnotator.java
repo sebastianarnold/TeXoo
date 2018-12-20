@@ -263,7 +263,7 @@ public class SectorAnnotator extends Annotator {
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       } else if(targetEncoder.getClass() == HeadingEncoder.class) {
         ann.putVector(HeadingEncoder.class, pred);
-        Collection<String> preds = targetEncoder.getNearestNeighbours(pred, 5);
+        Collection<String> preds = targetEncoder.getNearestNeighbours(pred, 3);
         ann.setSectionHeading(StringUtils.join(preds, "/"));
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       }
