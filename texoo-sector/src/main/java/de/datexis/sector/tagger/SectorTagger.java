@@ -288,23 +288,23 @@ public class SectorTagger extends Tagger {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.XAVIER)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingFW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.XAVIER)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingBW");
     } else {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.XAVIER)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "FW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.XAVIER)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "BW");
       }
       //gb.allowDisconnected(true);
