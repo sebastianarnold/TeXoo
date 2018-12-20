@@ -247,7 +247,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     // get top n
     ArrayList<String> result = new ArrayList<>(n);
     for(int i=0; i<n; i++) {
-      result.add(getWord(idx.getInt(i)));
+      if(sorted[1].getDouble(i) > 0.) result.add(getWord(idx.getInt(i)));
     }
     return result;
 	}
