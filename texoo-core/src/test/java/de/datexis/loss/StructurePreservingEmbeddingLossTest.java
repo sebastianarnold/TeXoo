@@ -4,8 +4,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.Matchers.*;
 
+import org.deeplearning4j.gradientcheck.GradientCheckUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+import org.nd4j.autodiff.validation.GradCheckUtil;
 import org.nd4j.linalg.activations.IActivation;
 import org.nd4j.linalg.activations.impl.ActivationIdentity;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -57,6 +59,28 @@ public class StructurePreservingEmbeddingLossTest {
     preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
     preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
     preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
+    return preOutput;
+  }  
+  
+  @NotNull
+  private INDArray setUp2DTestCaseWithPositiveEpsilonDiversion(float epsilon) {
+    INDArray preOutput = Nd4j.create(4, 4);
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
+    preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
+    preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
+    preOutput.addi(epsilon);
+    return preOutput;
+  }  
+  
+  @NotNull
+  private INDArray setUp2DTestCaseWithNegativeEpsilonDiversion(float epsilon) {
+    INDArray preOutput = Nd4j.create(4, 4);
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
+    preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
+    preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
+    preOutput.subi(epsilon);
     return preOutput;
   }
 
@@ -120,6 +144,23 @@ public class StructurePreservingEmbeddingLossTest {
 
   @Test
   public void computeGradient() {
+    StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
+    INDArray defaultTestCase = setUp2DTestCase();
+    INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.00001f);
+    INDArray slightlyNegativeCase = setUp2DTestCaseWithNegativeEpsilonDiversion(0.00001f);
+
+    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray mask = null;
+
+    IActivation activation = new ActivationIdentity();
+
+    INDArray actualGradients = loss.computeGradient(labels, defaultTestCase, activation, mask);
+    INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
+    INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
+    INDArray estimatedGradients = negativeScores.sub(positiveScores);
+    
+    actualGradients.equalsWithEps(estimatedGradients,0.00001f);
+
   }
 
   @Test
