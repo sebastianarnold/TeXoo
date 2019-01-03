@@ -760,6 +760,7 @@ public class SectorAnnotator extends Annotator {
       line.append("EMB").append("\t").append(embeddingLayerSize).append("\n");
       line.append("\nTraining Params:\n");
       line.append("examples per epoch").append("\t").append(examplesPerEpoch).append("\n");
+      line.append("max time series length").append("\t").append(maxTimeSeriesLength).append("\n");
       line.append("epochs").append("\t").append(numEpochs).append("\n");
       line.append("iterations").append("\t").append(iterations).append("\n");
       line.append("batch size").append("\t").append(batchSize).append("\n");

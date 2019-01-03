@@ -289,23 +289,23 @@ public class SectorTagger extends Tagger {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            //.weightInit(WeightInit.SIGMOID_UNIFORM)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingFW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            //.weightInit(WeightInit.SIGMOID_UNIFORM)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingBW");
     } else {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            //.weightInit(WeightInit.SIGMOID_UNIFORM)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "FW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            //.weightInit(WeightInit.SIGMOID_UNIFORM)
+            .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "BW");
       }
       //gb.allowDisconnected(true);
@@ -345,7 +345,7 @@ public class SectorTagger extends Tagger {
         .reportScoreAfterAveraging(true) // if set to TRUE, on every averaging model score will be reported
         .build();*/
     int n = 0;
-    //Nd4j.getMemoryManager().togglePeriodicGc(false);
+    Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
       appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
       triggerEpochListeners(true, i - 1);
@@ -360,7 +360,7 @@ public class SectorTagger extends Tagger {
     }
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
-    //Nd4j.getMemoryManager().togglePeriodicGc(true);
+    Nd4j.getMemoryManager().togglePeriodicGc(true);
     setModelAvailable(true);
   }
   

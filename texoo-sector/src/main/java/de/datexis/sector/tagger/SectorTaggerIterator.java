@@ -122,8 +122,8 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: this function is a copy from Encoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
-        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
-        // encoding.getRow(batchIndex).getColumn(t).assign(vec); // FIXME: this one is faster and produces equals() vector, but we get errors on CPU backend!
+        // encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        encoding.getRow(batchIndex).getColumn(t).assign(vec); // this one is faster
       }
       
     }
