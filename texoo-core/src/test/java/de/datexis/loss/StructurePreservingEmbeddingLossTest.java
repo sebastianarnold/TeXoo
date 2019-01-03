@@ -68,22 +68,20 @@ public class StructurePreservingEmbeddingLossTest {
   @NotNull
   private INDArray setUp2DTestCaseWithPositiveEpsilonDiversion(float epsilon) {
     INDArray preOutput = Nd4j.create(4, 4);
-    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}));
-    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}).add(epsilon));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}).add(epsilon));
     preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
     preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
-    preOutput.addi(epsilon);
     return preOutput;
   }  
   
   @NotNull
   private INDArray setUp2DTestCaseWithNegativeEpsilonDiversion(float epsilon) {
     INDArray preOutput = Nd4j.create(4, 4);
-    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}));
-    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}));
+    preOutput.putRow(0, Nd4j.create(new float[]{0,2,-2,0}).sub(epsilon));
+    preOutput.putRow(1, Nd4j.create(new float[]{0,1,-1,0}).sub(epsilon));
     preOutput.putRow(2, Nd4j.create(new float[]{0,-1,1,0}));
     preOutput.putRow(3, Nd4j.create(new float[]{0,-2,2,0}));
-    preOutput.subi(epsilon);
     return preOutput;
   }
 
@@ -149,7 +147,7 @@ public class StructurePreservingEmbeddingLossTest {
   public void computeGradient() {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray defaultTestCase = setUp2DTestCase();
-    INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.001f);
+    INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.01f);
     INDArray slightlyNegativeCase = setUp2DTestCaseWithNegativeEpsilonDiversion(0.001f);
 
     INDArray labels = Nd4j.create(defaultTestCase.shape());
@@ -162,8 +160,7 @@ public class StructurePreservingEmbeddingLossTest {
     INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
     INDArray estimatedGradients = negativeScores.sub(positiveScores);
     
-    actualGradients.equalsWithEps(estimatedGradients,0.00001f);
-
+    actualGradients.equalsWithEps(estimatedGradients,0.001f);
   }  
   
   @Test
