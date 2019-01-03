@@ -86,8 +86,8 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder {
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         INDArray vec = encode(spansToEncode.get(t));
-        //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
-        encoding.getRow(batchIndex).getColumn(t).assign(vec); // this one is faster
+        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        //encoding.getRow(batchIndex).getColumn(t).assign(vec); // FIXME: this one is faster and produces equals() vector, but we get errors on CPU backend!
       }
       
     }

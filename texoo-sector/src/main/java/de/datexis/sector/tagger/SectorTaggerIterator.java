@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Iterates through a Dataset with Document-Level Batches of Sentences
@@ -116,8 +119,8 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: this function is a copy from Encoder and only this line is changed:
         INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
-        //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec); // TODO: this takes a long time!
-        encoding.getRow(batchIndex).getColumn(t).assign(vec);
+        encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        // encoding.getRow(batchIndex).getColumn(t).assign(vec); // FIXME: this one is faster and produces equals() vector, but we get errors on CPU backend!
       }
       
     }
