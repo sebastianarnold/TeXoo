@@ -41,8 +41,11 @@ import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
+import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
+import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
@@ -71,6 +74,7 @@ public class SectorTagger extends Tagger {
   protected Encoder targetEncoder = null;
   
   protected int batchSize = 16;
+  protected int maxTimeSeriesLength = -1;
   protected int numExamples = -1;
   protected int numEpochs = 1;
   protected boolean randomize = true;
@@ -120,8 +124,9 @@ public class SectorTagger extends Tagger {
     this.targetEncoder = targetEncoder;
   }
 
-  public SectorTagger setTrainingParams(int examplesPerEpoch, int batchSize, int numEpochs, boolean randomize) {
+  public SectorTagger setTrainingParams(int examplesPerEpoch, int maxTimeSeriesLength, int batchSize, int numEpochs, boolean randomize) {
     this.numExamples = examplesPerEpoch;
+    this.maxTimeSeriesLength = maxTimeSeriesLength;
     this.batchSize = batchSize;
     this.numEpochs = numEpochs;
     this.randomize = randomize;
@@ -326,7 +331,7 @@ public class SectorTagger extends Tagger {
   }
   
   public void trainModel(Dataset dataset, int numEpochs) {
-    SectorTaggerIterator it = new SectorTaggerIterator(Stage.TRAIN, dataset.getDocuments(), this, numExamples, batchSize, true, requireSubsampling);
+    SectorTaggerIterator it = new SectorTaggerIterator(Stage.TRAIN, dataset.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
     int batches = numExamples / batchSize;
     timer.start();
     appendTrainLog("Training " + getName() + " with " + numExamples + " examples in " + batches + " batches for " + numEpochs + " epochs.");
@@ -341,11 +346,13 @@ public class SectorTagger extends Tagger {
     //Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
       appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
+      triggerEpochListeners(true, i - 1);
       getNN().fit(it);
       //wrapper.fit(it);
       n += numExamples;
       timer.setSplit("epoch");
       appendTrainLog("Completed epoch " + i + " of " + numEpochs + "\t" + n, timer.getLong("epoch"));
+      triggerEpochListeners(false, i - 1);
       if(i < numEpochs) it.reset(); // shuffling may take some time
       Nd4j.getMemoryManager().invokeGc();
     }
@@ -356,8 +363,8 @@ public class SectorTagger extends Tagger {
   }
   
   public EarlyStoppingResult<ComputationGraph> trainModel(Dataset train, Dataset validation, EarlyStoppingConfiguration conf) {
-    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, batchSize, true, requireSubsampling);
-    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, batchSize, false, requireSubsampling);
+    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, batchSize, maxTimeSeriesLength, true, requireSubsampling);
+    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, batchSize, maxTimeSeriesLength, false, requireSubsampling);
     int batches = trainIt.numExamples / batchSize;
     timer.start();
     appendTrainLog("Training " + getName() + " with " + trainIt.numExamples + " examples in " + batches + " batches using early stopping.");
@@ -470,6 +477,21 @@ public class SectorTagger extends Tagger {
       return weights;
     //}
     
+  }
+  
+  protected void triggerEpochListeners(boolean epochStart, int epochNum){
+    Collection<TrainingListener> listeners;
+    listeners = getNN().getListeners();
+    getNN().getConfiguration().setEpochCount(epochNum);
+    if(listeners != null && !listeners.isEmpty()) {
+      for(TrainingListener l : listeners) {
+        if(epochStart) {
+          l.onEpochStart(getNN());
+        } else {
+          l.onEpochEnd(getNN());
+        }
+      }
+    }
   }
   
   public void attachVectors(Collection<Document> docs, Stage stage, Class<? extends Encoder> targetClass) {

@@ -45,7 +45,11 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   }
     
   public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int numExamples, int batchSize, boolean randomize, boolean requireSubsampling) {
-    super(stage, docs, numExamples, batchSize, randomize);
+    this(stage, docs, tagger, numExamples, -1, batchSize, randomize, requireSubsampling);
+  }
+  
+  public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize, boolean requireSubsampling) {
+    super(stage, docs, numExamples, maxTimeSeriesLength, batchSize, randomize);
     log = LoggerFactory.getLogger(SectorTaggerIterator.class);
     this.tagger = tagger;
     this.inputEncoders = new EncoderSet(tagger.bagEncoder, tagger.embEncoder, tagger.flagEncoder);

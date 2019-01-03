@@ -30,8 +30,8 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   protected Iterator<Document> docIt;
   
   protected int numExamples;
-  protected int batchSize;
-  protected int maxBatchLength = -1;
+  protected int batchSize = -1;
+  protected int maxTimeSeriesLength = -1;
   protected int cursor;
   protected long startTime;
   protected boolean randomize;
@@ -43,12 +43,13 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   }
   
   public DocumentSentenceIterator(Stage stage, Collection<Document> docs, int batchSize, boolean randomize) {
-    this(stage, docs, -1, batchSize, randomize);
+    this(stage, docs, -1, -1, batchSize, randomize);
   }
   
-  public DocumentSentenceIterator(Stage stage, Collection<Document> docs, int numExamples, int batchSize, boolean randomize) {
+  public DocumentSentenceIterator(Stage stage, Collection<Document> docs, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize) {
     this.documents = new ArrayList<>(docs);
     this.numExamples = numExamples > 0 && numExamples <= documents.size() ? numExamples : documents.size();
+    this.maxTimeSeriesLength = maxTimeSeriesLength;
     this.batchSize = batchSize;
     this.randomize = randomize;
     this.stage = stage;
@@ -107,7 +108,7 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
       if(hasNext()) example = nextDocument();
       else example = new Document();
       examples.add(example);
-      if(maxBatchLength > 0) exampleSize = Math.min(Math.max(exampleSize, example.countSentences()), maxBatchLength);
+      if(maxTimeSeriesLength > 0) exampleSize = Math.min(Math.max(exampleSize, example.countSentences()), maxTimeSeriesLength);
       else exampleSize = Math.max(exampleSize, example.countSentences());
     }
     return new DocumentBatch(num, examples, exampleSize, null);

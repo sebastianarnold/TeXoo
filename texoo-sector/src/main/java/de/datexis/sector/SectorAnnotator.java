@@ -628,6 +628,7 @@ public class SectorAnnotator extends Annotator {
     protected boolean requireSubsampling = false;
     
     private int examplesPerEpoch = -1;
+    private int maxTimeSeriesLength = -1;
     private int ffwLayerSize = 0;
     private int lstmLayerSize = 256;
     private int embeddingLayerSize = 128;
@@ -684,6 +685,16 @@ public class SectorAnnotator extends Annotator {
       this.numEpochs = numEpochs;
       return this;
     }
+    
+    public Builder withTrainingParams(double learningRate, double dropOut, int examplesPerEpoch, int maxTimeSeriesLength, int batchSize, int numEpochs) {
+      this.learningRate = learningRate;
+      this.dropOut = dropOut;
+      this.examplesPerEpoch = examplesPerEpoch;
+      this.batchSize = batchSize;
+      this.maxTimeSeriesLength = maxTimeSeriesLength;
+      this.numEpochs = numEpochs;
+      return this;
+    }
         
     public Builder withInputEncoders(String desc, Encoder bagEncoder, Encoder embEncoder, Encoder flagEncoder) {
       tagger.setInputEncoders(bagEncoder, embEncoder, flagEncoder);
@@ -725,7 +736,7 @@ public class SectorAnnotator extends Annotator {
       tagger.buildMultiFwBwSectorNetwork(ffwLayerSize, lstmLayerSize, embeddingLayerSize, iterations, learningRate, dropOut, lossFunc, activation);
       if(enabletrainingUI) tagger.enableTrainingUI();
       tagger.setRequireSubsampling(requireSubsampling);
-      tagger.setTrainingParams(examplesPerEpoch, batchSize, numEpochs, true);
+      tagger.setTrainingParams(examplesPerEpoch, maxTimeSeriesLength, batchSize, numEpochs, true);
       ann.getProvenance().setTask(tagger.getId());
       tagger.setName(ann.getProvenance().toString());
       tagger.appendTrainLog(printParams());
