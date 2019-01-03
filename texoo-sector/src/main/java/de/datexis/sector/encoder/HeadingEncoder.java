@@ -99,14 +99,17 @@ public class HeadingEncoder extends BagOfWordsEncoder {
     final double med = sorted[1].medianNumber().doubleValue();
     // get top n
     ArrayList<String> result = new ArrayList<>(maxN);
-    int i = 0; while(i < maxN) {
+    int i = 0, n = 0;
+    while(n < maxN) {
       String word = getWord(idx.getInt(i));
       double prob = sorted[1].getDouble(i);
-      // only assign first quantile
+      // stop after first quantile
       if(prob == 0. || prob < (max+med)/2) break;
       // skip other
-      if(word.equals(OTHER_CLASS)) continue;
-      result.add(word);
+      if(!word.equals(OTHER_CLASS)) {
+        result.add(word);
+        n++;
+      }
       i++;
     }
     if(result.isEmpty()) result.add(OTHER_CLASS);
