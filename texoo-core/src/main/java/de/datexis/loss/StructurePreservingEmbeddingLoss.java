@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
-  protected static final Logger log = LoggerFactory.getLogger(DosSantosPairwiseRankingLoss.class);
+  protected static final Logger log = LoggerFactory.getLogger(StructurePreservingEmbeddingLoss.class);
 
   public static final int RIDICULOUSLY_LARGE_NUMBER = 9001; // Its over 9000!
   private float margin;
@@ -192,7 +192,9 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
   private SDVariable euclideanDistanceByRowDiff(SDVariable x, SDVariable y, SameDiff graph) {
     //return x.add(y);
-    return graph.euclideanDistance(x,y,1);
+    SDVariable transposeX = graph.transpose(x);
+    SDVariable transposeY = graph.transpose(y);
+    return graph.euclideanDistance(transposeX,transposeY,0);
   }
 
 

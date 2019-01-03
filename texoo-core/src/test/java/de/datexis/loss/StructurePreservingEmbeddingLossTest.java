@@ -7,11 +7,14 @@ import static org.hamcrest.Matchers.*;
 import org.deeplearning4j.gradientcheck.GradientCheckUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+import org.nd4j.autodiff.samediff.SDVariable;
+import org.nd4j.autodiff.samediff.SameDiff;
 import org.nd4j.autodiff.validation.GradCheckUtil;
 import org.nd4j.linalg.activations.IActivation;
 import org.nd4j.linalg.activations.impl.ActivationIdentity;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 
 
 public class StructurePreservingEmbeddingLossTest {
@@ -155,11 +158,11 @@ public class StructurePreservingEmbeddingLossTest {
     IActivation activation = new ActivationIdentity();
 
     INDArray actualGradients = loss.computeGradient(labels, defaultTestCase, activation, mask);
-  //  INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
-  //  INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
-  //  INDArray estimatedGradients = negativeScores.sub(positiveScores);
+    INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
+    INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
+    INDArray estimatedGradients = negativeScores.sub(positiveScores);
     
-  //  actualGradients.equalsWithEps(estimatedGradients,0.00001f);
+    actualGradients.equalsWithEps(estimatedGradients,0.00001f);
 
   }  
   
@@ -191,5 +194,36 @@ public class StructurePreservingEmbeddingLossTest {
 
   @Test
   public void computeGradientAndScore() {
+  }
+  
+  @Test
+  public void testEuclideanDistanceBackwardsPass (){
+    INDArray defaultTestCase = setUp2DTestCase();
+    long singleEmbeddingSize = defaultTestCase.size(1) / 2L;
+
+    // Split vectors
+    INDArray x = defaultTestCase.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
+    INDArray y = defaultTestCase.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, defaultTestCase.size(1)));
+    SameDiff graph = SameDiff.create();
+
+    SDVariable x1 = graph.var("x", x);
+    SDVariable y1 = graph.var("y", y);
+    SDVariable transpose = graph.transpose(x1);
+    SDVariable transpose1 = graph.transpose(y1);
+    SDVariable eclidean = graph.euclideanDistance(transpose, transpose1, 0);
+       
+    System.out.println(graph.summary());
+    INDArray withTranspose = graph.execAndEndResult();
+    
+    SameDiff graph2 = SameDiff.create();
+    SDVariable x2 = graph2.var("x2", x);
+    SDVariable y2 = graph2.var("y2", y);
+    graph2.euclideanDistance(x2, y2,1);
+    INDArray withoutTranspose = graph2.execAndEndResult();
+    System.out.println(graph2.summary());
+
+    assertThat(withTranspose, is(equalTo(withoutTranspose)));
+
+    graph.execBackwardAndEndResult();
   }
 }
