@@ -1,13 +1,10 @@
 package de.datexis.loss;
 
-import de.datexis.rnn.loss.DosSantosPairwiseRankingLoss;
-
 import org.jetbrains.annotations.NotNull;
 import org.nd4j.autodiff.samediff.SDVariable;
 import org.nd4j.autodiff.samediff.SameDiff;
 import org.nd4j.linalg.activations.IActivation;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.api.ops.impl.accum.distances.EuclideanDistance;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
@@ -92,29 +89,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
     
     scoreArr = graph.execAndEndResult();
-
-
-    INDArray distancesXY = euclideanDistanceByRow(x, y);
-    INDArray distancesXYContrastive = euclideanDistanceByRow(x, yContrastive);
-    INDArray distancesXContrastiveY = euclideanDistanceByRow(xContrastive, y);
-    INDArray distancesXXNotANeighbor = euclideanDistanceByRow(x, xNotANeighbor);
-    INDArray distancesXXNeighbor = euclideanDistanceByRow(x, xNeighbor);
-    INDArray distancesYYNotANeighbor = euclideanDistanceByRow(y, yNotANeighbor);
-    INDArray distancesYYNeighbor = euclideanDistanceByRow(y, yNeighbor);
-
-    INDArray joinTerm1 = distancesXY.add(margin).sub(distancesXYContrastive);
-    INDArray joinTerm2 = distancesXY.add(margin).sub(distancesXContrastiveY);
-    INDArray structureX = distancesXXNeighbor.add(margin).sub(distancesXXNotANeighbor);
-    INDArray structureY = distancesYYNeighbor.add(margin).sub(distancesYYNotANeighbor);
-
-    joinTerm1 = Transforms.max(joinTerm1, 0);
-    joinTerm2 = Transforms.max(joinTerm2, 0).mul(joinTerm2Weight);
-    structureX = Transforms.max(structureX, 0).mul(structureConstraintXWeight);
-    structureY = Transforms.max(structureY, 0).mul(structureConstraintYWeight);
-
-    INDArray scoreArrOld = joinTerm1.add(joinTerm2).add(structureX).add(structureY);
-
-
+    
     //multiply with masks, always
     applyMask(mask, scoreArr);
 
@@ -134,14 +109,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     SDVariable yNeighbor = graph.var("yNeighbor", yNeighborIn);
     SDVariable xNotANeighbor = graph.var("xNotANeighbor", xNotANeighborIn);
     SDVariable yNotANeighbor = graph.var("yNotANeighbor", yNotANeighborIn);
-
-//    SDVariable distancesXY =x.add(y);
-//    SDVariable distancesXYContrastive = x.add(yContrastive);
-//    SDVariable distancesXContrastiveY = xContrastive.add(y);
-//    SDVariable distancesXXNotANeighbor = x.add(xNotANeighbor);
-//    SDVariable distancesXXANeighbor =x.add(xNeighbor);
-//    SDVariable distancesYYNotANeighbor = y.add(yNotANeighbor);
-//    SDVariable distancesYYANeighbor = y.add(yNeighbor);    
+    
     SDVariable distancesXY = euclideanDistanceByRowDiff(x, y, graph);
     SDVariable distancesXYContrastive = euclideanDistanceByRowDiff(x, yContrastive, graph);
     SDVariable distancesXContrastiveY = euclideanDistanceByRowDiff(xContrastive, y, graph);
@@ -185,13 +153,8 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     }
     return neighbors;
   }
-
-  private INDArray euclideanDistanceByRow(INDArray x, INDArray y) {
-    return Nd4j.getExecutioner().exec(new EuclideanDistance(x, y, false), 1);
-  }
-
+  
   private SDVariable euclideanDistanceByRowDiff(SDVariable x, SDVariable y, SameDiff graph) {
-    //return x.add(y);
     SDVariable transposeX = graph.transpose(x);
     SDVariable transposeY = graph.transpose(y);
     return graph.euclideanDistance(transposeX,transposeY,0);
@@ -226,9 +189,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray yNotANeighbor = sampleNeighborhood(y, false);
 
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
-    // graph.printFunction(graph.getVariableOutputFunction("y-grad"));
-    log.info(graph.summary());
-    log.info(graph.asFlatPrint());
+    
     graph.execBackwardAndEndResult();
     SameDiff gradFn = graph.getFunction("grad");
     INDArray dlDx = gradFn.getArrForVarName("x-grad");

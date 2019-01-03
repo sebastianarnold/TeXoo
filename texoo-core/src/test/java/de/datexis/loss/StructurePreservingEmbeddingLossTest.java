@@ -1,15 +1,14 @@
 package de.datexis.loss;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
-import org.deeplearning4j.gradientcheck.GradientCheckUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.nd4j.autodiff.samediff.SDVariable;
 import org.nd4j.autodiff.samediff.SameDiff;
-import org.nd4j.autodiff.validation.GradCheckUtil;
 import org.nd4j.linalg.activations.IActivation;
 import org.nd4j.linalg.activations.impl.ActivationIdentity;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -207,9 +206,8 @@ public class StructurePreservingEmbeddingLossTest {
     SDVariable y1 = graph.var("y", y);
     SDVariable transpose = graph.transpose(x1);
     SDVariable transpose1 = graph.transpose(y1);
-    SDVariable eclidean = graph.euclideanDistance(transpose, transpose1, 0);
+    graph.euclideanDistance(transpose, transpose1, 0);
        
-    System.out.println(graph.summary());
     INDArray withTranspose = graph.execAndEndResult();
     
     SameDiff graph2 = SameDiff.create();
@@ -217,7 +215,6 @@ public class StructurePreservingEmbeddingLossTest {
     SDVariable y2 = graph2.var("y2", y);
     graph2.euclideanDistance(x2, y2,1);
     INDArray withoutTranspose = graph2.execAndEndResult();
-    System.out.println(graph2.summary());
 
     assertThat(withTranspose, is(equalTo(withoutTranspose)));
 
