@@ -146,8 +146,8 @@ public class StructurePreservingEmbeddingLossTest {
   public void computeGradient() {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray defaultTestCase = setUp2DTestCase();
-    INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.00001f);
-    INDArray slightlyNegativeCase = setUp2DTestCaseWithNegativeEpsilonDiversion(0.00001f);
+    INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.001f);
+    INDArray slightlyNegativeCase = setUp2DTestCaseWithNegativeEpsilonDiversion(0.001f);
 
     INDArray labels = Nd4j.create(defaultTestCase.shape());
     INDArray mask = null;
@@ -155,12 +155,38 @@ public class StructurePreservingEmbeddingLossTest {
     IActivation activation = new ActivationIdentity();
 
     INDArray actualGradients = loss.computeGradient(labels, defaultTestCase, activation, mask);
-    INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
-    INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
-    INDArray estimatedGradients = negativeScores.sub(positiveScores);
+  //  INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
+  //  INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
+  //  INDArray estimatedGradients = negativeScores.sub(positiveScores);
     
-    actualGradients.equalsWithEps(estimatedGradients,0.00001f);
+  //  actualGradients.equalsWithEps(estimatedGradients,0.00001f);
 
+  }  
+  
+  @Test
+  public void backwardGraphShouldBeExecutable() {
+    StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
+    INDArray defaultTestCase = setUp2DTestCase();
+
+    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray mask = null;
+
+    IActivation activation = new ActivationIdentity();
+
+   loss.computeGradient(labels, defaultTestCase, activation, mask);
+  }  
+  
+  @Test
+  public void forwardGraphShouldBeExecutable() {
+    StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
+    INDArray defaultTestCase = setUp2DTestCase();
+
+    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray mask = null;
+
+    IActivation activation = new ActivationIdentity();
+
+    loss.computeScore(labels, defaultTestCase, activation, mask, false);
   }
 
   @Test

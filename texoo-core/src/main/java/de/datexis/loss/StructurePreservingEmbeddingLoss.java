@@ -1,5 +1,7 @@
 package de.datexis.loss;
 
+import de.datexis.rnn.loss.DosSantosPairwiseRankingLoss;
+
 import org.jetbrains.annotations.NotNull;
 import org.nd4j.autodiff.samediff.SDVariable;
 import org.nd4j.autodiff.samediff.SameDiff;
@@ -11,16 +13,19 @@ import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
 import org.nd4j.linalg.ops.transforms.Transforms;
 import org.nd4j.linalg.primitives.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
+  protected static final Logger log = LoggerFactory.getLogger(DosSantosPairwiseRankingLoss.class);
 
   public static final int RIDICULOUSLY_LARGE_NUMBER = 9001; // Its over 9000!
-  private int margin;
-  private int kNegativeExamples;
-  private int joinTerm2Weight; // lambda1
-  private int structureConstraintXWeight; // lambda2
-  private int structureConstraintYWeight; // lambda3
+  private float margin;
+  private float kNegativeExamples;
+  private float joinTerm2Weight; // lambda1
+  private float structureConstraintXWeight; // lambda2
+  private float structureConstraintYWeight; // lambda3
 
   public StructurePreservingEmbeddingLoss() {
     structureConstraintYWeight = 1;
@@ -66,7 +71,6 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray y = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, scoreArr.size(1)));
 
 
-
     INDArray yContrastive = Nd4j.create(y.shape());
     INDArray xContrastive = Nd4j.create(x.shape());
 
@@ -79,7 +83,6 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     }
 
 
-
     // Sample Neighbors in original embeddings
     INDArray xNeighbor = sampleNeighborhood(x, true);
     INDArray yNeighbor = sampleNeighborhood(y, true);
@@ -87,8 +90,8 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray yNotANeighbor = sampleNeighborhood(y, false);
 
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
-    graph.execAndEndResult();
-    scoreArr = graph.getArrForVarName("scoreDiff");
+    
+    scoreArr = graph.execAndEndResult();
 
 
     INDArray distancesXY = euclideanDistanceByRow(x, y);
@@ -108,15 +111,14 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     joinTerm2 = Transforms.max(joinTerm2, 0).mul(joinTerm2Weight);
     structureX = Transforms.max(structureX, 0).mul(structureConstraintXWeight);
     structureY = Transforms.max(structureY, 0).mul(structureConstraintYWeight);
-    
-    INDArray scoreArrOld = joinTerm1.add(joinTerm2).add(structureX).add(structureY);
 
+    INDArray scoreArrOld = joinTerm1.add(joinTerm2).add(structureX).add(structureY);
 
 
     //multiply with masks, always
     applyMask(mask, scoreArr);
 
-    return scoreArr.broadcast(numRows,1);
+    return scoreArr.broadcast(numRows, 1);
   }
 
   @NotNull
@@ -133,13 +135,20 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     SDVariable xNotANeighbor = graph.var("xNotANeighbor", xNotANeighborIn);
     SDVariable yNotANeighbor = graph.var("yNotANeighbor", yNotANeighborIn);
 
-    SDVariable distancesXY = graph.var(euclideanDistanceByRowDiff(x, y, graph));
-    SDVariable distancesXYContrastive = graph.var(euclideanDistanceByRowDiff(x, yContrastive, graph));
-    SDVariable distancesXContrastiveY = graph.var(euclideanDistanceByRowDiff(xContrastive, y, graph));
-    SDVariable distancesXXNotANeighbor = graph.var(euclideanDistanceByRowDiff(x, xNotANeighbor, graph));
-    SDVariable distancesXXANeighbor = graph.var(euclideanDistanceByRowDiff(x, xNeighbor, graph));
-    SDVariable distancesYYNotANeighbor = graph.var(euclideanDistanceByRowDiff(y, yNotANeighbor, graph));
-    SDVariable distancesYYANeighbor = graph.var(euclideanDistanceByRowDiff(y, yNeighbor, graph));
+//    SDVariable distancesXY =x.add(y);
+//    SDVariable distancesXYContrastive = x.add(yContrastive);
+//    SDVariable distancesXContrastiveY = xContrastive.add(y);
+//    SDVariable distancesXXNotANeighbor = x.add(xNotANeighbor);
+//    SDVariable distancesXXANeighbor =x.add(xNeighbor);
+//    SDVariable distancesYYNotANeighbor = y.add(yNotANeighbor);
+//    SDVariable distancesYYANeighbor = y.add(yNeighbor);    
+    SDVariable distancesXY = euclideanDistanceByRowDiff(x, y, graph);
+    SDVariable distancesXYContrastive = euclideanDistanceByRowDiff(x, yContrastive, graph);
+    SDVariable distancesXContrastiveY = euclideanDistanceByRowDiff(xContrastive, y, graph);
+    SDVariable distancesXXNotANeighbor = euclideanDistanceByRowDiff(x, xNotANeighbor, graph);
+    SDVariable distancesXXANeighbor = euclideanDistanceByRowDiff(x, xNeighbor, graph);
+    SDVariable distancesYYNotANeighbor = euclideanDistanceByRowDiff(y, yNotANeighbor, graph);
+    SDVariable distancesYYANeighbor = euclideanDistanceByRowDiff(y, yNeighbor, graph);
 
     SDVariable joinTerm1 = distancesXY.add(margin).sub(distancesXYContrastive);
     SDVariable joinTerm2 = distancesXY.add(margin).sub(distancesXContrastiveY);
@@ -148,12 +157,11 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
 
     SDVariable joinTerm1c = graph.scalarMax(joinTerm1, 0);
-    SDVariable joinTerm2c = graph.scalarMax(joinTerm2,0).mul(joinTerm2Weight);
-    SDVariable structureXc = graph.scalarMax(structureX,0).mul(structureConstraintXWeight);
-    SDVariable structureYc = graph.scalarMax(structureY,0).mul(structureConstraintYWeight);
+    SDVariable joinTerm2c = graph.scalarMax(joinTerm2, 0).mul(joinTerm2Weight);
+    SDVariable structureXc = graph.scalarMax(structureX, 0).mul(structureConstraintXWeight);
+    SDVariable structureYc = graph.scalarMax(structureY, 0).mul(structureConstraintYWeight);
 
     SDVariable scoreDiff = joinTerm1c.add(joinTerm2c).add(structureXc).add(structureYc);
-    scoreDiff.setVarName("scoreDiff");
     return graph;
   }
 
@@ -183,7 +191,8 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
   }
 
   private SDVariable euclideanDistanceByRowDiff(SDVariable x, SDVariable y, SameDiff graph) {
-    return graph.euclideanDistance(x, y, 1);
+    //return x.add(y);
+    return graph.euclideanDistance(x,y,1);
   }
 
 
@@ -194,8 +203,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
     long singleEmbeddingSize = output.size(1) / 2L;
 
-    
-    
+
     // Split vectors
     INDArray x = output.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
     INDArray y = output.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, output.size(1)));
@@ -208,7 +216,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
       yContrastive.putRow(i - 1, y.getRow(i % numRows));
       xContrastive.putRow(i - 1, x.getRow(i % numRows));
     }
-    
+
     // Sample Neighbors in original embeddings
     INDArray xNeighbor = sampleNeighborhood(x, true);
     INDArray yNeighbor = sampleNeighborhood(y, true);
@@ -216,19 +224,22 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray yNotANeighbor = sampleNeighborhood(y, false);
 
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
-    graph.exec();
-    graph.execBackwards();
+    // graph.printFunction(graph.getVariableOutputFunction("y-grad"));
+    log.info(graph.summary());
+    log.info(graph.asFlatPrint());
+    graph.execBackwardAndEndResult();
     SameDiff gradFn = graph.getFunction("grad");
-    INDArray dlDx = gradFn.getArrForVarName("x");
-    
+    INDArray dlDx = gradFn.getArrForVarName("x-grad");
+    INDArray dlDy = gradFn.getArrForVarName("y-grad");
+
 
     //Everything below remains the same
-    output = activationFn.backprop(preOutput.dup(), dlDx).getFirst();
+    output = activationFn.backprop(preOutput.dup(), Nd4j.concat(1, dlDx, dlDy)).getFirst();
     //multiply with masks, always
     applyMask(mask, output);
     return output;
   }
-  
+
   @Override
   public Pair<Double, INDArray> computeGradientAndScore(INDArray labels, INDArray preOutput, IActivation activationFn, INDArray mask, boolean average) {
     return new Pair<>(
@@ -241,7 +252,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return this.getClass().getSimpleName();
   }
 
-  public int getMargin() {
+  public float getMargin() {
     return margin;
   }
 
@@ -250,7 +261,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return this;
   }
 
-  public int getkNegativeExamples() {
+  public float getkNegativeExamples() {
     return kNegativeExamples;
   }
 
@@ -259,7 +270,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return this;
   }
 
-  public int getJoinTerm2Weight() {
+  public float getJoinTerm2Weight() {
     return joinTerm2Weight;
   }
 
@@ -268,7 +279,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return this;
   }
 
-  public int getStructureConstraintXWeight() {
+  public float getStructureConstraintXWeight() {
     return structureConstraintXWeight;
   }
 
@@ -277,7 +288,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return this;
   }
 
-  public int getStructureConstraintYWeight() {
+  public float getStructureConstraintYWeight() {
     return structureConstraintYWeight;
   }
 
