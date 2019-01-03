@@ -47,6 +47,7 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
 import org.nd4j.linalg.schedule.ExponentialSchedule;
@@ -229,10 +230,11 @@ public class SectorTagger extends Tagger {
     
     ComputationGraphConfiguration.GraphBuilder gb = new NeuralNetConfiguration.Builder()
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-				.updater(new Adam(learningRate))
-        //.updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.9)))
-        .l2(0.0001)
-        .dropOut(0.0)
+        .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.85)))
+        .weightInit(WeightInit.XAVIER)
+        .l2(0.00001)
+        .dropOut(dropout)
+        .gradientNormalization(GradientNormalization.ClipL2PerLayer)
         .trainingWorkspaceMode(WorkspaceMode.ENABLED)
         .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
         .cacheMode(CacheMode.HOST)
@@ -266,7 +268,6 @@ public class SectorTagger extends Tagger {
           .activation(Activation.TANH)
           .gateActivationFunction(Activation.SIGMOID)
           //.dropOut(dropout) // not working in beta2 https://github.com/deeplearning4j/deeplearning4j/issues/6326
-          .weightInit(WeightInit.XAVIER)
           .build()), "sentence");
       //gb.addVertex("BLSTMFW", new PreprocessorVertex(new RnnToFeedForwardPreProcessor()), "BLSTM");
       gb.addVertex("FW", new SubsetVertex(0, lstmLayerSize - 1), "BLSTM");
@@ -276,13 +277,11 @@ public class SectorTagger extends Tagger {
       gb.addLayer("embeddingFW", new DenseLayer.Builder()
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
-            .weightInit(WeightInit.XAVIER)
             .build(), "FW")
         //.addVertex("embeddingFW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckFW")
         .addLayer("embeddingBW", new DenseLayer.Builder()
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
-            .weightInit(WeightInit.XAVIER)
             .build(), "BW");
         //.addVertex("embeddingBW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckBW");
         //.addVertex("prev", new LastTimeStepVertex("bag"), "target")
@@ -290,23 +289,23 @@ public class SectorTagger extends Tagger {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.SIGMOID_UNIFORM)
+            //.weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingFW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.SIGMOID_UNIFORM)
+            //.weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "embeddingBW");
     } else {
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.SIGMOID_UNIFORM)
+            //.weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "FW")
         .addLayer("targetBW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(lstmLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
-            .weightInit(WeightInit.SIGMOID_UNIFORM)
+            //.weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "BW");
       }
       //gb.allowDisconnected(true);
@@ -320,7 +319,10 @@ public class SectorTagger extends Tagger {
 		ComputationGraph lstm = new ComputationGraph(conf);
 		lstm.init();
     net = lstm;
-    net.setListeners(new PerformanceListener(100, true));
+    net.setListeners(
+        new PerformanceListener(128, true),
+        new ScoreIterationListener(16)
+    );
 		return this;
     
   }
