@@ -83,6 +83,7 @@ public class EncoderInterfaceTest {
       }
     }
     
+    // FIXME: equals() returns the same result, but we had moments where getRow().getColumn().assign() produced error in training (at least on CPU backend)
     assertEquals(indexEncoding, rowcolEncoding);
     
   }

@@ -106,7 +106,6 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   public INDArray encodeTarget(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     
     INDArray encoding = Nd4j.zeros(input.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxTimeSteps);
-    INDArray encoding2 = Nd4j.zeros(input.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {

@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.LoggerFactory;
 
@@ -57,13 +60,15 @@ public class StructureEncoder extends StaticEncoder {
       if(timeStepClass == Token.class) {
         List<INDArray> vecs = encodeTokens(example);
         for(int t = 0; t < example.countTokens() && t < maxTimeSteps; t++) {
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          //encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vecs.get(t));
           t++;
         }
       } else if(timeStepClass == Sentence.class) {
         List<INDArray> vecs = encodeSentences(example);
         for(int t = 0; t < example.countSentences() && t < maxTimeSteps; t++) {
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          // encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vecs.get(t));
           t++;
         }
       } else throw new IllegalArgumentException("Cannot encode class " + timeStepClass.toString() + " from Document");
