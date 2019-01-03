@@ -263,7 +263,7 @@ public class SectorAnnotator extends Annotator {
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       } else if(targetEncoder.getClass() == HeadingEncoder.class) {
         ann.putVector(HeadingEncoder.class, pred);
-        Collection<String> preds = targetEncoder.getNearestNeighbours(pred, 3);
+        Collection<String> preds = targetEncoder.getNearestNeighbours(pred, 2);
         ann.setSectionHeading(StringUtils.join(preds, "/"));
         ann.setConfidence(targetEncoder.getMaxConfidence(pred));
       }
@@ -754,7 +754,7 @@ public class SectorAnnotator extends Annotator {
       line.append("batch size").append("\t").append(batchSize).append("\n");
       line.append("learning rate").append("\t").append(learningRate).append("\n");
       line.append("dropout").append("\t").append(dropOut).append("\n");
-      line.append("loss").append("\t").append(lossFunc.toString()).append(requireSubsampling ? " (multi-class)" : " (single-class)").append("\n");
+      line.append("loss").append("\t").append(lossFunc.toString()).append(requireSubsampling ? " (1-hot subsampled)" : " (1-hot/n-hot)").append("\n");
       line.append("\n");
       //System.out.println(line.toString());
       return line.toString();

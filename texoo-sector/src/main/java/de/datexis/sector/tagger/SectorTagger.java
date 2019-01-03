@@ -44,14 +44,10 @@ import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
-import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
-import org.nd4j.linalg.memory.abstracts.DummyWorkspace;
-import org.nd4j.linalg.ops.transforms.Transforms;
+import org.nd4j.linalg.schedule.ExponentialSchedule;
+import org.nd4j.linalg.schedule.ScheduleType;
 import org.nd4j.shade.jackson.databind.JsonNode;
 
 /**
@@ -229,6 +225,7 @@ public class SectorTagger extends Tagger {
     ComputationGraphConfiguration.GraphBuilder gb = new NeuralNetConfiguration.Builder()
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
 				.updater(new Adam(learningRate))
+        //.updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.9)))
         .l2(0.0001)
         .dropOut(0.0)
         .trainingWorkspaceMode(WorkspaceMode.ENABLED)

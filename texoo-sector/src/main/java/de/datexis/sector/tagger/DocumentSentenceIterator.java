@@ -31,6 +31,7 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
   
   protected int numExamples;
   protected int batchSize;
+  protected int maxBatchLength = -1;
   protected int cursor;
   protected long startTime;
   protected boolean randomize;
@@ -106,7 +107,8 @@ public abstract class DocumentSentenceIterator implements MultiDataSetIterator {
       if(hasNext()) example = nextDocument();
       else example = new Document();
       examples.add(example);
-      exampleSize = Math.max(exampleSize, example.countSentences());
+      if(maxBatchLength > 0) exampleSize = Math.min(Math.max(exampleSize, example.countSentences()), maxBatchLength);
+      else exampleSize = Math.max(exampleSize, example.countSentences());
     }
     return new DocumentBatch(num, examples, exampleSize, null);
   }

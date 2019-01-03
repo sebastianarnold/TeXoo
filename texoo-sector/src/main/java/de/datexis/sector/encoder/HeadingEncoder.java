@@ -56,24 +56,36 @@ public class HeadingEncoder extends BagOfWordsEncoder {
   @Override
   public INDArray encode(String phrase) {
     if(phrase != null ) return encode(WordHelpers.splitSpaces(phrase));
-    else return encode(new String[] { OTHER_CLASS });
+    else return encodeOtherClass();
   }
   
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
     INDArray vec = super.encode(spans);
-    return vec.sumNumber().doubleValue() > 0. ? vec : encode(new String[] { OTHER_CLASS });
+    return vec.sumNumber().doubleValue() > 0. ? vec : encodeOtherClass();
   }
   
   @Override
   protected INDArray encode(String[] words) {
-    return super.encode(words);
+    INDArray vec = super.encode(words);
+    return vec.sumNumber().doubleValue() > 0. ? vec : encodeOtherClass();
   }
   
   @Override
   public INDArray encodeSubsampled(String phrase) {
     INDArray vec = super.encodeSubsampled(phrase);
-    return vec.sumNumber().doubleValue() > 0. ? vec : encode(new String[] { OTHER_CLASS });
+    return vec.sumNumber().doubleValue() > 0. ? vec : encodeOtherClass();
+  }
+  
+  protected INDArray encodeOtherClass() {
+    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
+    int i = getIndex(OTHER_CLASS);
+    if(i >= 0) {
+      vector.put(i, 0, 1.0);
+    } else {
+      log.error("could not encode OTHER_CLASS");
+    }
+    return vector;
   }
   
   @Override

@@ -37,8 +37,8 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
     this(stage, dataset.getDocuments(), tagger, batchSize, randomize, useMultiClassLabels);
   }
   
-  public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int batchSize, boolean randomize, boolean useMultiClassLabels) {
-    this(stage, docs, tagger, -1, batchSize, randomize, useMultiClassLabels);
+  public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int batchSize, boolean randomize, boolean requireSubsampling) {
+    this(stage, docs, tagger, -1, batchSize, randomize, requireSubsampling);
   }
     
   public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int numExamples, int batchSize, boolean randomize, boolean requireSubsampling) {
@@ -103,6 +103,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   public INDArray encodeTarget(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     
     INDArray encoding = Nd4j.zeros(input.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxTimeSteps);
+    INDArray encoding2 = Nd4j.zeros(input.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
