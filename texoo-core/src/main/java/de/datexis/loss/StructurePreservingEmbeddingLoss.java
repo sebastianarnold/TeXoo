@@ -67,6 +67,9 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray x = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
     INDArray y = scoreArr.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, scoreArr.size(1)));
 
+    INDArray xLabels = labels.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
+    INDArray yLabels = labels.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, labels.size(1)));
+
 
     INDArray yContrastive = Nd4j.create(y.shape());
     INDArray xContrastive = Nd4j.create(x.shape());
@@ -81,15 +84,15 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
 
 
     // Sample Neighbors in original embeddings
-    INDArray xNeighbor = sampleNeighborhood(x, true);
-    INDArray yNeighbor = sampleNeighborhood(y, true);
-    INDArray xNotANeighbor = sampleNeighborhood(x, false);
-    INDArray yNotANeighbor = sampleNeighborhood(y, false);
+    INDArray xNeighbor = sampleNeighborhood(xLabels, xLabels, true);
+    INDArray yNeighbor = sampleNeighborhood(yLabels, yLabels, true);
+    INDArray xNotANeighbor = sampleNeighborhood(xLabels, xLabels, false);
+    INDArray yNotANeighbor = sampleNeighborhood(yLabels, yLabels, false);
 
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
-    
+
     scoreArr = graph.execAndEndResult();
-    
+
     //multiply with masks, always
     applyMask(mask, scoreArr);
 
@@ -109,7 +112,7 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     SDVariable yNeighbor = graph.var("yNeighbor", yNeighborIn);
     SDVariable xNotANeighbor = graph.var("xNotANeighbor", xNotANeighborIn);
     SDVariable yNotANeighbor = graph.var("yNotANeighbor", yNotANeighborIn);
-    
+
     SDVariable distancesXY = euclideanDistanceByRowDiff(x, y, graph);
     SDVariable distancesXYContrastive = euclideanDistanceByRowDiff(x, yContrastive, graph);
     SDVariable distancesXContrastiveY = euclideanDistanceByRowDiff(xContrastive, y, graph);
@@ -133,8 +136,8 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     return graph;
   }
 
-  private INDArray sampleNeighborhood(INDArray target, boolean positiveSampling) {
-    INDArray allDistancesXX = Transforms.allEuclideanDistances(target, target, 1);
+  private INDArray sampleNeighborhood(INDArray target, INDArray label, boolean positiveSampling) {
+    INDArray allDistancesXX = Transforms.allEuclideanDistances(label, label, 1);
 
     if (positiveSampling) {
       INDArray eye = Nd4j.eye(allDistancesXX.size(1));
@@ -153,11 +156,11 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     }
     return neighbors;
   }
-  
+
   private SDVariable euclideanDistanceByRowDiff(SDVariable x, SDVariable y, SameDiff graph) {
     SDVariable transposeX = graph.transpose(x);
     SDVariable transposeY = graph.transpose(y);
-    return graph.euclideanDistance(transposeX,transposeY,0);
+    return graph.euclideanDistance(transposeX, transposeY, 0);
   }
 
 
@@ -173,6 +176,9 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     INDArray x = output.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
     INDArray y = output.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, output.size(1)));
 
+    INDArray xLabels = labels.get(NDArrayIndex.all(), NDArrayIndex.interval(0, singleEmbeddingSize));
+    INDArray yLabels = labels.get(NDArrayIndex.all(), NDArrayIndex.interval(singleEmbeddingSize, labels.size(1)));
+
     INDArray yContrastive = Nd4j.create(y.shape());
     INDArray xContrastive = Nd4j.create(x.shape());
 
@@ -183,13 +189,13 @@ public class StructurePreservingEmbeddingLoss implements ILossFunction {
     }
 
     // Sample Neighbors in original embeddings
-    INDArray xNeighbor = sampleNeighborhood(x, true);
-    INDArray yNeighbor = sampleNeighborhood(y, true);
-    INDArray xNotANeighbor = sampleNeighborhood(x, false);
-    INDArray yNotANeighbor = sampleNeighborhood(y, false);
+    INDArray xNeighbor = sampleNeighborhood(x, xLabels, true);
+    INDArray yNeighbor = sampleNeighborhood(y, yLabels, true);
+    INDArray xNotANeighbor = sampleNeighborhood(x, xLabels, false);
+    INDArray yNotANeighbor = sampleNeighborhood(y, yLabels, false);
 
     SameDiff graph = buildSameDiffGraph(x, y, yContrastive, xContrastive, xNeighbor, yNeighbor, xNotANeighbor, yNotANeighbor);
-    
+
     graph.execBackwardAndEndResult();
     SameDiff gradFn = graph.getFunction("grad");
     INDArray dlDx = gradFn.getArrForVarName("x-grad");

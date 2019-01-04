@@ -43,7 +43,7 @@ public class StructurePreservingEmbeddingLossTest {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray preOutput = setUp2DTestCase();
 
-    INDArray labels = Nd4j.create(preOutput.shape());
+    INDArray labels = setUp2DTestCase();
     INDArray mask = null;
 
     IActivation activation = new ActivationIdentity();
@@ -93,7 +93,7 @@ public class StructurePreservingEmbeddingLossTest {
     preOutput.putRow(2, Nd4j.create(new float[]{1,0,1,0}));
     preOutput.putRow(3, Nd4j.create(new float[]{2,0,2,0}));
 
-    INDArray labels = Nd4j.create(preOutput.shape());
+    INDArray labels = preOutput.dup();
     INDArray mask = null;
 
     IActivation activation = new ActivationIdentity();
@@ -129,7 +129,7 @@ public class StructurePreservingEmbeddingLossTest {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray preOutPut = setUp2DTestCase();
     
-    INDArray labels = Nd4j.create(preOutPut.shape());
+    INDArray labels = preOutPut.dup();
 
     INDArray scoreArray = loss.computeScoreArray(labels, preOutPut, new ActivationIdentity(), null);
     
@@ -149,14 +149,14 @@ public class StructurePreservingEmbeddingLossTest {
     INDArray slightlyPositiveCase = setUp2DTestCaseWithPositiveEpsilonDiversion(0.01f);
     INDArray slightlyNegativeCase = setUp2DTestCaseWithNegativeEpsilonDiversion(0.001f);
 
-    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray labels =  defaultTestCase.dup();
     INDArray mask = null;
 
     IActivation activation = new ActivationIdentity();
 
     INDArray actualGradients = loss.computeGradient(labels, defaultTestCase, activation, mask);
-    INDArray positiveScores = loss.computeScoreArray(labels, slightlyPositiveCase, activation, mask);
-    INDArray negativeScores = loss.computeScoreArray(labels, slightlyNegativeCase, activation, mask);
+    INDArray positiveScores = loss.computeScoreArray(slightlyPositiveCase.dup(), slightlyPositiveCase, activation, mask);
+    INDArray negativeScores = loss.computeScoreArray(slightlyNegativeCase.dup(), slightlyNegativeCase, activation, mask);
     INDArray estimatedGradients = negativeScores.sub(positiveScores);
     
     actualGradients.equalsWithEps(estimatedGradients,0.001f);
@@ -167,7 +167,7 @@ public class StructurePreservingEmbeddingLossTest {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray defaultTestCase = setUp2DTestCase();
 
-    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray labels = defaultTestCase.dup();
     INDArray mask = null;
 
     IActivation activation = new ActivationIdentity();
@@ -180,7 +180,7 @@ public class StructurePreservingEmbeddingLossTest {
     StructurePreservingEmbeddingLoss loss = new StructurePreservingEmbeddingLoss();
     INDArray defaultTestCase = setUp2DTestCase();
 
-    INDArray labels = Nd4j.create(defaultTestCase.shape());
+    INDArray labels = defaultTestCase.dup();
     INDArray mask = null;
 
     IActivation activation = new ActivationIdentity();
