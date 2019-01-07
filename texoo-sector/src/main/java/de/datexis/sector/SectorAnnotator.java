@@ -59,6 +59,7 @@ public class SectorAnnotator extends Annotator {
     TARGET_MAGNITUDE, // segmentation based on edge detection on target magnitude
     EMBEDDING_MAGNITUDE, // segmentation based on edge detection on embedding magnitude
     FWBW_MAGNITUDE, // segmentation based on edge detection on FW/BW embedding magnitude
+    FWBW_MAGNITUDE_FIXEDNUMBER, // use provided ground truth number of sections
   };
   
   public SectorAnnotator() {
@@ -147,6 +148,11 @@ public class SectorAnnotator extends Annotator {
           case FWBW_MAGNITUDE: {
             INDArray mag = detectSectionsFromFWBWEmbeddingMagnitude(doc); 
             applySectionsFromEdges(doc, detectEdges(mag));
+          } break;
+          case FWBW_MAGNITUDE_FIXEDNUMBER: {
+            INDArray mag = detectSectionsFromFWBWEmbeddingMagnitude(doc);
+            int expectedNumberOfSections = (int) doc.countAnnotations(Source.GOLD);
+            applySectionsFromEdges(doc, detectEdges(mag, expectedNumberOfSections));
           } break;
           case NEWLINES:
           default: {
@@ -596,6 +602,50 @@ public class SectorAnnotator extends Annotator {
     for(int t = 1; t < result.rows() - 1; t++) {
       result.putScalar(t, 0, ((mag.getDouble(t - 1) < mag.getDouble(t)) && (mag.getDouble(t + 1) < mag.getDouble(t))) ? 1 : 0);
     }
+    // overwrite first timestep values
+    result.putScalar(0, 0, 1);
+    return result;
+  }
+  
+  /**
+   * Returns a matrix [Tx1] that contains edges with given count in magnitude.
+   */
+  protected static INDArray detectEdges(INDArray mag, int count) {
+    if(mag == null) return null;
+    INDArray peaks = Nd4j.zeros(mag.rows(), 1);
+    for(int t = 1; t < peaks.rows() - 1; t++) {
+      if((mag.getDouble(t - 1) < mag.getDouble(t)) && (mag.getDouble(t + 1) < mag.getDouble(t))) {
+        peaks.putScalar(t, 0, mag.getDouble(t));
+      } else {
+        peaks.putScalar(t, 0, 0);
+      }
+    }
+    
+    INDArray result = Nd4j.zeros(mag.rows(), 1);
+    
+    // sort magnitudes and peaks
+    INDArray[] p = Nd4j.sortWithIndices(Nd4j.toFlattened(peaks).dup(), 1, false); // index,value
+    INDArray sortedPeaks = p[0]; // ranked indexes
+    INDArray[] m = Nd4j.sortWithIndices(Nd4j.toFlattened(mag).dup(), 1, false); // index,value
+    INDArray sortedMags = m[0]; // ranked indexes
+    
+    // pick N - 1 highest peaks
+    for(int i = 0; i < count - 1; i++) {
+      int idx = sortedPeaks.getInt(i);
+      if(idx == 0) continue; // first one is always a new section
+      if(peaks.getDouble(idx) == 0.) break; // no more peaks found
+      result.putScalar(idx, 0, 1);
+    }
+    
+    // fill with highest magnitudes
+    int i = 0;
+    while(i < mag.rows() && result.sumNumber().intValue() < count - 1) {
+      int idx = sortedMags.getInt(i++);
+      if(idx == 0) continue; // first one is always a new section
+      if(result.getDouble(idx) == 1.) continue; // was already found as peak
+      result.putScalar(idx, 0, 1);
+    }
+    
     // overwrite first timestep values
     result.putScalar(0, 0, 1);
     return result;
