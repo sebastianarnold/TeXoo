@@ -178,6 +178,9 @@ public class AnnotatorFactory {
       xmlAnn.normalize();
       if(!xmlAnn.getNodeName().equals("annotator")) throw new IllegalArgumentException("unknown file format");
       String expectedClass = xmlAnn.getAttribute("class").replaceFirst(PACKAGE_REGEX, "");
+      if(!annotatorClasses.containsKey(expectedClass)) {
+        throw new IllegalArgumentException("Annotator class " + expectedClass + " could not be found, please check model version and dependencies");
+      }
       Annotator ann = annotatorClasses.get(expectedClass).newInstance();
       
       // create all components
