@@ -79,12 +79,12 @@ public class HeadingEncoder extends BagOfWordsEncoder {
   
   protected INDArray encodeOtherClass() {
     INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
-    int i = getIndex(OTHER_CLASS);
+    /*int i = getIndex(OTHER_CLASS);
     if(i >= 0) {
       vector.put(i, 0, 1.0);
     } else {
       log.error("could not encode OTHER_CLASS");
-    }
+    }*/
     return vector;
   }
   
