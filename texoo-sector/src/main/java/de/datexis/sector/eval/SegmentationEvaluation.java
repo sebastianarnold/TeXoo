@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,8 +49,9 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
   
   public void calculateScoresFromAnnotations(Collection<Document> docs, Class<? extends Annotation> annotationClass) {
     countDocs += docs.size();
-    int k = calculateK(docs);
+    int k = calculateK(docs); // global K
     for(Document doc : docs) {
+      k = calculateK(doc); // update k per individual example
       wdsum += calculateWD(doc, k);
       pksum += calculatePk(doc, k);
       countExp += getMassesArray(doc, expectedSource).length;
@@ -147,7 +149,17 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
    * @return preferred window size as half the mean segment length
    */
   public int calculateK(Collection<Document> docs) {
-    return Math.max((int) Math.round(getMeanSegmentLength(docs) / 2.), 2);
+    int k = Math.max((int) Math.round(getMeanSegmentLength(docs) / 2.), 2);
+    log.info("setting k to {}", k);
+    return k;
+  }
+  
+  public int calculateK(Document doc) {
+    double sum = 0;
+    int[] masses = getMassesArray(doc, expectedSource);
+    for(int c : masses) sum += c;
+    int k = Math.max((int) Math.round((sum / (double) masses.length) / 2.), 2);
+    return k;
   }
     
   public double getMeanSegmentLength(Collection<Document> docs) {
@@ -198,7 +210,8 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
         array[t] = sectionIndex;
         cursor++;
       }
-      currentSection = ann.getSectionLabelOrHeading();
+      currentSection = ann.getSectionLabelOrHeading(); // merge same predictions
+//      currentSection = Integer.toString(ann.getBegin());  // no merge
       if(!currentSection.equals(lastSection)) 
         sectionIndex++; // merge sections with same name in gold segmentation
       lastSection = currentSection;

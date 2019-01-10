@@ -131,14 +131,18 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     line.append(fInt(this.countExamples())).append("\t");
     
     // Topic Classification: label(s) per sentence
-    line.append(fDbl(sentenceClassEval.getMicroAUC())).append("\t");
-    line.append(fDbl(sentenceClassEval.getAccuracy())).append("\t");
-    line.append(fDbl(sentenceClassEval.getAccuracyK())).append("\t");
-    line.append(fDbl(sentenceClassEval.getPrecision1())).append("\t");
-    line.append(fDbl(sentenceClassEval.getPrecisionK())).append("\t");
-    line.append(fDbl(sentenceClassEval.getRecall1())).append("\t");
-    line.append(fDbl(sentenceClassEval.getRecallK())).append("\t");
-    line.append(fDbl(sentenceClassEval.getMAP())).append("\t");
+    if(sentenceClassEval != null) {
+      line.append(fDbl(sentenceClassEval.getMicroAUC())).append("\t");
+      line.append(fDbl(sentenceClassEval.getAccuracy())).append("\t");
+      line.append(fDbl(sentenceClassEval.getAccuracyK())).append("\t");
+      line.append(fDbl(sentenceClassEval.getPrecision1())).append("\t");
+      line.append(fDbl(sentenceClassEval.getPrecisionK())).append("\t");
+      line.append(fDbl(sentenceClassEval.getRecall1())).append("\t");
+      line.append(fDbl(sentenceClassEval.getRecallK())).append("\t");
+      line.append(fDbl(sentenceClassEval.getMAP())).append("\t");
+    } else {
+      line.append("\t\t\t\t\t\t\t\t");
+    }
     
     // Topic Segementation: segmentation
     line.append(fInt(this.countSections())).append("\t");
