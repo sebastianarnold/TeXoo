@@ -91,8 +91,8 @@ public class RawTextDatasetReader implements DatasetReader {
     AtomicInteger progress = new AtomicInteger();
     Stream<Path> paths = Files.walk(path.getPath())
         .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
-        .filter(p -> p.getFileName().toString().matches(pattern));
-        //.sorted()
+        .filter(p -> p.getFileName().toString().matches(pattern))
+        .sorted();
     if(randomizeDocuments) {
       List<Path> list = paths.collect(Collectors.toList());
       Collections.shuffle(list);
