@@ -6,7 +6,6 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
@@ -24,6 +23,10 @@ public class SectorEvaluation extends AnnotatorEvaluation {
 
   protected final static Logger log = LoggerFactory.getLogger(SectorEvaluation.class);
 
+  protected boolean enableSentenceEval = false;
+  protected boolean enableSegmentEval = true;
+  protected boolean enableSegmentationEval = true;
+  
   protected int countSections;
   protected int countPredictions;
   
@@ -54,6 +57,47 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   }
 
   /**
+   * Enable/disable evaluation for sentence-based classification (Prec/Rec/F1).
+   */
+  public SectorEvaluation withSentenceEvaluation(boolean enable) {
+    this.enableSentenceEval = enable;
+    return this;
+  }
+  
+  /**
+   * Enable/disable evaluation for segmentation (Pk/WD).
+   */
+  public SectorEvaluation withSegmentationEvaluation(boolean enable) {
+    this.enableSegmentationEval = enable;
+    return this;
+  }
+  
+  /**
+   * Enable/disable evaluation for segment-based classification (Prec/Rec/F1).
+   */
+  public SectorEvaluation withSegmentEvaluation(boolean enable) {
+    this.enableSegmentEval = enable;
+    return this;
+  }
+  
+  /**
+   * Enable/disable recalculation of K for each document in the evaluation.
+   * if FALSE, we use a fixed K for all documents.
+   */
+  public SectorEvaluation withRecalculateK(boolean enabled) {
+    segmentationEval.withRecalculateK(enabled);
+    return this;
+  }
+  
+  /**
+   * Enable/disable merging adjacent sections with same label into one (in both GOLD and PRED).
+   */
+  public SectorEvaluation withMergeEnabled(boolean enabled) {
+    segmentationEval.withMergeEnabled(enabled);
+    return this;
+  }
+  
+  /**
    * Evaluate the whole SECTOR model.
    * For Multi-label evaluation of Headings:
    * - <b>requires expected and predicted HeadingTags</b> attached to every Sentence in the test set
@@ -72,7 +116,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     countPredictions = 0;
     countExamples = 0;
     countDocs = 0;
-    if(sentenceClassEval != null) {
+    if(enableSentenceEval && sentenceClassEval != null) {
       log.info("calculating sentence scores from tags...");
       if(targetEncoderClass == HeadingEncoder.class) {
         sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, HeadingTag.class);
@@ -80,11 +124,11 @@ public class SectorEvaluation extends AnnotatorEvaluation {
         sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, ClassTag.class);
       }
     }
-    if(segmentClassEval != null) {
+    if(enableSegmentEval && segmentClassEval != null) {
       log.info("calculating segment scores from annotations...");
       segmentClassEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class, true);
     }
-    if(segmentationEval != null) {
+    if(enableSegmentationEval && segmentationEval != null) {
       log.info("calculating segmentation scores from annotations...");
       segmentationEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class);
     }
@@ -131,7 +175,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     line.append(fInt(this.countExamples())).append("\t");
     
     // Topic Classification: label(s) per sentence
-    if(sentenceClassEval != null) {
+    if(enableSentenceEval && sentenceClassEval != null) {
       line.append(fDbl(sentenceClassEval.getMicroAUC())).append("\t");
       line.append(fDbl(sentenceClassEval.getAccuracy())).append("\t");
       line.append(fDbl(sentenceClassEval.getAccuracyK())).append("\t");
@@ -145,22 +189,31 @@ public class SectorEvaluation extends AnnotatorEvaluation {
     }
     
     // Topic Segementation: segmentation
-    line.append(fInt(this.countSections())).append("\t");
-    line.append(fInt(segmentationEval.getCountExpected())).append("\t");
-    line.append(fInt(this.countPredictions())).append("\t");
-    line.append(fInt(segmentationEval.getCountPredicted())).append("\t");
-    line.append(fDbl(segmentationEval.getPk())).append("\t");
-    line.append(fDbl(segmentationEval.getWD())).append("\t");
+    if(enableSegmentationEval && segmentationEval != null) {
+      line.append(fInt(this.countSections())).append("\t");
+      line.append(fInt(segmentationEval.getCountExpected())).append("\t");
+      line.append(fInt(this.countPredictions())).append("\t");
+      line.append(fInt(segmentationEval.getCountPredicted())).append("\t");
+      line.append(fDbl(segmentationEval.getPk())).append("\t");
+      line.append(fDbl(segmentationEval.getWD())).append("\t");
+    } else {
+      line.append("\t\t\t\t\t\t");
+    }
     
     // Topic Classification: label(s) per segment
-    line.append(fDbl(segmentClassEval.getMicroAUC())).append("\t");
-    line.append(fDbl(segmentClassEval.getAccuracy())).append("\t");
-    line.append(fDbl(segmentClassEval.getAccuracyK())).append("\t");
-    line.append(fDbl(segmentClassEval.getPrecision1())).append("\t");
-    line.append(fDbl(segmentClassEval.getPrecisionK())).append("\t");
-    line.append(fDbl(segmentClassEval.getRecall1())).append("\t");
-    line.append(fDbl(segmentClassEval.getRecallK())).append("\t");
-    line.append(fDbl(segmentClassEval.getMAP())).append("\t");
+    if(enableSegmentEval && segmentClassEval != null) {
+      line.append(fDbl(segmentClassEval.getMicroAUC())).append("\t");
+      line.append(fDbl(segmentClassEval.getAccuracy())).append("\t");
+      line.append(fDbl(segmentClassEval.getAccuracyK())).append("\t");
+      line.append(fDbl(segmentClassEval.getPrecision1())).append("\t");
+      line.append(fDbl(segmentClassEval.getPrecisionK())).append("\t");
+      line.append(fDbl(segmentClassEval.getRecall1())).append("\t");
+      line.append(fDbl(segmentClassEval.getRecallK())).append("\t");
+      line.append(fDbl(segmentClassEval.getMAP())).append("\t");
+    } else {
+      line.append("\t\t\t\t\t\t\t\t");
+    }
+    
     line.append("\n");
     System.out.println(line.toString());
     return line.toString();
@@ -189,7 +242,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   }
   
   public String printSingleClassStats() {
-    if(segmentClassEval.numClasses < 50) {
+    if(enableSegmentEval && segmentClassEval.numClasses < 50) {
       return printSingleClassStats(segmentClassEval);
     } else {
       return "Too many classes for single-class stats";

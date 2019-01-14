@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +17,12 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
   
   protected double countExp = 0., countPred = 0., pksum = 0., wdsum = 0.;
   
+  /** whether to recalculate the value of K for each document in the evaluation */
+  protected boolean enableKPerDocument = false;
+  
+  /** whether to merge adjacent sections with same label into one (in both GOLD and PRED) */
+  protected boolean enableMergeSections = true;
+  
   public SegmentationEvaluation(String experimentName) {
     this(experimentName, Annotation.Source.GOLD, Annotation.Source.PRED);
   }
@@ -26,6 +31,23 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
     super(experimentName, expected, predicted);
     log = LoggerFactory.getLogger(SegmentationEvaluation.class);
     clear();
+  }
+  
+  /**
+   * Enable/disable recalculation of K for each document in the evaluation.
+   * if FALSE, we use a fixed K for all documents.
+   */
+  public SegmentationEvaluation withRecalculateK(boolean enabled) {
+    this.enableKPerDocument = enabled;
+    return this;
+  }
+  
+  /**
+   * Enable/disable merging adjacent sections with same label into one (in both GOLD and PRED).
+   */
+  public SegmentationEvaluation withMergeEnabled(boolean enabled) {
+    this.enableMergeSections = enabled;
+    return this;
   }
   
   protected void clear() {
@@ -51,7 +73,7 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
     countDocs += docs.size();
     int k = calculateK(docs); // global K
     for(Document doc : docs) {
-      k = calculateK(doc); // update k per individual example
+      if(enableKPerDocument) k = calculateK(doc); // update k per individual example
       wdsum += calculateWD(doc, k);
       pksum += calculatePk(doc, k);
       countExp += getMassesArray(doc, expectedSource).length;
@@ -210,10 +232,14 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
         array[t] = sectionIndex;
         cursor++;
       }
-      currentSection = ann.getSectionLabelOrHeading(); // merge same predictions
-//      currentSection = Integer.toString(ann.getBegin());  // no merge
-      if(!currentSection.equals(lastSection)) 
+      if(enableMergeSections) {
+        currentSection = ann.getSectionLabelOrHeading(); // merge same predictions
+      } else {
+        currentSection = Integer.toString(ann.getBegin());  // no merge
+      }
+      if(!currentSection.equals(lastSection)) {
         sectionIndex++; // merge sections with same name in gold segmentation
+      }
       lastSection = currentSection;
     }
     // fill last section
