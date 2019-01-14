@@ -1,5 +1,9 @@
 package de.datexis.model;
 
+import com.google.common.base.Objects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,5 +52,24 @@ public class IRDataset {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IRDataset)) {
+      return false;
+    }
+    IRDataset dataset = (IRDataset) o;
+    return Objects.equal(documents, dataset.documents) &&
+      Objects.equal(queries, dataset.queries) &&
+      Objects.equal(name, dataset.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(documents, queries, name);
   }
 }

@@ -2,6 +2,7 @@ package de.datexis.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Query extends Document {
   /**
@@ -37,5 +38,28 @@ public class Query extends Document {
 
   public Map<Document, IRRelevance> getRelevantDocuments() {
     return relevantDocuments;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Query)) {
+      return false;
+    }
+    Query query = (Query) o;
+    return super.equals(query) &&
+      Objects.equals(relevantDocuments, query.relevantDocuments);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), relevantDocuments);
+  }
+
+  @Override
+  public String toString() {
+    return "Querry [sentences=" + this.sentences + ", relevantDocuments=" + this.relevantDocuments + "]";
   }
 }
