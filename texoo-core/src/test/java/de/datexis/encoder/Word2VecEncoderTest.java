@@ -2,6 +2,7 @@ package de.datexis.encoder;
 
 import de.datexis.common.Resource;
 import de.datexis.encoder.impl.Word2VecEncoder;
+import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -21,6 +22,7 @@ public class Word2VecEncoderTest {
   @Test
   public void testLoadModel() {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
+    vec.setPreprocessor(new MinimalLowercasePreprocessor());
     assertEquals(150, vec.getEmbeddingVectorSize());
     assertTrue(vec.isUnknown("DATEXIS"));
     assertFalse(vec.isUnknown("berlin"));
@@ -37,10 +39,12 @@ public class Word2VecEncoderTest {
   @Test
   public void testSaveBinaryModel() {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
+    vec.setPreprocessor(new MinimalLowercasePreprocessor());
     assertEquals(150, vec.getEmbeddingVectorSize());
     Resource temp = Resource.createTempDirectory();
     vec.saveModel(temp, "word2vec", Word2VecEncoder.ModelType.BINARY);
     Word2VecEncoder bin = Word2VecEncoder.load(temp.resolve("word2vec.bin"));
+    bin.setPreprocessor(new MinimalLowercasePreprocessor());
     assertEquals(150, bin.getEmbeddingVectorSize());
     assertTrue(bin.isUnknown("DATEXIS"));
     assertFalse(bin.isUnknown("berlin"));
@@ -66,6 +70,7 @@ public class Word2VecEncoderTest {
   @Test
   public void testEncodings() {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
+    vec.setPreprocessor(new MinimalLowercasePreprocessor());
     INDArray a = vec.encode("berlin");
     // this has to pass for all Encoders. Don't change!
     long size = vec.getEmbeddingVectorSize();
