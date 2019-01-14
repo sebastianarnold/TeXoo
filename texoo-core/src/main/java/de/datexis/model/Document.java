@@ -1,9 +1,7 @@
 package de.datexis.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import de.datexis.common.WordHelpers;
@@ -25,6 +23,7 @@ import java.util.stream.Stream;
  * A Document is a piece of text that mayu contain Sentences, Tokens and Annotations.
  * @author sarnold, fgrimme
  */
+@JsonIdentityInfo(property = "@uid", generator = ObjectIdGenerators.UUIDGenerator.class)
 @JsonPropertyOrder({ "class", "id", "uid", "refUid", "title", "language", "type", "begin", "length", "text", "annotations" })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=Document.class)
 @JsonIgnoreProperties(ignoreUnknown = true)

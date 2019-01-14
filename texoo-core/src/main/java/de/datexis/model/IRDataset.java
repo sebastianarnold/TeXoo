@@ -1,5 +1,9 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Objects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -7,6 +11,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonPropertyOrder({ "class", "name", "documents", "queries" })
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=IRDataset.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class IRDataset {
   /**
    * All Documents that will be queried
@@ -71,5 +78,10 @@ public class IRDataset {
   @Override
   public int hashCode() {
     return Objects.hashCode(documents, queries, name);
+  }
+
+  @Override
+  public String toString() {
+    return "IRDataset [documents=" + documents + ", queries=" + queries + ", name='" + name + "']";
   }
 }

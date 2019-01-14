@@ -1,10 +1,17 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.Objects;
 
 /**
  * Represents the relevance of an document by rank
  */
+@JsonPropertyOrder({ "class", "rank" })
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=IRRank.class)
 public class IRRank extends IRRelevance {
   /**
    * The relevance rank of an document
