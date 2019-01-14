@@ -10,9 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.LoggerFactory;
 
@@ -57,19 +54,15 @@ public class StructureEncoder extends StaticEncoder {
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
       
       example = input.get(batchIndex);
-      if(timeStepClass == Token.class) {
+      if(timeStepClass.equals(Token.class)) {
         List<INDArray> vecs = encodeTokens(example);
         for(int t = 0; t < example.countTokens() && t < maxTimeSteps; t++) {
-          //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vecs.get(t));
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t)); // this one is faster
-          t++;
+          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
         }
-      } else if(timeStepClass == Sentence.class) {
+      } else if(timeStepClass.equals(Sentence.class)) {
         List<INDArray> vecs = encodeSentences(example);
         for(int t = 0; t < example.countSentences() && t < maxTimeSteps; t++) {
-          //encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vecs.get(t));
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t)); // this one is faster
-          t++;
+          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
         }
       } else throw new IllegalArgumentException("Cannot encode class " + timeStepClass.toString() + " from Document");
       
@@ -96,7 +89,7 @@ public class StructureEncoder extends StaticEncoder {
       endSent ? 1.0 : 0.0,        // end of sentence
       endParagraph ? 1.0 : 0.0,   // end of paragraph
       endDoc ? 1.0 : 0.0          // end of document
-    }).transposei();
+    });
   }
   
   @Override
@@ -145,7 +138,7 @@ public class StructureEncoder extends StaticEncoder {
   
   private List<INDArray> encodeSentences(Document d) {
     List<INDArray> result = new ArrayList<>(d.countSentences());
-    boolean beginDoc = true, beginPar = true, endPar = false, endDoc, isList;
+    boolean beginDoc = true, beginPar = true, endPar, endDoc, isList;
     Iterator<Sentence> sentences = d.getSentences().iterator();
     while(sentences.hasNext()) {
       Sentence s = sentences.next();

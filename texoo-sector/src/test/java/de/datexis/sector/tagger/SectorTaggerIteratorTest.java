@@ -98,7 +98,6 @@ public class SectorTaggerIteratorTest {
     INDArray actualFlagEncoding = actual.getFeatures(2);
     INDArray expectedFlagEncoding = expected.getFeatures(2);
     
-    // TODO: Structure Encoder needs to be refactored to work with the new encodeEach Method.
     assertThat(actualFlagEncoding, is(equalTo(expectedFlagEncoding)));
   }
 
