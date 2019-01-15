@@ -30,7 +30,7 @@ public class DocumentModelTest {
   final private String deText = "Prof. Dr. Alexander Löser ist Professor an der Beuth Hochschule für Technik Berlin.";
 
   final private String tabText = "123\tabc\n\n\nxyz  789\t\n 456 ";
-  final private String spcText = "123 abc\nxyz  789  456"; // tabs and trailing whitespace is removed
+  final private String spcText = "123 abc\n  xyz  789 \n 456"; // tabs and trailing whitespace is removed
 
   final private String originalText = "In March 2009 mayor Sue Jones-Davies, who had played the role of Judith Iscariot in the film Monty Python's Life of Brian (1979), organised a charity screening of the film.";
   final private String tokenizedText = "In March 2009 mayor Sue Jones-Davies , who had played the role of Judith Iscariot in the film Monty Python 's Life of Brian ( 1979 ) , organised a charity screening of the film .";
@@ -81,9 +81,9 @@ public class DocumentModelTest {
 
   @Test
   public void testTokenization() {
-    Document doc = DocumentFactory.fromText(tabText, DocumentFactory.Newlines.KEEP_DOUBLE); // "123\tabc\n\n\nxyz  789\t\n 456 "
+    Document doc = DocumentFactory.fromText(tabText, DocumentFactory.Newlines.KEEP); // "123\tabc\n\n\nxyz  789\t\n 456 "
     assertEquals(3, doc.countSentences());
-    assertEquals(6, doc.countTokens());
+    assertEquals(7, doc.countTokens());
     assertEquals(0, doc.getBegin());
     assertEquals(spcText.length(), doc.getEnd());
     assertEquals(spcText.length(), doc.getLength());
@@ -97,46 +97,45 @@ public class DocumentModelTest {
     assertEquals(7, doc.getSentence(0).getToken(2).getBegin());
     assertEquals(8, doc.getSentence(0).getToken(2).getEnd()); // newline counts as space, ok?
     assertEquals("xyz", doc.getSentence(1).getToken(0).getText());
-    assertEquals(8, doc.getSentence(1).getToken(0).getBegin()); // newline counts as space, ok?
-    assertEquals(11, doc.getSentence(1).getToken(0).getEnd());
+    assertEquals(10, doc.getSentence(1).getToken(0).getBegin()); // newline counts as space, ok?
+    assertEquals(13, doc.getSentence(1).getToken(0).getEnd());
     assertEquals("789", doc.getSentence(1).getToken(1).getText());
-    assertEquals(13, doc.getSentence(1).getToken(1).getBegin()); // spacing is preserved
-    assertEquals(16, doc.getSentence(1).getToken(1).getEnd());
+    assertEquals(15, doc.getSentence(1).getToken(1).getBegin()); // spacing is preserved
+    assertEquals(18, doc.getSentence(1).getToken(1).getEnd());
     assertEquals("456", doc.getSentence(2).getToken(0).getText()); // \n is sentence boundary, but not newline
-    assertEquals(18, doc.getSentence(2).getToken(0).getBegin()); // spacing is preserved
-    assertEquals(21, doc.getSentence(2).getToken(0).getEnd());
+    assertEquals(21, doc.getSentence(2).getToken(0).getBegin()); // spacing is preserved
+    assertEquals(24, doc.getSentence(2).getToken(0).getEnd());
     assertEquals(spcText, doc.getText());
   }
 
   @Test
   public void testPreprocessor() {
     Document doc = DocumentFactory.fromText(medText); // don't keep original text
-    // assertEquals(2, doc.countSentences()); // FIXME: "e.g." is detected as sentence end 
+    assertEquals(2, doc.countSentences());
     assertEquals(36, doc.countTokens());
     assertEquals(0, doc.getBegin());
     assertEquals(198, doc.getEnd());
     assertEquals(198, doc.getLength());
     assertEquals(medText, doc.getText());
     assertEquals("(", doc.getSentence(0).getToken(5).getText());
-    // assertEquals("e.g.", doc.getSentence(0).getToken(6).getText()); // FIXME: "e.g." is detected as sentence end 
-    // assertEquals("1", doc.getSentence(0).getToken(25).getText());
-    // assertEquals(152, doc.getSentence(1).getToken(0).getBegin());
-    // assertEquals(7, doc.getSentence(1).getToken(0).getLength());
-    // assertEquals(159, doc.getSentence(1).getToken(0).getEnd());
+    //assertEquals("e.g.", doc.getSentence(0).getToken(6).getText()); // FIXME: abbreviations are not correctly tokenized
+    //assertEquals("1", doc.getSentence(0).getToken(25).getText());
+    assertEquals(152, doc.getSentence(1).getToken(0).getBegin());
+    assertEquals(7, doc.getSentence(1).getToken(0).getLength());
+    assertEquals(159, doc.getSentence(1).getToken(0).getEnd());
     Document doc2 = DocumentFactory.fromText(deText);
-    //assertEquals(1, doc2.countSentences()); // FIXME: "Prof." is detected as sentence end
-    //assertEquals(14, doc2.countTokens()); // FIXME: "Prof." is detected as two tokens
+    assertEquals(1, doc2.countSentences());
+    //assertEquals(14, doc2.countTokens()); // FIXME: abbreviations are not correctly tokenized
     assertEquals(0, doc2.getBegin());
     assertEquals(83, doc2.getEnd());
     assertEquals(83, doc2.getLength());
     assertEquals(deText, doc2.getText());
-    //assertEquals("Dr.", doc2.getSentence(0).getToken(1).getText()); // FIXME: Prof. Dr. gives wrong sentence split
+    //assertEquals("Dr.", doc2.getSentence(0).getToken(1).getText()); // FIXME: abbreviations are not correctly tokenized
     //assertEquals("Löser", doc2.getSentence(0).getToken(3).getText());
     Document doc3 = DocumentFactory.fromText(punctText);
     for (Sentence s : doc3.getSentences()) {
       System.out.println(s.getText());
     }
-    // assertEquals(2, doc3.countSentences()); // TODO: CoreNLP PTBTokenizer fails on this sentence
   }
 
   @Test
@@ -146,8 +145,8 @@ public class DocumentModelTest {
     for(Sentence s : doc2.getSentences()) {
       doc.addSentence(s);
     }
-    //assertEquals(3, doc.countSentences()); // FIXME: "e.g." is detected as sentence end 
-    //assertEquals(36 + 14, doc.countTokens()); // FIXME: "Prof . and "e.g ." are detected as 4 Tokens instead of 2
+    assertEquals(3, doc.countSentences());
+    //assertEquals(36 + 14, doc.countTokens()); // FIXME: abbreviations are not correctly tokenized
     assertEquals(0, doc.getBegin());
     assertEquals(198 + 83 + 1, doc.getEnd());
     assertEquals(198 + 83 + 1, doc.getLength());
@@ -256,12 +255,12 @@ public class DocumentModelTest {
       assertEquals(Document.class, test.getClass());
       assertEquals("testID01", test.getId());
       assertFalse(test.isEmpty());
-      //assertEquals(2, test.countSentences()); // FIXME: "e.g." is detected as sentence end 
+      assertEquals(2, test.countSentences());
       assertEquals(0, test.getBegin());
       assertEquals(198, test.getEnd());
       assertEquals(198, test.getLength());
       assertEquals(medText, test.getText());
-      // assertEquals(36, test.countTokens()); // FIXME: "e.g." is detected as two tokens
+      assertEquals(36, test.countTokens());
       // Tokens are not serialized
       //assertEquals((Long)4711l, test.getSentence(0).getToken(0).getUid());
       //assertNull(test.getSentence(0).getToken(1).getUid());

@@ -45,7 +45,7 @@ public class DocumentFactory {
   
   public static enum Newlines { 
     KEEP, // keep all newlines in the text and use them as sentence breaks
-    KEEP_DOUBLE, // keep only double newlines in the text, but use all of them as sentence breaks
+    //KEEP_DOUBLE, // keep only double newlines in the text, but use all of them as sentence breaks
     DISCARD // discard all newlines in the text but still use them as sentence breaks
   };
   
@@ -70,20 +70,10 @@ public class DocumentFactory {
     plainTokenizer = new TreeMap<>();
     newlineTokenizer = new TreeMap<>();
     
-    try {
-      SentenceModel sentenceModel = new SentenceModel(Resource.fromJAR("openNLP/en-sent.bin").getInputStream());
-      TokenizerModel tokenModel = new TokenizerModel(Resource.fromJAR("openNLP/en-token.bin").getInputStream());
-      sentenceSplitter.put(LANG_EN, new SentenceDetectorME(sentenceModel));
-      plainTokenizer.put(LANG_EN, new TokenizerME(tokenModel));
-      newlineTokenizer.put(LANG_EN, new TokenizerMENL(tokenModel));
-      sentenceModel = new SentenceModel(Resource.fromJAR("openNLP/de-sent.bin").getInputStream());
-      tokenModel = new TokenizerModel(Resource.fromJAR("openNLP/de-token.bin").getInputStream());
-      sentenceSplitter.put(LANG_DE, new SentenceDetectorME(sentenceModel));
-      plainTokenizer.put(LANG_DE, new TokenizerME(tokenModel));
-      newlineTokenizer.put(LANG_DE, new TokenizerMENL(tokenModel));
-    } catch (IOException ex) {
-      log.error("CRITICAL! cannot load openNLP models {}", ex.toString());
-    }
+    loadSentenceSplitter(LANG_EN, Resource.fromJAR("openNLP/en-sent.bin"));
+    loadTokenizer(LANG_EN, Resource.fromJAR("openNLP/en-token.bin"));
+    loadSentenceSplitter(LANG_DE, Resource.fromJAR("openNLP/de-sent.bin"));
+    loadTokenizer(LANG_DE, Resource.fromJAR("openNLP/de-token.bin"));
     
     try {
       //load all languages:
@@ -96,6 +86,25 @@ public class DocumentFactory {
       textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
     } catch (IOException ex) {
       log.error("Could not load language profiles");
+    }
+  }
+  
+  private void loadSentenceSplitter(String language, Resource modelPath) {
+    try {
+      SentenceModel sentenceModel = new SentenceModel(modelPath.getInputStream());
+      sentenceSplitter.put(language, new SentenceDetectorMENL(sentenceModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
+    }
+  }
+  
+  private void loadTokenizer(String language, Resource modelPath) {
+    try {
+      TokenizerModel tokenModel = new TokenizerModel(modelPath.getInputStream());
+      plainTokenizer.put(language, new TokenizerME(tokenModel));
+      newlineTokenizer.put(language, new TokenizerMENL(tokenModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
     }
   }
   
@@ -177,49 +186,10 @@ public class DocumentFactory {
     
     opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
     
-    // go over sentences and split again at any newline characters
-    LinkedList<opennlp.tools.util.Span> splitSentences = new LinkedList<>();
-    int cursor = 0;
-    for(opennlp.tools.util.Span span : sentences) {
-
-      // check for newlines in between sentences, they belong to previous sentence
-      String sentenceText = text.substring(cursor, span.getStart());
-      if(!splitSentences.isEmpty() && sentenceText.contains("\n")) {
-        opennlp.tools.util.Span prev = splitSentences.pollLast();
-        prev = new opennlp.tools.util.Span(prev.getStart(), prev.getEnd() + sentenceText.length());
-        splitSentences.add(prev);
-        cursor = prev.getEnd();
-      }
-
-      // check for newlines in sentence
-      sentenceText = text.substring(span.getStart(), span.getEnd());
-      while(sentenceText.contains("\n")) {
-        int offset = sentenceText.indexOf("\n");
-        if(offset == 0 && !splitSentences.isEmpty()) {
-          // newline at beginning belongs to previous sentence
-          opennlp.tools.util.Span prev = splitSentences.pollLast();
-          prev = new opennlp.tools.util.Span(prev.getStart(), prev.getEnd() + 1);
-          splitSentences.add(prev);
-          offset++;
-        } else {
-          // newline in between requires split
-          opennlp.tools.util.Span split = new opennlp.tools.util.Span(span.getStart(), span.getStart() + offset);
-          splitSentences.add(split);
-        }
-        span = new opennlp.tools.util.Span(span.getStart() + offset, span.getEnd());
-        sentenceText = text.substring(span.getStart(), span.getEnd());
-        cursor = span.getEnd();
-      }
-
-      // add remaining sentence
-      if(span.length() > 0) splitSentences.add(span);
-      cursor = span.getEnd();
-    }
-
     // Tokenize sentences
     int countNewlines = 0;
     int nlOffset = 0; // number of skipped newlines
-    for(opennlp.tools.util.Span span : splitSentences) {
+    for(opennlp.tools.util.Span span : sentences) {
       String sentenceText = text.substring(span.getStart(), span.getEnd());
       opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(sentenceText);
       List<Token> tokenList = new LinkedList<>();
@@ -229,8 +199,8 @@ public class DocumentFactory {
           countNewlines++;
           if(newlines == Newlines.KEEP) { // newline is a paragraph
             tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
-          } else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
-            tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          //} else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
+          // tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
           } else if(newlines == Newlines.DISCARD) { // skip newlines, but keep one whitespace
             if(countNewlines > 1) nlOffset++;
           } else {
