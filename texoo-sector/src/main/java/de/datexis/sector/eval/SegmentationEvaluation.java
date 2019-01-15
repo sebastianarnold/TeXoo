@@ -172,7 +172,7 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
    */
   public int calculateK(Collection<Document> docs) {
     int k = Math.max((int) Math.round(getMeanSegmentLength(docs) / 2.), 2);
-    log.info("setting k to {}", k);
+    log.trace("setting k to {}", k);
     return k;
   }
   
