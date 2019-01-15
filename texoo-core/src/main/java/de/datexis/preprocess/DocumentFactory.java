@@ -20,6 +20,7 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeMap;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -248,19 +249,31 @@ public Document createFromTokens(List<Token> tokens) {
   }
   
   public List<Sentence> createSentencesFromTokens(List<Token> tokens) {
-    List<Sentence> sentences = new LinkedList<>();
-    int lastCursorPos = 0;
-    String lastTokenString = "";
-    // FIXME: implement for OpenNLP
-    //for(List<Token> sentenceTokens : instance.tts.process(tokens)) {
-    List<Token> sentenceTokens = tokens;
-      Sentence sentence = createSentenceFromTokens(sentenceTokens, lastTokenString, lastCursorPos);
-      lastCursorPos = sentence.getEnd();
-      int lastTokenIndex = sentence.getTokens().size() - 1;
-      lastTokenString = sentence.getToken(lastTokenIndex).getText();
-      sentences.add(sentence);
-    //}
-    return sentences;
+    List<Sentence> result = new ArrayList<>();
+    String text = WordHelpers.tokensToText(tokens, 0);
+    String lang = detectLanguage(text);
+    
+    // find best Tokenizer and Splitter for text
+    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(lang, sentenceSplitter.get(LANG_EN));
+    
+    opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
+    
+    // Tokenize sentences
+    Iterator<Token> tokenIt = tokens.iterator();
+    if(!tokenIt.hasNext()) return result;
+    Token currentToken = tokenIt.next();
+    for(opennlp.tools.util.Span sentence : sentences) {
+      List<Token> tokenList = new ArrayList<>();
+      while(currentToken.getBegin() < sentence.getEnd()) {
+        if(!currentToken.getText().equals("\n")) {
+          tokenList.add(currentToken);
+        }
+        if(!tokenIt.hasNext()) break;
+        currentToken = tokenIt.next();
+      }
+      result.add(new Sentence(tokenList));
+    }
+    return result;
   }
   
   private Sentence createSentenceFromTokens(List<Token> sentence, String last, Integer cursor) {
@@ -305,8 +318,11 @@ public Document createFromTokens(List<Token> tokens) {
     for(String token : WordHelpers.splitSpaces(text)) {
       int length = token.length();
       Token t = new Token(token, offset, offset + length);
-      offset += length;
-      if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token)) offset++;
+      if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token)) {
+        t.setBegin(t.getBegin() + 1);
+        t.setEnd(t.getEnd() + 1);
+      }
+      offset = t.getEnd();
       tokens.add(t);
       last = token;
     }

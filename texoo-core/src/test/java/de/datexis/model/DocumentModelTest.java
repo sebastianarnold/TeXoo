@@ -45,23 +45,7 @@ public class DocumentModelTest {
 
   @Test
   public void testCreateDocument() {
-    ArrayList<Token> tokens = new ArrayList<>();
-    tokens.add(new Token("Zairean"));
-    tokens.add(new Token("Prime"));
-    tokens.add(new Token("Minister"));
-    tokens.add(new Token("Kengo"));
-    tokens.add(new Token("wa"));
-    tokens.add(new Token("Dondo"));
-    tokens.add(new Token("said"));
-    tokens.add(new Token("at"));
-    tokens.add(new Token("the"));
-    tokens.add(new Token("end"));
-    tokens.add(new Token("of"));
-    tokens.add(new Token("a"));
-    tokens.add(new Token("visit"));
-    tokens.add(new Token("."));
-    assertEquals(14, tokens.size());
-    Document doc = DocumentFactory.fromTokens(tokens);
+    Document doc = DocumentFactory.fromTokenizedText("Zairean Prime Minister Kengo wa Dondo said at the end of a visit .");
     assertEquals(1, doc.countSentences());
     assertEquals(14, doc.countTokens());
     assertEquals(0, doc.getSentence(0).getToken(0).getBegin());
@@ -71,11 +55,11 @@ public class DocumentModelTest {
     assertEquals(5, doc.getSentence(0).getToken(1).getLength());
     assertEquals(8 + 5, doc.getSentence(0).getToken(1).getEnd());
     assertEquals(0, doc.getBegin());
-    assertEquals(65, doc.getLength());
-    assertEquals(65, doc.getEnd());
+    assertEquals(66, doc.getLength());
+    assertEquals(66, doc.getEnd());
     assertEquals(0, doc.getSentence(0).getBegin());
-    assertEquals(65, doc.getSentence(0).getLength());
-    assertEquals(65, doc.getSentence(0).getEnd());
+    assertEquals(66, doc.getSentence(0).getLength());
+    assertEquals(66, doc.getSentence(0).getEnd());
     assertEquals(doc, doc.getSentence(0).getDocumentRef());
   }
 

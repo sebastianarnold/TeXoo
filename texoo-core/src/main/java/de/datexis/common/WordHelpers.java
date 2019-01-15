@@ -30,7 +30,7 @@ public class WordHelpers {
   protected final static Logger log = LoggerFactory.getLogger(WordHelpers.class);
 
   public static Collection<String> skipSpaceBefore = Arrays.asList(",", ".", ":", ";", "?", "!", ")", "]", "'m", "'s", "'re", "'ve", "'d", "'ll", "n't");
-  public static Collection<String> skipSpaceAfter = Arrays.asList("(", "[", "");
+  public static Collection<String> skipSpaceAfter = Arrays.asList("(", "[", "", "\n");
   private static final String[][] umlautReplacements = { {"Ä","Ae"}, {"Ü","Ue"}, {"Ö","Oe"}, {"ä","ae"}, {"ü","ue"}, {"ö","oe"}, {"ß","ss"}, {"–","-"} };
   private static final String[][] tokenizationReplacements = { {"``","\""}, {"''","\""} };
   private static final Pattern punctPattern = Pattern.compile("[^\\w\\s\\-_]+");
