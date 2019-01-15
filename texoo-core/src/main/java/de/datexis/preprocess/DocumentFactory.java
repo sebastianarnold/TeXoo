@@ -45,7 +45,7 @@ public class DocumentFactory {
   
   public static enum Newlines { 
     KEEP, // keep all newlines in the text and use them as sentence breaks
-    KEEP_DOUBLE, // keep only double newlines in the text, but use all of them as sentence breaks
+    //KEEP_DOUBLE, // keep only double newlines in the text, but use all of them as sentence breaks
     DISCARD // discard all newlines in the text but still use them as sentence breaks
   };
   
@@ -193,8 +193,8 @@ public class DocumentFactory {
           countNewlines++;
           if(newlines == Newlines.KEEP) { // newline is a paragraph
             tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
-          } else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
-            tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          //} else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
+          // tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
           } else if(newlines == Newlines.DISCARD) { // skip newlines, but keep one whitespace
             if(countNewlines > 1) nlOffset++;
           } else {
