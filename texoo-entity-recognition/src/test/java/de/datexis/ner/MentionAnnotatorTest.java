@@ -77,21 +77,17 @@ public class MentionAnnotatorTest {
   public void testMentionAnnotator() throws IOException {
     
     Resource path = Resource.createTempDirectory();
-    //Resource path = ExportHandler.createExportPath("test_ner");
     
     // build model
     LetterNGramEncoder trigram = new LetterNGramEncoder("TRI")
             .setN(3);
-    //trigram.setEncoders()
     trigram.trainModel(data.getDocuments());
     trigram.saveModel(path, "trigram");
     
-    //MentionTagger tagger = new MentionTagger(it, 50, 20, 1, 0.01);
     MentionTagger tagger = new MentionTagger("BLSTM")
-            .setTagset(BIO2Tag.class)
+            .setTagset(BIO2Tag.class, "TEST")
             .setEncoders(new EncoderSet(trigram))
             .build(50, 20, 1, 0.01);
-    //Document2MentionIterator it = new Document2MentionIterator(data.getDocuments(), "test", encoders, BIO2Tag.class, -1, 1, false);
     tagger.setTrainingParams(5, 1, false);
     tagger.trainModel(data);
     tagger.saveModel(path, "ner");

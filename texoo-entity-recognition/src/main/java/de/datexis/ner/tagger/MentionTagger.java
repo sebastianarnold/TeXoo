@@ -57,7 +57,7 @@ public class MentionTagger extends Tagger {
   protected int workers = 1;
   
   protected Class<? extends Tag> tagset = BIOESTag.class;
-  protected String types = Tag.GENERIC;
+  protected String type = Tag.GENERIC;
   
   protected MentionTaggerEval eval;
   
@@ -139,6 +139,14 @@ public class MentionTagger extends Tagger {
 		return lstm;
     
   }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
   
   public MentionTagger setTagset(Class<? extends Tag> tagset) {
     this.tagset = tagset;
@@ -152,7 +160,7 @@ public class MentionTagger extends Tagger {
   
   public MentionTagger setTagset(Class<? extends Tag> tagset, String types) {
     setTagset(tagset);
-    this.types = types;
+    this.type = types;
     return this;
   }
   
@@ -263,7 +271,7 @@ public class MentionTagger extends Tagger {
         predicted = ((ComputationGraph) net).outputSingle(input);
       }
       // 3. Create BIOES tags from vectors + CRF and convert to BIO2 - RENAME
-      createTags(examples.getValue(), predicted, it.getTagset(), Annotation.Source.PRED, false, true);
+      createTags(examples.getValue(), predicted, it.getTagset(), Annotation.Source.PRED, type, false, true);
 		}
     for(Document doc : it.getDocuments()) {
       doc.setTagAvailable(Annotation.Source.PRED, it.getTagset(), true);
@@ -300,9 +308,9 @@ public class MentionTagger extends Tagger {
     MentionAnnotatorEval annE = new MentionAnnotatorEval(getName());
     for(Document doc : dataset.getDocuments()) {
       if(doc.countAnnotations(expected) == 0)
-        MentionAnnotation.annotateFromTags(doc, expected, BIO2Tag.class, types);
+        MentionAnnotation.annotateFromTags(doc, expected, BIO2Tag.class, type);
       doc.clearAnnotations(Annotation.Source.PRED, MentionAnnotation.class);
-      MentionAnnotation.annotateFromTags(doc, Annotation.Source.PRED, BIO2Tag.class, types);
+      MentionAnnotation.annotateFromTags(doc, Annotation.Source.PRED, BIO2Tag.class, type);
     }
     annE.setTestDataset(dataset, 0, 0);
     annE.evaluateAnnotations();
@@ -336,7 +344,7 @@ public class MentionTagger extends Tagger {
         log.warn(ex.toString());
       }
       // 3. Create tags from labels
-      createTags(examples.getValue(), predicted, it.getTagset(), Annotation.Source.PRED, true, true);
+      createTags(examples.getValue(), predicted, it.getTagset(), Annotation.Source.PRED, type, true, true);
     }
     for(Document doc : it.getDocuments()) {
       doc.setTagAvailable(Annotation.Source.PRED, it.getTagset(), true);
@@ -364,15 +372,15 @@ public class MentionTagger extends Tagger {
    * @param keepVectors If TRUE, vectors are not deleted from the Tokens.
    * @param convertTags If TRUE, tags are corrected and converted to BIO2. Otherwise, we keep Tags of class tagset.
    */
-  public static void createTags(Iterable<Sentence> sents, INDArray predicted, Class tagset, Annotation.Source source, boolean keepVectors, boolean convertTags) {
+  public static void createTags(Iterable<Sentence> sents, INDArray predicted, Class tagset, Annotation.Source source, String type, boolean keepVectors, boolean convertTags) {
     //System.out.println(predicted.toString());
     int batchNum = 0, t = 0;
     for(Sentence s : sents) {
       for(Token token : s.getTokens()) {
         INDArray vec = predicted.getRow(batchNum).getColumn(t++);
         // FIXME: we cannot simply assign GENERIC here!
-        if(tagset.equals(BIO2Tag.class)) token.putTag(source, new BIO2Tag(vec, GENERIC, true));
-        if(tagset.equals(BIOESTag.class)) token.putTag(source, new BIOESTag(vec, GENERIC, true));
+        if(tagset.equals(BIO2Tag.class)) token.putTag(source, new BIO2Tag(vec, type, true));
+        if(tagset.equals(BIOESTag.class)) token.putTag(source, new BIOESTag(vec, type, true));
       }
       t=0; batchNum++;
       if(tagset.equals(BIOESTag.class)) {

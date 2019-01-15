@@ -44,7 +44,7 @@ public class BIO2Tag implements Tag {
   public static BIO2Tag O() { return new BIO2Tag(Label.O); }
   
   protected final Label label;
-  protected final String type;
+  protected String type;
   protected final INDArray vector;
   protected double confidence = 0.;
   
@@ -137,6 +137,11 @@ public class BIO2Tag implements Tag {
   
   public BIO2Tag setConfidence(double confidence) {
     this.confidence = confidence;
+    return this;
+  }
+  
+  public BIO2Tag setType(String type) {
+    this.type = type;
     return this;
   }
   

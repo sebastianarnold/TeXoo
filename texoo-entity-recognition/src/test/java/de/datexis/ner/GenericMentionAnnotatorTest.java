@@ -1,11 +1,14 @@
 package de.datexis.ner;
 
 import com.google.common.collect.Lists;
+import de.datexis.annotator.AnnotatorFactory;
+import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sample;
 import de.datexis.model.Sentence;
 import de.datexis.preprocess.DocumentFactory;
+import java.io.IOException;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
@@ -99,6 +102,23 @@ public class GenericMentionAnnotatorTest {
     Assert.assertEquals(0, sample.countAnnotations()); // Annotations on Sample should land in their original Documents
     Assert.assertEquals(9, doc1.countAnnotations());
     Assert.assertEquals(7, doc2.countAnnotations());
+    
+  }
+  
+  @Test
+  public void testAnnotateType() throws IOException {
+    
+    Resource path = Resource.fromJAR("models");
+    MentionAnnotator annotatorEN = (MentionAnnotator) AnnotatorFactory.fromXML(path.resolve("MentionAnnotator_en_NER-GENERIC_WikiNER+tri_20170309")); 
+    
+    Document doc1 = DocumentFactory.fromText(textEN);
+    annotatorEN.getTagger().setType("TEST");
+    annotatorEN.annotate(doc1);
+    
+    // Retrieve all Annotations and print
+    doc1.streamAnnotations(Annotation.Source.PRED, MentionAnnotation.class).forEach(ann -> {
+      Assert.assertEquals("TEST", ann.getType());
+    });
     
   }
   
