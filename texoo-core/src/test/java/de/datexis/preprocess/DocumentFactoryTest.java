@@ -1,7 +1,6 @@
 package de.datexis.preprocess;
 
 import de.datexis.model.Document;
-import de.datexis.preprocess.DocumentFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;

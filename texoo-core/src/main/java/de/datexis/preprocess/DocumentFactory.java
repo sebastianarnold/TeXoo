@@ -70,20 +70,10 @@ public class DocumentFactory {
     plainTokenizer = new TreeMap<>();
     newlineTokenizer = new TreeMap<>();
     
-    try {
-      SentenceModel sentenceModel = new SentenceModel(Resource.fromJAR("openNLP/en-sent.bin").getInputStream());
-      TokenizerModel tokenModel = new TokenizerModel(Resource.fromJAR("openNLP/en-token.bin").getInputStream());
-      sentenceSplitter.put(LANG_EN, new SentenceDetectorME(sentenceModel));
-      plainTokenizer.put(LANG_EN, new TokenizerME(tokenModel));
-      newlineTokenizer.put(LANG_EN, new TokenizerMENL(tokenModel));
-      sentenceModel = new SentenceModel(Resource.fromJAR("openNLP/de-sent.bin").getInputStream());
-      tokenModel = new TokenizerModel(Resource.fromJAR("openNLP/de-token.bin").getInputStream());
-      sentenceSplitter.put(LANG_DE, new SentenceDetectorME(sentenceModel));
-      plainTokenizer.put(LANG_DE, new TokenizerME(tokenModel));
-      newlineTokenizer.put(LANG_DE, new TokenizerMENL(tokenModel));
-    } catch (IOException ex) {
-      log.error("CRITICAL! cannot load openNLP models {}", ex.toString());
-    }
+    loadSentenceSplitter(LANG_EN, Resource.fromJAR("openNLP/en-sent.bin"));
+    loadTokenizer(LANG_EN, Resource.fromJAR("openNLP/en-token.bin"));
+    loadSentenceSplitter(LANG_DE, Resource.fromJAR("openNLP/de-sent.bin"));
+    loadTokenizer(LANG_DE, Resource.fromJAR("openNLP/de-token.bin"));
     
     try {
       //load all languages:
@@ -96,6 +86,25 @@ public class DocumentFactory {
       textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
     } catch (IOException ex) {
       log.error("Could not load language profiles");
+    }
+  }
+  
+  private void loadSentenceSplitter(String language, Resource modelPath) {
+    try {
+      SentenceModel sentenceModel = new SentenceModel(modelPath.getInputStream());
+      sentenceSplitter.put(language, new SentenceDetectorMENL(sentenceModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
+    }
+  }
+  
+  private void loadTokenizer(String language, Resource modelPath) {
+    try {
+      TokenizerModel tokenModel = new TokenizerModel(modelPath.getInputStream());
+      plainTokenizer.put(language, new TokenizerME(tokenModel));
+      newlineTokenizer.put(language, new TokenizerMENL(tokenModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
     }
   }
   

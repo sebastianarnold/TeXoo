@@ -27,7 +27,6 @@ import opennlp.tools.ml.model.MaxentModel;
 import opennlp.tools.tokenize.TokenContextGenerator;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
-import opennlp.tools.tokenize.lang.Factory;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.StringUtil;
 
@@ -53,14 +52,9 @@ public class TokenizerMENL extends TokenizerME {
     initializeFieldsFromReflection();
   }
 
-  public TokenizerMENL(TokenizerModel model, Factory factory) {
-    super(model, factory);
-    initializeFieldsFromReflection();
-  }
-  
   private void initializeFieldsFromReflection() {
     try {
-      // we need to get dome fields from TokenizerME through reflection
+      // we need to get some fields from TokenizerME through reflection
       Field modelField = TokenizerME.class.getDeclaredField("model");
       modelField.setAccessible(true);
       this.model = (MaxentModel) modelField.get(this);
