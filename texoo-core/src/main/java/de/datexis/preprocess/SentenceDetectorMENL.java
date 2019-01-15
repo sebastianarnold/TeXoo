@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import opennlp.tools.ml.model.MaxentModel;
+import opennlp.tools.sentdetect.DefaultEndOfSentenceScanner;
 import opennlp.tools.sentdetect.EndOfSentenceScanner;
 import opennlp.tools.sentdetect.SDContextGenerator;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -26,10 +27,13 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
   private SDContextGenerator cgen;
   private EndOfSentenceScanner scanner;
   private List<Double> sentProbs = new ArrayList<>();
+  
+  public static final char[] newlineEosCharacters = new char[] { '.', '!', '?', '\n' };
 
   public SentenceDetectorMENL(SentenceModel model) {
     super(model);
     initializeFieldsFromReflection();
+    this.scanner = new DefaultEndOfSentenceScanner(newlineEosCharacters);
   }
   
   private void initializeFieldsFromReflection() {
@@ -78,13 +82,16 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
 
       double[] probs = model.eval(cgen.getContext(sb, cint));
       String bestOutcome = model.getBestOutcome(probs);
+      
+      // check if this or following char is a newline
+      if(cint + 1 < s.length() && s.charAt(getFirstNonWS(s, cint + 1)) == '\n') bestOutcome = NO_SPLIT;
+      if(s.charAt(cint) == '\n') bestOutcome = SPLIT;
 
       if (bestOutcome.equals(SPLIT) && isAcceptableBreak(s, index, cint)) {
         if (index != cint) {
-          if (useTokenEnd) {
+          if (useTokenEnd && s.charAt(cint) != '\n') {
             positions.add(getFirstNonWS(s, getFirstWS(s,cint + 1)));
-          }
-          else {
+          } else {
             positions.add(getFirstNonWS(s, cint + 1));
           }
           sentProbs.add(probs[model.getIndex(bestOutcome)]);
@@ -137,7 +144,7 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
 
       // A span might contain only white spaces, in this case the length of
       // the span will be zero after trimming and should be ignored.
-      Span span = new Span(start, starts[si]).trim(s);
+      Span span = trimSpan(new Span(start, starts[si]), s);
       if (span.length() > 0) {
         spans[si] = span;
       }
@@ -147,7 +154,7 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
     }
 
     if (leftover) {
-      Span span = new Span(starts[starts.length - 1], s.length()).trim(s);
+      Span span = trimSpan(new Span(starts[starts.length - 1], s.length()), s);
       if (span.length() > 0) {
         spans[spans.length - 1] = span;
         sentProbs.add(1d);
@@ -165,6 +172,29 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
     return spans;
   }
 
+  /** trim span, but keep Newlines */
+  public Span trimSpan(Span span, CharSequence text) {
+
+    int newStartOffset = span.getStart();
+
+    for (int i = span.getStart(); i < span.getEnd() && StringUtil.isWhitespace(text.charAt(i)) /*&& text.charAt(i) != '\n'*/; i++) {
+      newStartOffset++;
+    }
+
+    int newEndOffset = span.getEnd();
+    for (int i = span.getEnd(); i > span.getStart() && StringUtil.isWhitespace(text.charAt(i - 1)) && text.charAt(i - 1) != '\n'; i--) {
+      newEndOffset--;
+    }
+
+    if (newStartOffset == span.getStart() && newEndOffset == span.getEnd()) {
+      return span;
+    } else if (newStartOffset > newEndOffset) {
+      return new Span(span.getStart(), span.getStart(), span.getType());
+    } else {
+      return new Span(newStartOffset, newEndOffset, span.getType());
+    }
+  }
+  
   /**
    * Allows subclasses to check an overzealous (read: poorly
    * trained) model from flagging obvious non-breaks as breaks based
@@ -189,7 +219,7 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
   }
 
   private int getFirstNonWS(String s, int pos) {
-    while (pos < s.length() && StringUtil.isWhitespace(s.charAt(pos)))
+    while (pos < s.length() && StringUtil.isWhitespace(s.charAt(pos)) && s.charAt(pos) != '\n')
       pos++;
     return pos;
   }

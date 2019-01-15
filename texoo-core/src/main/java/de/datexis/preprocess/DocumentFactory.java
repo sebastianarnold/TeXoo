@@ -180,49 +180,10 @@ public class DocumentFactory {
     
     opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
     
-    // go over sentences and split again at any newline characters
-    LinkedList<opennlp.tools.util.Span> splitSentences = new LinkedList<>();
-    int cursor = 0;
-    for(opennlp.tools.util.Span span : sentences) {
-
-      // check for newlines in between sentences, they belong to previous sentence
-      String sentenceText = text.substring(cursor, span.getStart());
-      if(!splitSentences.isEmpty() && sentenceText.contains("\n")) {
-        opennlp.tools.util.Span prev = splitSentences.pollLast();
-        prev = new opennlp.tools.util.Span(prev.getStart(), prev.getEnd() + sentenceText.length());
-        splitSentences.add(prev);
-        cursor = prev.getEnd();
-      }
-
-      // check for newlines in sentence
-      sentenceText = text.substring(span.getStart(), span.getEnd());
-      while(sentenceText.contains("\n")) {
-        int offset = sentenceText.indexOf("\n");
-        if(offset == 0 && !splitSentences.isEmpty()) {
-          // newline at beginning belongs to previous sentence
-          opennlp.tools.util.Span prev = splitSentences.pollLast();
-          prev = new opennlp.tools.util.Span(prev.getStart(), prev.getEnd() + 1);
-          splitSentences.add(prev);
-          offset++;
-        } else {
-          // newline in between requires split
-          opennlp.tools.util.Span split = new opennlp.tools.util.Span(span.getStart(), span.getStart() + offset);
-          splitSentences.add(split);
-        }
-        span = new opennlp.tools.util.Span(span.getStart() + offset, span.getEnd());
-        sentenceText = text.substring(span.getStart(), span.getEnd());
-        cursor = span.getEnd();
-      }
-
-      // add remaining sentence
-      if(span.length() > 0) splitSentences.add(span);
-      cursor = span.getEnd();
-    }
-
     // Tokenize sentences
     int countNewlines = 0;
     int nlOffset = 0; // number of skipped newlines
-    for(opennlp.tools.util.Span span : splitSentences) {
+    for(opennlp.tools.util.Span span : sentences) {
       String sentenceText = text.substring(span.getStart(), span.getEnd());
       opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(sentenceText);
       List<Token> tokenList = new LinkedList<>();
