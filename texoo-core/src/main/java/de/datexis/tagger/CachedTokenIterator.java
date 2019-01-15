@@ -3,7 +3,7 @@ package de.datexis.tagger;
 import com.google.common.collect.FluentIterable;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
-import edu.stanford.nlp.util.Iterables;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.compress.utils.Lists;
 
 /**
  *
@@ -84,7 +85,7 @@ public abstract class CachedTokenIterator extends AbstractIterator {
    */
   protected Iterator<Token> shuffleTokens(Iterable<Token> tokens) {
     log.info("Randomizing tokens in " + name + "...");
-    List<Token> shuffled = Iterables.asArrayList(tokens.iterator());
+    List<Token> shuffled = Lists.newArrayList(tokens.iterator());
     Collections.shuffle(shuffled, new Random(System.nanoTime()));
     return shuffled.iterator();
   }

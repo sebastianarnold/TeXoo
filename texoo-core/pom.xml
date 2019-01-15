@@ -143,27 +143,6 @@
      <version>9.2-7.1-1.4.2</version>
      <classifier>linux-x86_64-redist</classifier>
     </dependency>
-    <!-- Stanford CoreNLP -->
-    <!-- GPL v3 License https://stanfordnlp.github.io/CoreNLP/ -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>${corenlp.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <!-- FastText for Java (BSD license with additional Facebook patent grant )-->
     <dependency>

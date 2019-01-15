@@ -2,7 +2,6 @@ package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.datexis.model.tag.Tag;
-import edu.stanford.nlp.ling.HasWord;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -13,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * A Token is an atomic entry in a Sentence. This implementation uses Stanford Words.
  * @author sarnold, fgrimme
  */
-public class Token extends Span implements HasWord {
+public class Token extends Span {
 
   protected static final Logger log = LoggerFactory.getLogger(Token.class);
     
@@ -102,24 +101,6 @@ public class Token extends Span implements HasWord {
   public <T extends Tag> Token putTag(Annotation.Source source, T tag) {
     super.putTag(source, tag);
     return this;
-  }
-  
-  /**
-   * Used by Stanford CoreNLP only
-   * @return
-   * @deprecated
-   */
-  @Deprecated
-  @JsonIgnore
-  @Override
-  public String word() {
-    return text;
-  }
-
-  @Deprecated
-  @Override
-  public void setWord(String word) {
-    this.text = word;
   }
   
   /**

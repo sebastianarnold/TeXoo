@@ -3,7 +3,6 @@ package de.datexis.common;
 import com.google.common.collect.Lists;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import edu.stanford.nlp.ling.Word;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -90,25 +89,6 @@ public class WordHelpers {
       if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(t.getText())) res.append(" ");
  			res.append(t.getText());
       last = t.getText();
-		}
-		return res.toString().trim();
-  }
-  
-  public static String wordsToText(List<Word> sentence) {
-    StringBuilder res = new StringBuilder();
-    int cursor = 0;
-		for(Word t : sentence) {
-      if(cursor > t.beginPosition()) {
-        // reset in case of wrong offsets
-        res.append(" ");
-        cursor = t.beginPosition();
-      }
-      while(cursor < t.beginPosition()) {
-        res.append(" ");
-        cursor++;
-      }
-      res.append(t.word());
-      cursor = t.endPosition();
 		}
 		return res.toString().trim();
   }
