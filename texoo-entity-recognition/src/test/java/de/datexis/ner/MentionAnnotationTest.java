@@ -1,6 +1,5 @@
 package de.datexis.ner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
 
@@ -49,6 +48,12 @@ public class MentionAnnotationTest {
     tokens.add(new Token("a").putTag(Annotation.Source.GOLD, BIO2Tag.O()));
     tokens.add(new Token("visit").putTag(Annotation.Source.GOLD, BIO2Tag.O()));
     tokens.add(new Token(".").putTag(Annotation.Source.GOLD, BIO2Tag.O()));
+    int cursor = 0;
+    for(Token t : tokens) {
+      t.setBegin(cursor);
+      t.setEnd(t.getText().length() + cursor);
+      cursor = t.getEnd() + 1;
+    }
     doc = DocumentFactory.fromTokens(tokens);
     data = new Dataset("Test");
     data.addDocument(doc);

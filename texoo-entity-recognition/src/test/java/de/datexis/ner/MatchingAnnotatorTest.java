@@ -135,6 +135,7 @@ public class MatchingAnnotatorTest {
     List<MentionAnnotation> matches = doc.streamAnnotations(Annotation.Source.SILVER, MentionAnnotation.class).sorted().collect(Collectors.toList());
     doc.streamAnnotations(Annotation.Source.SILVER, MentionAnnotation.class).forEach(a -> {
       System.out.println(a.getText());
+      assertEquals("CAR", a.getType());
     });
     assertEquals("Volkswagen Caddy", matches.get(0).getText());
     assertEquals("VW", matches.get(1).getText()); // "VW Caddy" would also be ok, but then we're missing "Caddy Life"

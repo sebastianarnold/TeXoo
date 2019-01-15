@@ -327,7 +327,9 @@ public class BIOESTag implements Tag {
       else if(current.isI()) tag = BIO2Tag.I();
       else if(current.isE()) tag = BIO2Tag.I();
       else tag = BIO2Tag.O();
-      t.putTag(source, tag.setConfidence(current.getConfidence()));
+      tag.setConfidence(current.getConfidence());
+      tag.setType(current.getType());
+      t.putTag(source, tag);
     }
   }
   
