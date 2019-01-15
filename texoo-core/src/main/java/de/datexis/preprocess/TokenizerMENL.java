@@ -133,6 +133,10 @@ public class TokenizerMENL extends TokenizerME {
       if (tok.length() < 2) {
         newTokens.add(s);
         tokProbs.add(1d);
+        // TODO: include abbreviation matches
+      //} else if(tok.equals("e.g.")) {
+      //  newTokens.add(s);
+      //  tokProbs.add(1d);
       } else if (useAlphaNumericOptimization() && alphanumeric.matcher(tok).matches()) {
         newTokens.add(s);
         tokProbs.add(1d);

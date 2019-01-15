@@ -83,8 +83,9 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
       double[] probs = model.eval(cgen.getContext(sb, cint));
       String bestOutcome = model.getBestOutcome(probs);
       
-      // check if this or following char is a newline
-      if(cint + 1 < s.length() && s.charAt(getFirstNonWS(s, cint + 1)) == '\n') bestOutcome = NO_SPLIT;
+      // check if this or next char is a newline
+      int nint = getFirstNonWS(s, cint + 1);
+      if(nint < s.length() && s.charAt(nint) == '\n') bestOutcome = NO_SPLIT;
       if(s.charAt(cint) == '\n') bestOutcome = SPLIT;
 
       if (bestOutcome.equals(SPLIT) && isAcceptableBreak(s, index, cint)) {
@@ -208,7 +209,12 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
    * @param candidateIndex the index of the candidate sentence ending
    * @return true if the break is acceptable
    */
+  @Override
   protected boolean isAcceptableBreak(String s, int fromIndex, int candidateIndex) {
+    if(s.length() < candidateIndex - 1) return true; // last position
+    String test = s.substring(fromIndex, candidateIndex + 1);
+    // TODO: check for following newlines and split at last one only
+    if(test.endsWith("e.g.") || test.endsWith("Prof.")) return false;
     return true;
   }
 
