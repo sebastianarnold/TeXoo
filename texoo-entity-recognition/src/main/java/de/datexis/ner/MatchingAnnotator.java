@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -90,6 +88,11 @@ public class MatchingAnnotator extends Annotator {
       default:
         return terms.distinct().collect(Collectors.toList());
     }
+  }
+  
+  public void clearTermsToMatch() {
+    this.terms.clear();
+    stringSearch = new SetBackwardOracleMatching(this.terms);
   }
   
   public void loadTermsToMatch(Collection<String> terms) {
