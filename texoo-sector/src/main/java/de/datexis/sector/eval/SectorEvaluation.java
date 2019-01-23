@@ -59,7 +59,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   /**
    * Enable/disable evaluation for sentence-based classification (Prec/Rec/F1).
    */
-  public SectorEvaluation withSentenceEvaluation(boolean enable) {
+  public SectorEvaluation withSentenceClassEvaluation(boolean enable) {
     this.enableSentenceEval = enable;
     return this;
   }
@@ -75,7 +75,7 @@ public class SectorEvaluation extends AnnotatorEvaluation {
   /**
    * Enable/disable evaluation for segment-based classification (Prec/Rec/F1).
    */
-  public SectorEvaluation withSegmentEvaluation(boolean enable) {
+  public SectorEvaluation withSegmentClassEvaluation(boolean enable) {
     this.enableSegmentEval = enable;
     return this;
   }
@@ -146,6 +146,8 @@ public class SectorEvaluation extends AnnotatorEvaluation {
 
   @Override
   public double getScore() {
+    if(enableSegmentEval && segmentClassEval != null) return segmentClassEval.getScore();
+    if(enableSentenceEval && sentenceClassEval != null) return sentenceClassEval.getScore();
     return 0;
   }
   

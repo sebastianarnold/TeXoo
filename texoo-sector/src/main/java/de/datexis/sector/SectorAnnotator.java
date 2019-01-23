@@ -167,6 +167,10 @@ public class SectorAnnotator extends Annotator {
   }
   
   public double evaluateModel(Dataset test) {
+    return evaluateModel(test, false, true, true);
+  }
+  
+  public double evaluateModel(Dataset test, boolean evalSentenceClassification, boolean evalSegmentation, boolean evalSegmentClassification)  {
     SectorEvaluation eval;
     if(getTargetEncoder().getClass() == HeadingEncoder.class) {
       HeadingEncoder headings = ((HeadingEncoder)getComponent(HeadingEncoder.ID));
@@ -187,7 +191,10 @@ public class SectorAnnotator extends Annotator {
       throw new IllegalArgumentException("Target encoder has no evaluation: " + getTargetEncoder().getClass().toString());
     }
     // calculate and print scores
-    eval.calculateScores(test);
+    eval.withSegmentClassEvaluation(evalSegmentation)
+        .withSegmentationEvaluation(evalSegmentation)
+        .withSentenceClassEvaluation(evalSentenceClassification)
+        .calculateScores(test);
     getTagger().appendTestLog(eval.printDatasetStats(test));
     getTagger().appendTestLog(eval.printEvaluationStats());
     getTagger().appendTestLog(eval.printSingleClassStats());
