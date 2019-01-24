@@ -149,9 +149,9 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
       if (span.length() > 0) {
         spans[si] = span;
       }
-      else {
-        sentProbs.remove(si);
-      }
+//      else {
+//        sentProbs.remove(si);
+//      }
     }
 
     if (leftover) {
@@ -165,9 +165,10 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
      * set the prob for each span
      */
     for (int i = 0; i < spans.length; i++) {
-      double prob = sentProbs.get(i);
-      spans[i] = new Span(spans[i], prob);
-
+      if(spans[i] != null) {
+        double prob = sentProbs.get(i);
+        spans[i] = new Span(spans[i], prob);
+      }
     }
 
     return spans;

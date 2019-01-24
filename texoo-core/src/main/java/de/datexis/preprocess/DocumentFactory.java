@@ -191,6 +191,7 @@ public class DocumentFactory {
     int countNewlines = 0;
     int nlOffset = 0; // number of skipped newlines
     for(opennlp.tools.util.Span span : sentences) {
+      if(span == null) continue;
       String sentenceText = text.substring(span.getStart(), span.getEnd());
       opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(sentenceText);
       List<Token> tokenList = new LinkedList<>();
