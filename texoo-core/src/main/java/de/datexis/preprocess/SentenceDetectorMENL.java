@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import de.datexis.common.WordHelpers;
 import opennlp.tools.ml.model.MaxentModel;
 import opennlp.tools.sentdetect.DefaultEndOfSentenceScanner;
 import opennlp.tools.sentdetect.EndOfSentenceScanner;
@@ -214,8 +216,9 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
   protected boolean isAcceptableBreak(String s, int fromIndex, int candidateIndex) {
     if(s.length() < candidateIndex - 1) return true; // last position
     String test = s.substring(fromIndex, candidateIndex + 1);
-    // TODO: check for following newlines and split at last one only
-    if(test.endsWith("e.g.") || test.endsWith("Prof.")) return false;
+    if(WordHelpers.abbreviationsEN.stream().anyMatch(abrv -> test.endsWith(abrv)) ||
+      WordHelpers.abbreviationsDE.stream().anyMatch(abrv -> test.endsWith(abrv)))
+      return false;
     return true;
   }
 

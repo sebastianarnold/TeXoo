@@ -5,13 +5,7 @@ import de.datexis.model.Span;
 import de.datexis.model.Token;
 import java.io.IOException;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
@@ -29,14 +23,29 @@ public class WordHelpers {
 
   protected final static Logger log = LoggerFactory.getLogger(WordHelpers.class);
 
-  public static Collection<String> skipSpaceBefore = Arrays.asList(",", ".", ":", ";", "?", "!", ")", "]", "'m", "'s", "'re", "'ve", "'d", "'ll", "n't");
-  public static Collection<String> skipSpaceAfter = Arrays.asList("(", "[", "", "\n");
+  public static HashSet<String> skipSpaceBefore = new HashSet<>(Arrays.asList(",", ".", ":", ";", "?", "!", ")", "]", "'m", "'s", "'re", "'ve", "'d", "'ll", "n't"));
+  public static HashSet<String> skipSpaceAfter = new HashSet<>(Arrays.asList("(", "[", "", "\n"));
   private static final String[][] umlautReplacements = { {"Ä","Ae"}, {"Ü","Ue"}, {"Ö","Oe"}, {"ä","ae"}, {"ü","ue"}, {"ö","oe"}, {"ß","ss"}, {"–","-"} };
   private static final String[][] tokenizationReplacements = { {"``","\""}, {"''","\""} };
-  private static final Pattern punctPattern = Pattern.compile("[^\\w\\s\\-_]+");
-  private static final Pattern spacePattern = Pattern.compile("[\\s]+");
-  private static final Pattern numericPattern = Pattern.compile("[\\d]+");
+  public static final Pattern punctPattern = Pattern.compile("[^\\w\\s\\-_]+");
+  public static final Pattern spacePattern = Pattern.compile("[\\s]+");
+  public static final Pattern numericPattern = Pattern.compile("[\\d]+");
+  public static final Pattern bracketsPattern = Pattern.compile("[\\(\\)\\[\\]\"]");
+
   // TODO: umlaute fehlen hier!
+  // Lists taken from: http://www.statmt.org/europarl/ tools
+  public static HashSet<String> abbreviationsEN = new HashSet<>(Arrays.asList("Adj.", "Adm.", "Adv.", "Asst.", "Bart.", "Bldg.", "Brig.", "Bros.", "Capt.", "Cmdr.", "Col.",
+    "Comdr.", "Con.", "Corp.", "Cpl.", "DR.", "Dr.", "Drs.", "Ens.", "Gen.", "Gov.", "Hon.", "Hr.", "Hosp.", "Insp.", "Lt.", "MM.", "MR.", "MRS.", "MS.", "Maj.", "Messrs.",
+    "Mlle.", "Mme.", "Mr.", "Mrs.", "Ms.", "Msgr.", "Op.", "Ord.", "Pfc.", "Ph.", "Prof.", "Pvt.", "Rep.", "Reps.", "Res.", "Rev.", "Rt.", "Sen.", "Sens.", "Sfc.", "Sgt.",
+    "Sr.", "St.", "Supt.", "Surg", "v.", "vs.", "i.e.", "rev.", "e.g.", "No.", "Nr.", "pp."));
+  public static HashSet<String> abbreviationsDE = new HashSet<>(Arrays.asList("I.", "II.", "III.", "IV.", "V.", "VI.", "VII.", "VIII.", "IX.", "X.", "XI.", "XII.", "XIII.",
+    "XIV.", "XV.", "XVI.", "XVII.", "XVIII.", "XIX.", "XX.", "i.", "ii.", "iii.", "iv.", "v.", "vi.", "vii.", "viii.", "ix.", "x.", "xi.", "xii.", "xiii.", "xiv.", "xv.",
+    "xvi.", "xvii.", "xviii.", "xix.", "xx.", "Adj.", "Adm.", "Adv.", "Asst.", "Bart.", "Bldg.", "Brig.", "Bros.", "Capt.", "Cmdr.", "Col.", "Comdr.", "Con.", "Corp.",
+    "Cpl.", "DR.", "Dr.", "Ens.", "Gen.", "Gov.", "Hon.", "Hosp.", "Insp.", "Lt.", "MM.", "MR.", "MRS.", "MS.", "Maj.", "Messrs.", "Mlle.", "Mme.", "Mr.", "Mrs.", "Ms.",
+    "Msgr.", "Op.", "Ord.", "Pfc.", "Ph.", "Prof.", "Pvt.", "Rep.", "Reps.", "Res.", "Rev.", "Rt.", "Sen.", "Sens.", "Sfc.", "Sgt.", "Sr.", "St.", "Supt.", "Surg.",
+    "Mio.", "Mrd.", "bzw.", "v.", "vs.", "usw.", "d.h.", "z.B.", "u.a.", "etc.", "Mrd.", "MwSt.", "ggf.", "d.J.", "D.h.", "m.E.", "vgl.", "I.F.", "z.T.", "sogen.", "ff.",
+    "u.E.", "g.U.", "g.g.A.", "c.-à-d.", "Buchst.", "u.s.w.", "sog.", "u.ä.", "Std.", "evtl.", "Zt.", "Chr.", "u.U.", "o.ä.", "Ltd.", "b.A.", "z.Zt.", "spp.", "sen.",
+    "SA.", "k.o.", "jun.", "i.H.v.", "dgl.", "dergl.", "Co.", "zzt.", "usf.", "s.p.a.", "Dkr.", "Corp.", "bzgl.", "BSE.", "No.", "Nos.", "Art.", "Nr.", "pp.", "ca.", "Ca"));
 
   public static enum Language { EN, DE };
   

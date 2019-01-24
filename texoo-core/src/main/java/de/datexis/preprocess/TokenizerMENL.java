@@ -22,7 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import de.datexis.common.WordHelpers;
 import opennlp.tools.ml.model.MaxentModel;
 import opennlp.tools.tokenize.TokenContextGenerator;
 import opennlp.tools.tokenize.TokenizerME;
@@ -92,14 +95,16 @@ public class TokenizerMENL extends TokenizerME {
     int end = d.length();
     for (int i = 0; i < end; i++) {
       char c = d.charAt(i);
-      if (StringUtil.isWhitespace(c) && c != '\n') {
+      boolean isNewline = (c == '\n');
+      boolean isSingleTokenChar = ("\"()[]{}".indexOf(c) != -1);
+      if (StringUtil.isWhitespace(c) && !isNewline) {
         if (inTok) {
           // end token
           tokens.add(new Span(tokStart, i));
           inTok = false;
           tokStart = -1;
         }
-      } else if(c == '\n') {
+      } else if(isNewline || isSingleTokenChar) {
         if (inTok) {
           // end token
           tokens.add(new Span(tokStart, i));
@@ -138,6 +143,9 @@ public class TokenizerMENL extends TokenizerME {
       //  newTokens.add(s);
       //  tokProbs.add(1d);
       } else if (useAlphaNumericOptimization() && alphanumeric.matcher(tok).matches()) {
+        newTokens.add(s);
+        tokProbs.add(1d);
+      } else if(WordHelpers.abbreviationsEN.contains(tok) || WordHelpers.abbreviationsDE.contains(tok)) {
         newTokens.add(s);
         tokProbs.add(1d);
       } else {
