@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.common.hash;
+package de.datexis.hash;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,9 +20,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.annotations.Beta;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.hash.BloomFilter.Strategy;
-import com.google.common.hash.BloomFilterStrategies.BitArray;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnel;
+import com.google.common.math.LongMath;
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.SignedBytes;
 import com.google.common.primitives.UnsignedBytes;
 
@@ -32,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.math.RoundingMode;
+import java.util.Arrays;
 
 /**
  * A Bloom filter for instances of {@code T}. A Bloom filter offers an approximate containment test
@@ -421,7 +426,7 @@ public final class BitArrayBloomFilter<T> implements Predicate<T>, Serializable 
    * serialization). This has been measured to save at least 400 bytes compared to regular
    * serialization.
    *
-   * <p>Use {@linkplain #readFrom(InputStream, Funnel)} to reconstruct the written BloomFilter.
+   * <p>Use readFrom(InputStream, Funnel) to reconstruct the written BloomFilter.
    */
   public void writeTo(OutputStream out) throws IOException {
     // Serial form:
@@ -464,7 +469,7 @@ public final class BitArrayBloomFilter<T> implements Predicate<T>, Serializable 
       numHashFunctions = UnsignedBytes.toInt(din.readByte());
       dataLength = din.readInt();
 
-      if(strategy == null) strategy = BloomFilterStrategies.values()[strategyOrdinal];
+      if(strategy == null) strategy = new BitArrayBloomFilterStrategy();
       long[] data = new long[dataLength];
       for (int i = 0; i < data.length; i++) {
         data[i] = din.readLong();
@@ -482,4 +487,89 @@ public final class BitArrayBloomFilter<T> implements Predicate<T>, Serializable 
       throw new IOException(message, e);
     }
   }
+
+  interface Strategy extends Serializable {
+    <T> boolean put(T var1, Funnel<? super T> var2, int var3, BitArray var4);
+
+    <T> boolean mightContain(T var1, Funnel<? super T> var2, int var3, BitArray var4);
+
+    int ordinal();
+  }
+
+  static final class BitArray {
+    final long[] data;
+    long bitCount;
+
+    BitArray(long bits) {
+      this(new long[Ints.checkedCast(LongMath.divide(bits, 64L, RoundingMode.CEILING))]);
+    }
+
+    BitArray(long[] data) {
+      Preconditions.checkArgument(data.length > 0, "data length is zero!");
+      this.data = data;
+      long bitCount = 0L;
+      long[] arr$ = data;
+      int len$ = data.length;
+
+      for(int i$ = 0; i$ < len$; ++i$) {
+        long value = arr$[i$];
+        bitCount += (long)Long.bitCount(value);
+      }
+
+      this.bitCount = bitCount;
+    }
+
+    boolean set(long index) {
+      if (!this.get(index)) {
+        long[] var10000 = this.data;
+        var10000[(int)(index >>> 6)] |= 1L << (int)index;
+        ++this.bitCount;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    boolean get(long index) {
+      return (this.data[(int)(index >>> 6)] & 1L << (int)index) != 0L;
+    }
+
+    long bitSize() {
+      return (long)this.data.length * 64L;
+    }
+
+    long bitCount() {
+      return this.bitCount;
+    }
+
+    BitArray copy() {
+      return new BitArray((long[])this.data.clone());
+    }
+
+    void putAll(BitArray array) {
+      Preconditions.checkArgument(this.data.length == array.data.length, "BitArrays must be of equal length (%s != %s)", this.data.length, array.data.length);
+      this.bitCount = 0L;
+
+      for(int i = 0; i < this.data.length; ++i) {
+        long[] var10000 = this.data;
+        var10000[i] |= array.data[i];
+        this.bitCount += (long)Long.bitCount(this.data[i]);
+      }
+
+    }
+
+    public boolean equals(Object o) {
+      if (o instanceof BitArray) {
+        BitArray bitArray = (BitArray)o;
+        return Arrays.equals(this.data, bitArray.data);
+      } else {
+        return false;
+      }
+    }
+
+    public int hashCode() {
+      return Arrays.hashCode(this.data);
+    }
+  }
+
 }
