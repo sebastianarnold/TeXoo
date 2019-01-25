@@ -50,7 +50,7 @@ public class FastTextEncoder extends Encoder {
   @Override
   public void loadModel(Resource modelFile) throws IOException {
     log.info("Loading FastText model: " +  modelFile.getFileName());
-    ft = FastText.load(modelFile.toString());
+    ft = FastText.DEFAULT_FACTORY.load(modelFile.getInputStream());
     size = ft.getWordVector("the").size();
     setModel(modelFile);
     setModelAvailable(true);
@@ -116,7 +116,7 @@ public class FastTextEncoder extends Encoder {
 	@Override
 	public INDArray encode(Span span) {
     if(span instanceof Token) return getWordVector(span.getText());
-    else if(span instanceof Sentence) return getSentenceVector(span.getText()); // TODO: should we use a tokenized string?
+    else if(span instanceof Sentence) return getSentenceVector(((Sentence) span).toTokenizedString());
     else return encode(span.getText());
 	}
 
