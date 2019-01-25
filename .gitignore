@@ -2,6 +2,8 @@
 /models/
 /log/
 texoo.properties
+*.versionsBackup
+*.orig
 
 # Node Modules #
 ################

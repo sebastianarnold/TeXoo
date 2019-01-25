@@ -66,6 +66,7 @@ public abstract class Span implements Comparable<Span> {
   
   //@JsonInclude(JsonInclude.Include.NON_NULL)
   @JsonIgnore
+  @Deprecated
   public Long getDocumentRefUid() {
     return this.getDocumentRef().getUid();
   }
