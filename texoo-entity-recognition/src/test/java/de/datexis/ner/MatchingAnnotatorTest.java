@@ -103,8 +103,8 @@ public class MatchingAnnotatorTest {
     
     ann = new MatchingAnnotator(MatchingAnnotator.MatchingStrategy.LOWERCASE);
     ann.loadTermsToMatch(Lists.newArrayList(uppercase));
-    doc = DocumentFactory.fromText("This is not a test.");
-    Document doc2 = DocumentFactory.fromText("This is NOT a TEST.");
+    doc = DocumentFactory.fromText("This is not a test. Really?");
+    Document doc2 = DocumentFactory.fromText("This is NOT a TEST");
     ann.annotate(doc);
     ann.annotate(doc2);
     assertEquals(0, doc.countAnnotations());

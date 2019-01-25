@@ -101,7 +101,7 @@ public class GenericMentionAnnotatorTest {
     
     Assert.assertEquals(0, sample.countAnnotations()); // Annotations on Sample should land in their original Documents
     Assert.assertEquals(9, doc1.countAnnotations());
-    Assert.assertEquals(7, doc2.countAnnotations());
+    Assert.assertEquals(14, doc2.countAnnotations());
     
   }
   

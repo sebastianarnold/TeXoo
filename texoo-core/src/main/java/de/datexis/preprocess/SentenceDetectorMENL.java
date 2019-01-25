@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import de.datexis.common.WordHelpers;
 import opennlp.tools.ml.model.MaxentModel;
 import opennlp.tools.sentdetect.DefaultEndOfSentenceScanner;
 import opennlp.tools.sentdetect.EndOfSentenceScanner;
@@ -149,9 +151,9 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
       if (span.length() > 0) {
         spans[si] = span;
       }
-      else {
-        sentProbs.remove(si);
-      }
+//      else {
+//        sentProbs.remove(si);
+//      }
     }
 
     if (leftover) {
@@ -165,9 +167,10 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
      * set the prob for each span
      */
     for (int i = 0; i < spans.length; i++) {
-      double prob = sentProbs.get(i);
-      spans[i] = new Span(spans[i], prob);
-
+      if(spans[i] != null) {
+        double prob = sentProbs.get(i);
+        spans[i] = new Span(spans[i], prob);
+      }
     }
 
     return spans;
@@ -213,8 +216,9 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
   protected boolean isAcceptableBreak(String s, int fromIndex, int candidateIndex) {
     if(s.length() < candidateIndex - 1) return true; // last position
     String test = s.substring(fromIndex, candidateIndex + 1);
-    // TODO: check for following newlines and split at last one only
-    if(test.endsWith("e.g.") || test.endsWith("Prof.")) return false;
+    if(WordHelpers.abbreviationsEN.stream().anyMatch(abrv -> test.endsWith(abrv)) ||
+      WordHelpers.abbreviationsDE.stream().anyMatch(abrv -> test.endsWith(abrv)))
+      return false;
     return true;
   }
 

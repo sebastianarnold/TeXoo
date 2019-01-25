@@ -154,9 +154,6 @@ public class DocumentFactory {
   /**
    * Creates a Document with Sentences and Tokens from a String.
    * Uses Stanford CoreNLP PTBTokenizerFactory.
-   * @param text
-   * @param keepOrig - if TRUE, a copy of the string is saved to keep newlines and tabs.
-   * @return 
    */
   public Document createFromText(String text) {
     Document doc = new Document();
@@ -190,8 +187,9 @@ public class DocumentFactory {
     // Tokenize sentences
     int countNewlines = 0;
     int nlOffset = 0; // number of skipped newlines
-    for(opennlp.tools.util.Span span : sentences) {
-      String sentenceText = text.substring(span.getStart(), span.getEnd());
+    for(opennlp.tools.util.Span sentence : sentences) {
+      if(sentence == null) continue;
+      String sentenceText = text.substring(sentence.getStart(), sentence.getEnd());
       opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(sentenceText);
       List<Token> tokenList = new LinkedList<>();
       for(opennlp.tools.util.Span token : tokens) {
@@ -199,21 +197,20 @@ public class DocumentFactory {
         if(tokenText.equals("\n")) { // newline
           countNewlines++;
           if(newlines == Newlines.KEEP) { // newline is a paragraph
-            tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+            tokenList.add(new Token(tokenText, docOffset - nlOffset + sentence.getStart() + token.getStart(), docOffset - nlOffset + sentence.getStart() + token.getEnd()));
           //} else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
-          // tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          // tokenList.add(new Token(tokenText, docOffset - nlOffset + sentence.getStart() + token.getStart(), docOffset - nlOffset + sentence.getStart() + token.getEnd()));
           } else if(newlines == Newlines.DISCARD) { // skip newlines, but keep one whitespace
             if(countNewlines > 1) nlOffset++;
           } else {
             nlOffset++;
           }
         } else {
-          tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          tokenList.add(new Token(tokenText, docOffset - nlOffset + sentence.getStart() + token.getStart(), docOffset - nlOffset + sentence.getStart() + token.getEnd()));
           countNewlines = 0;
         }
       }
-      Sentence sentence = new Sentence(tokenList);
-      doc.addSentence(sentence, false);
+      doc.addSentence(new Sentence(tokenList), false);
     }
   }
   
@@ -235,7 +232,7 @@ public class DocumentFactory {
     return "";
   }
   
-public Document createFromTokens(List<Token> tokens) {
+  public Document createFromTokens(List<Token> tokens) {
     Document doc = new Document();
     createSentencesFromTokens(tokens).forEach(sentence -> {
       doc.addSentence(sentence, false);
@@ -263,6 +260,7 @@ public Document createFromTokens(List<Token> tokens) {
     if(!tokenIt.hasNext()) return result;
     Token currentToken = tokenIt.next();
     for(opennlp.tools.util.Span sentence : sentences) {
+      if(sentence == null) continue;
       List<Token> tokenList = new ArrayList<>();
       while(currentToken.getBegin() < sentence.getEnd()) {
         if(!currentToken.getText().equals("\n")) {

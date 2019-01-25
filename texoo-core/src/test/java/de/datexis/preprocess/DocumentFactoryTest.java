@@ -19,9 +19,9 @@ public class DocumentFactoryTest {
           + "Institute of Neurological Disorders and Stroke criteria, Association Internationale pour la Recherche et l'Enseignement en Neurosciences (NINDS-AIREN) "
           + "criteria, the Alzheimer's Disease Diagnostic and Treatment Center criteria, and the Hachinski Ischemic Score (after Vladimir Hachinski).\nThe recommended "
           + "investigations for cognitive impairment include: blood tests (for anemia, vitamin deficiency, thyrotoxicosis, infection, etc.), chest X-Ray, ECG, "
-          + "and neuroimaging, preferably a scan with a functional or metabolic sensitivity beyond a simple CT or MRI. When available as a diagnostic tool, single "
+          + "and neuroimaging, preferably a scan with a functional or metabolic sensitivity beyond a simple CT or CTT. When available as a diagnostic tool, single "
           + "photon emission computed tomography (SPECT) and positron emission tomography (PET) neuroimaging may be used to confirm a diagnosis of multi-infarct "
-          + "dementia in conjunction with evaluations involving mental status examination etc. In a person already having dementia, SPECT appears to be superior in "
+          + "dementia in conjunction with evaluations involving mental status examination tests. In a person already having dementia, SPECT appears to be superior in "
           + "differentiating multi-infarct dementia from Alzheimer's disease, compared to the usual mental testing and medical history analysis.";
   
   protected final String expected = "Dementia Several specific diagnostic criteria can be used to diagnose vascular dementia, including the Diagnostic and Statistical Manual of "
@@ -29,9 +29,9 @@ public class DocumentFactoryTest {
           + "Institute of Neurological Disorders and Stroke criteria, Association Internationale pour la Recherche et l'Enseignement en Neurosciences (NINDS-AIREN) "
           + "criteria, the Alzheimer's Disease Diagnostic and Treatment Center criteria, and the Hachinski Ischemic Score (after Vladimir Hachinski). The recommended "
           + "investigations for cognitive impairment include: blood tests (for anemia, vitamin deficiency, thyrotoxicosis, infection, etc.), chest X-Ray, ECG, "
-          + "and neuroimaging, preferably a scan with a functional or metabolic sensitivity beyond a simple CT or MRI. When available as a diagnostic tool, single "
+          + "and neuroimaging, preferably a scan with a functional or metabolic sensitivity beyond a simple CT or CTT. When available as a diagnostic tool, single "
           + "photon emission computed tomography (SPECT) and positron emission tomography (PET) neuroimaging may be used to confirm a diagnosis of multi-infarct "
-          + "dementia in conjunction with evaluations involving mental status examination etc. In a person already having dementia, SPECT appears to be superior in "
+          + "dementia in conjunction with evaluations involving mental status examination tests. In a person already having dementia, SPECT appears to be superior in "
           + "differentiating multi-infarct dementia from Alzheimer's disease, compared to the usual mental testing and medical history analysis.";
   
   @Test
@@ -58,7 +58,7 @@ public class DocumentFactoryTest {
   
   @Test
   public void testSentenceBoundaries() {
-    String text = "Human rights in Tanzania.\nThe issue of human rights in Tanzania, a nation with a 2012 population of 44,928,923, is complex. In its 2013 Freedom in the World report, Freedom House declared the country \"Partly Free\".\nHuman rights concerns.\nThe United Nations Human Rights Council in October 2011 at its meeting in Geneva completed a Universal Periodic Review (UPR) of the human rights situation in Tanzania. At this UPR, the United Nations Country Team (UNCT) and several countries addressed various problems in Tanzania.\nGender equality.\nNational reviews and assessments of equality between men and women... have identified a range of challenges..., which continue to prevail. These include the persistent and increasing burden of poverty on women; inequalities in arrangements for productive activities and in access to resources; inequalities in the sharing of power and decision-making; lack of respect for and inadequate promotion and protection of the human rights of women; and inequalities in managing natural resources and safeguarding the environment.... Particular attention should be drawn to the widespread marginalization of the girl child in different spheres of life, including education, and the total exclusion caused for many by early and forced marriage.... Gender-based violence is prevalent.";
+    String text = "Human rights in Tanzania.\nThe issue of human rights in Tanzania, a nation with a 2012 population of 44,928,923, is hard. In its 2013 Freedom in the World report, Freedom House declared the country \"Partly Free\".\nHuman rights concerns.\nThe United Nations Human Rights Council in October 2011 at its meeting in Geneva completed a Universal Periodic Review (UPR) of the human rights situation in Tanzania. At this UPR, the United Nations Country Team (UNCT) and several countries addressed various problems in Tanzania.\nGender equality.\nNational reviews and assessments of equality between men and women... have identified a range of challenges..., which continue to prevail. These include the persistent and increasing burden of poverty on women; inequalities in arrangements for productive activities and in access to resources; inequalities in the sharing of power and decision-making; lack of respect for and inadequate promotion and protection of the human rights of women; and inequalities in managing natural resources and safeguarding the environment.... Particular attention should be drawn to the widespread marginalization of the girl child in different spheres of life, including education, and the total exclusion caused for many by early and forced marriage.... Gender-based violence is prevalent.";
     Document doc = DocumentFactory.fromText(text,DocumentFactory.Newlines.DISCARD);
     //Assert.assertEquals(11, doc.countSentences());
     Assert.assertEquals(9, doc.countSentences()); // "...." are not detected as Sentence boundaries

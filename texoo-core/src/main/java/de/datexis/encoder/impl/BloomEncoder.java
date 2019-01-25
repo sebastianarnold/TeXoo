@@ -1,7 +1,7 @@
 package de.datexis.encoder.impl;
 
-import com.google.common.hash.BitArrayBloomFilter;
-import com.google.common.hash.BitArrayBloomFilterStrategy;
+import de.datexis.hash.BitArrayBloomFilter;
+import de.datexis.hash.BitArrayBloomFilterStrategy;
 import com.google.common.hash.Funnels;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;

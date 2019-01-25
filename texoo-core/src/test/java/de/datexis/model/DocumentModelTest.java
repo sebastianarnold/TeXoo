@@ -102,20 +102,20 @@ public class DocumentModelTest {
     assertEquals(198, doc.getLength());
     assertEquals(medText, doc.getText());
     assertEquals("(", doc.getSentence(0).getToken(5).getText());
-    //assertEquals("e.g.", doc.getSentence(0).getToken(6).getText()); // FIXME: abbreviations are not correctly tokenized
-    //assertEquals("1", doc.getSentence(0).getToken(25).getText());
+    assertEquals("e.g.", doc.getSentence(0).getToken(6).getText()); // FIXME: abbreviations are not correctly tokenized
+    assertEquals("1", doc.getSentence(0).getToken(25).getText());
     assertEquals(152, doc.getSentence(1).getToken(0).getBegin());
     assertEquals(7, doc.getSentence(1).getToken(0).getLength());
     assertEquals(159, doc.getSentence(1).getToken(0).getEnd());
     Document doc2 = DocumentFactory.fromText(deText);
     assertEquals(1, doc2.countSentences());
-    //assertEquals(14, doc2.countTokens()); // FIXME: abbreviations are not correctly tokenized
+    assertEquals(14, doc2.countTokens()); // FIXME: abbreviations are not correctly tokenized
     assertEquals(0, doc2.getBegin());
     assertEquals(83, doc2.getEnd());
     assertEquals(83, doc2.getLength());
     assertEquals(deText, doc2.getText());
-    //assertEquals("Dr.", doc2.getSentence(0).getToken(1).getText()); // FIXME: abbreviations are not correctly tokenized
-    //assertEquals("Löser", doc2.getSentence(0).getToken(3).getText());
+    assertEquals("Dr.", doc2.getSentence(0).getToken(1).getText()); // FIXME: abbreviations are not correctly tokenized
+    assertEquals("Löser", doc2.getSentence(0).getToken(3).getText());
     Document doc3 = DocumentFactory.fromText(punctText);
     for (Sentence s : doc3.getSentences()) {
       System.out.println(s.getText());
@@ -130,7 +130,7 @@ public class DocumentModelTest {
       doc.addSentence(s);
     }
     assertEquals(3, doc.countSentences());
-    //assertEquals(36 + 14, doc.countTokens()); // FIXME: abbreviations are not correctly tokenized
+    assertEquals(36 + 14, doc.countTokens()); // FIXME: abbreviations are not correctly tokenized
     assertEquals(0, doc.getBegin());
     assertEquals(198 + 83 + 1, doc.getEnd());
     assertEquals(198 + 83 + 1, doc.getLength());
