@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * A Document is a piece of text that mayu contain Sentences, Tokens and Annotations.
  * @author sarnold, fgrimme
  */
-@JsonIdentityInfo(property = "@uid", generator = ObjectIdGenerators.UUIDGenerator.class)
+@JsonIdentityInfo(property = "@uuid", generator = ObjectIdGenerators.UUIDGenerator.class)
 @JsonPropertyOrder({ "class", "id", "uid", "refUid", "title", "language", "type", "begin", "length", "text", "annotations" })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class", defaultImpl=Document.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
