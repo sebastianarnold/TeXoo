@@ -62,13 +62,13 @@ To use TeXoo NER in your Java project, just add the following dependencies to yo
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-core</artifactId>
-  <version>1.0.0-stable</version>
+  <version>1.1.0</version>
   <type>jar</type>
 </dependency>
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-entity-recognition</artifactId>
-  <version>1.0.0-stable</version>
+  <version>1.1.0</version>
   <type>jar</type>
 </dependency>
 ```
@@ -162,7 +162,7 @@ If you use this module for research, please cite:
 
 ## [texoo-sector](texoo-sector/) – Topic Classification and Segmentation (SECTOR)
 
-Annotators for **SECTOR** models from WikiSection dataset (currently under development)
+Annotators for **SECTOR** models from WikiSection dataset.
 
 | Package / Class                               | Description / Reference                                                |
 | --------------------------------------------- | ---------------------------------------------------------------------- |
@@ -181,7 +181,6 @@ TeXoo: train SectorAnnotator from WikiSection dataset
 
 ```
 
-
 ## About TeXoo
 
 ### Frameworks used in TeXoo
@@ -190,21 +189,20 @@ TeXoo: train SectorAnnotator from WikiSection dataset
 <http://deeplearning4j.org/documentation>
 - **ND4J** Scientific computing library  
 <http://nd4j.org/userguide>
-- **Stanford CoreNLP** Natural language processing  
-<http://stanfordnlp.github.io/CoreNLP/>
+- **Apache OpenNLP** Natural language processing  
+<https://opennlp.apache.org/docs/>
 
 ### Contributors
 
-Sebastian Arnold @sebastianarnold – core developer
+[Sebastian Arnold](https://github.com/sebastianarnold) – core developer
 <https://prof.beuth-hochschule.de/loeser/people/sebastian-arnold/>
 
-Rudolf Schneider @SchmaR
+[Rudolf Schneider](https://github.com/SchmaR)
 <https://prof.beuth-hochschule.de/loeser/people/rudolf-schneider/>
-
 
 ## License
 
-   Copyright 2015-2018 Sebastian Arnold, Alexander Löser, Rudolf Schneider
+   Copyright 2015-2019 Sebastian Arnold, Alexander Löser, Rudolf Schneider
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
