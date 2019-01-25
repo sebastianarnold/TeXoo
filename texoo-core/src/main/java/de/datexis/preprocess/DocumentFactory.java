@@ -10,6 +10,7 @@ import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import com.optimaize.langdetect.text.CommonTextObjectFactories;
 import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
+import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,20 +19,14 @@ import static de.datexis.common.WordHelpers.skipSpaceBefore;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.process.PTBTokenizer.PTBTokenizerFactory;
-import edu.stanford.nlp.process.WordToSentenceProcessor;
-import edu.stanford.nlp.process.WordTokenFactory;
-import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.util.Generics;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.LinkedList;
+import java.util.TreeMap;
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +37,6 @@ import org.slf4j.LoggerFactory;
 public class DocumentFactory {
 
   protected final static Logger log = LoggerFactory.getLogger(DocumentFactory.class);
-  public static final int AVERAGE_ENGLISH_SENTENCE_LENGTH = 14;
 
   protected static DocumentFactory instance = new DocumentFactory();
   
@@ -50,33 +44,37 @@ public class DocumentFactory {
     return instance;
   }
   
-  public static enum Newlines { KEEP, KEEP_DOUBLE, DISCARD };
+  public static enum Newlines { 
+    KEEP, // keep all newlines in the text and use them as sentence breaks
+    //KEEP_DOUBLE, // keep only double newlines in the text, but use all of them as sentence breaks
+    DISCARD // discard all newlines in the text but still use them as sentence breaks
+  };
   
-	private final StanfordCoreNLP pipeline;
-  WordToSentenceProcessor<Token> tts;
-  WordToSentenceProcessor<Word> wts;
-  WordTokenFactory wtf;
-  PTBTokenizerFactory<Word> ptf;
+  private final static String LANG_EN = "en";
+  private final static String LANG_DE = "de";
+  
+  TreeMap<String, SentenceDetectorME> sentenceSplitter;
+  TreeMap<String, TokenizerME> plainTokenizer;
+  TreeMap<String, TokenizerMENL> newlineTokenizer;
+  
   TextObjectFactory textObjectFactory;
   LanguageDetector languageDetector;
+  
   
   /**
    * Create a new DocumentFactory instance. Use this only if you need multiple instances!
    * Otherwise, getInstance() will return a singleton object that you can use.
    */
   public DocumentFactory() {
-    Properties props = new Properties();
-    props.setProperty("annotators", "tokenize, ssplit");
-    pipeline = new StanfordCoreNLP(props);
-    tts = new WordToSentenceProcessor<>(WordToSentenceProcessor.NewlineIsSentenceBreak.ALWAYS);
-    //wts = new WordToSentenceProcessor<>(WordToSentenceProcessor.NewlineIsSentenceBreak.ALWAYS);
-    wts = new WordToSentenceProcessor<>(WordToSentenceProcessor.DEFAULT_BOUNDARY_REGEX + "|\\*NL\\*", WordToSentenceProcessor.DEFAULT_BOUNDARY_FOLLOWERS_REGEX + "|\\*NL\\*",
-            Generics.newHashSet(), null, null, WordToSentenceProcessor.NewlineIsSentenceBreak.ALWAYS, null, null, false, false);
-    wtf = new WordTokenFactory();
-    // see http://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/process/PTBTokenizer.html
-    ptf = PTBTokenizerFactory.newWordTokenizerFactory("tokenizeNLs=true,ptb3Escaping=false,americanize=false,"
-              + "normalizeParentheses=false,normalizeOtherBrackets=false,asciiQuotes=true,latexQuotes=false,"
-              + "escapeForwardSlashAsterisk=false,untokenizable=noneDelete");
+    
+    sentenceSplitter = new TreeMap<>();
+    plainTokenizer = new TreeMap<>();
+    newlineTokenizer = new TreeMap<>();
+    
+    loadSentenceSplitter(LANG_EN, Resource.fromJAR("openNLP/en-sent.bin"));
+    loadTokenizer(LANG_EN, Resource.fromJAR("openNLP/en-token.bin"));
+    loadSentenceSplitter(LANG_DE, Resource.fromJAR("openNLP/de-sent.bin"));
+    loadTokenizer(LANG_DE, Resource.fromJAR("openNLP/de-token.bin"));
     
     try {
       //load all languages:
@@ -89,6 +87,25 @@ public class DocumentFactory {
       textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
     } catch (IOException ex) {
       log.error("Could not load language profiles");
+    }
+  }
+  
+  private void loadSentenceSplitter(String language, Resource modelPath) {
+    try {
+      SentenceModel sentenceModel = new SentenceModel(modelPath.getInputStream());
+      sentenceSplitter.put(language, new SentenceDetectorMENL(sentenceModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
+    }
+  }
+  
+  private void loadTokenizer(String language, Resource modelPath) {
+    try {
+      TokenizerModel tokenModel = new TokenizerModel(modelPath.getInputStream());
+      plainTokenizer.put(language, new TokenizerME(tokenModel));
+      newlineTokenizer.put(language, new TokenizerMENL(tokenModel));
+    } catch (IOException ex) {
+      throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
     }
   }
   
@@ -141,69 +158,68 @@ public class DocumentFactory {
    * @param keepOrig - if TRUE, a copy of the string is saved to keep newlines and tabs.
    * @return 
    */
-  public synchronized Document createFromText(String text) {
+  public Document createFromText(String text) {
     Document doc = new Document();
     addToDocumentFromText(text, doc, Newlines.DISCARD);
     return doc;
   }
   
-  public synchronized Document createFromText(String text, Newlines newlines) {
+  public Document createFromText(String text, Newlines newlines) {
     Document doc = new Document();
     addToDocumentFromText(text, doc, newlines);
     return doc;
   }
   
-  public synchronized void addToDocumentFromText(String text, Document doc, Newlines newlines) {
-    doc.setLanguage(detectLanguage(text));
-    int offset = doc.getEnd();
-    if(offset > 0) offset++;
-    try(Reader r = new StringReader(text)) {
-      List<Word> words = ptf.getTokenizer(r).tokenize();
-      words = fixTokenization(words);
-      int countNewlines = 0;
-      for(List<Word> sentence : wts.process(words)) {
-        Sentence s = new Sentence();
-        for(Word w : sentence) {
-          if(w.word().equals("*NL*")) { // newline
-            countNewlines++;
-            if(newlines == Newlines.KEEP) { // newline is a paragraph
-              s.addToken(new Token("\n", w.beginPosition() + offset, w.endPosition() + offset));
-            } else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
-              s.addToken(new Token("\n", w.beginPosition() + offset, w.endPosition() + offset));
-            } else if(newlines == Newlines.DISCARD) { // skip newlines, but keep one whitespace
-              if(countNewlines > 1) offset--;
-            } else {
-              offset--;
-            }
-          /*} else if(w.word().equals("*EOS*")) { // end of sentence
-            offset--;
-            // nop*/
-          } else if(w.word().trim().isEmpty()) { 
-            // nop
+  public void addToDocumentFromText(String text, Document doc, Newlines newlines) {
+    String lang = doc.getLanguage();
+    if(lang == null) {
+      lang = detectLanguage(text);
+      //lang = WordHelpers.getLanguage(language);
+      if(!lang.isEmpty()) doc.setLanguage(lang);
+    }
+    
+    int docOffset = doc.getEnd();
+    if(docOffset > 0) docOffset++;
+    
+    // find best Tokenizer and Splitter for text
+    TokenizerME tokenizer = newlineTokenizer.getOrDefault(lang, newlineTokenizer.get(LANG_EN));
+    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(lang, sentenceSplitter.get(LANG_EN));
+    
+    opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
+    
+    // Tokenize sentences
+    int countNewlines = 0;
+    int nlOffset = 0; // number of skipped newlines
+    for(opennlp.tools.util.Span span : sentences) {
+      String sentenceText = text.substring(span.getStart(), span.getEnd());
+      opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(sentenceText);
+      List<Token> tokenList = new LinkedList<>();
+      for(opennlp.tools.util.Span token : tokens) {
+        String tokenText = sentenceText.substring(token.getStart(), token.getEnd());
+        if(tokenText.equals("\n")) { // newline
+          countNewlines++;
+          if(newlines == Newlines.KEEP) { // newline is a paragraph
+            tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          //} else if(newlines == Newlines.KEEP_DOUBLE && countNewlines == 2) { // two newlines are a new paragraph, skip next though
+          // tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          } else if(newlines == Newlines.DISCARD) { // skip newlines, but keep one whitespace
+            if(countNewlines > 1) nlOffset++;
           } else {
-            s.addToken(new Token(w.word(), w.beginPosition() + offset, w.endPosition() + offset));
-            countNewlines = 0;
+            nlOffset++;
           }
+        } else {
+          tokenList.add(new Token(tokenText, docOffset - nlOffset + span.getStart() + token.getStart(), docOffset - nlOffset + span.getStart() + token.getEnd()));
+          countNewlines = 0;
         }
-        if(!s.isEmpty()) doc.addSentence(s, false);
       }
-    } catch (IOException ex) {
-      log.error(ex.toString());
-    } 
+      Sentence sentence = new Sentence(tokenList);
+      doc.addSentence(sentence, false);
+    }
   }
   
-  public synchronized List<Token> tokenizeFast(String text) {
-    ArrayList<Token> result = new ArrayList<>();
-    try(Reader r = new StringReader(text)) {
-      List<Word> words = ptf.getTokenizer(r).tokenize();
-      words = fixTokenization(words);
-      for(Word w : words) {
-        if(!w.word().trim().isEmpty()) result.add(new Token(w.word(), w.beginPosition(), w.endPosition()));
-      }
-    } catch (IOException ex) {
-      log.error(ex.toString());
-    }
-    return result;
+  // FIXME: do we still need this function after CoreNLP replacement?
+  public List<Token> tokenizeFast(String text) {
+    return createTokensFromText(text, 0);
   }
   
   public static String getLanguage(String text) {
@@ -217,40 +233,6 @@ public class DocumentFactory {
       if(locale.isPresent()) return locale.get().getLanguage();
     } catch(Exception e) {}
     return "";
-  }
-  
-  /**
-   * Fixes Tokens that PTBTokenizer fails on. E.g. "20. Januar", "Kaiser XIV."
-   * We may skip some sentence boundaries with that, but prefer this over too many false splits.
-   * @param words
-   * @return 
-   */
-  private List<Word> fixTokenization(Iterable<Word> words) {
-    List<Word> result = new ArrayList<>();
-    Iterator<Word> it = words.iterator();
-    String split = wts.DEFAULT_BOUNDARY_REGEX;
-    String nosplit = "^(\\d{1,3}|[a-zäüö]|[IVXLCDM]+|ggf|evtl|bzw|engl|dpt|griech|lat|allg|bspw|geb)$"; // German abbreviations are not in CoreNLP
-    Word last = Word.EMPTY;
-    Word word;
-    while(it.hasNext()) {
-      word = it.next();
-      // check for Sentence boundary
-      if(word.word().matches(split)) { // word is a sentence boundary, e.g. "."
-        if(last.word().matches(nosplit)) { // last word is an abbreviation
-          if(last.endPosition() == word.beginPosition()) { // double check if words are not split by whitespace
-            last.setWord(last.word() + word.word());
-            last.setEndPosition(word.endPosition()); // join words
-            word = Word.EMPTY;
-          }
-        } /*else if(last.word().endsWith(".") && !last.word().endsWith("..")) { // this is a duplicate sentence end added by CoreNLP
-          word = new Word("*EOS*", word.beginPosition(), word.endPosition());
-        }*/
-      }
-      if(!last.equals(Word.EMPTY)) result.add(last);
-      last = word;
-    }
-    if(!last.equals(Word.EMPTY)) result.add(last);
-    return result;
   }
   
 public Document createFromTokens(List<Token> tokens) {
@@ -267,17 +249,31 @@ public Document createFromTokens(List<Token> tokens) {
   }
   
   public List<Sentence> createSentencesFromTokens(List<Token> tokens) {
-    List<Sentence> sentences = new ArrayList<>(tokens.size() / AVERAGE_ENGLISH_SENTENCE_LENGTH);
-    int lastCursorPos = 0;
-    String lastTokenString = "";
-    for(List<Token> sentenceTokens : instance.tts.process(tokens)) {
-      Sentence sentence = createSentenceFromTokens(sentenceTokens, lastTokenString, lastCursorPos);
-      lastCursorPos = sentence.getEnd();
-      int lastTokenIndex = sentence.getTokens().size() - 1;
-      lastTokenString = sentence.getToken(lastTokenIndex).getText();
-      sentences.add(sentence);
+    List<Sentence> result = new ArrayList<>();
+    String text = WordHelpers.tokensToText(tokens, 0);
+    String lang = detectLanguage(text);
+    
+    // find best Tokenizer and Splitter for text
+    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(lang, sentenceSplitter.get(LANG_EN));
+    
+    opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
+    
+    // Tokenize sentences
+    Iterator<Token> tokenIt = tokens.iterator();
+    if(!tokenIt.hasNext()) return result;
+    Token currentToken = tokenIt.next();
+    for(opennlp.tools.util.Span sentence : sentences) {
+      List<Token> tokenList = new ArrayList<>();
+      while(currentToken.getBegin() < sentence.getEnd()) {
+        if(!currentToken.getText().equals("\n")) {
+          tokenList.add(currentToken);
+        }
+        if(!tokenIt.hasNext()) break;
+        currentToken = tokenIt.next();
+      }
+      result.add(new Sentence(tokenList));
     }
-    return sentences;
+    return result;
   }
   
   private Sentence createSentenceFromTokens(List<Token> sentence, String last, Integer cursor) {
@@ -301,18 +297,16 @@ public Document createFromTokens(List<Token> tokens) {
    * Creates a list of Tokens from raw text (ignores sentences)
    */
   public List<Token> createTokensFromText(String text, int offset) {
-    List<Token> tokens = new ArrayList<>();
-    edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
-    pipeline.annotate(document);
-    for(CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
-      for(CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
-        int length = token.get(CoreAnnotations.CharacterOffsetEndAnnotation.class) - token.get(CoreAnnotations.CharacterOffsetBeginAnnotation.class);
-        Token t = new Token(token.originalText(), offset, offset + length);
-        offset += length;
-        tokens.add(t);
-      }
+    String language = detectLanguage(text);
+    TokenizerME tokenizer = plainTokenizer.getOrDefault(language, plainTokenizer.get(LANG_EN));
+    opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(text);
+    List<Token> tokenList = new LinkedList<>();
+    for(opennlp.tools.util.Span token : tokens) {
+      String tokenText = text.substring(token.getStart(), token.getEnd());
+      Token t = new Token(tokenText, offset + token.getStart(), offset + token.getEnd());
+      tokenList.add(t);
     }
-    return tokens;
+    return tokenList;
   }
   
   /**
@@ -324,8 +318,11 @@ public Document createFromTokens(List<Token> tokens) {
     for(String token : WordHelpers.splitSpaces(text)) {
       int length = token.length();
       Token t = new Token(token, offset, offset + length);
-      offset += length;
-      if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token)) offset++;
+      if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token)) {
+        t.setBegin(t.getBegin() + 1);
+        t.setEnd(t.getEnd() + 1);
+      }
+      offset = t.getEnd();
       tokens.add(t);
       last = token;
     }
@@ -339,22 +336,4 @@ public Document createFromTokens(List<Token> tokens) {
     doc.setText(doc.getText());
   }
   
-  /**
-   * tokenizes the document into a list of words and punctuations
-   * @param text The document as String
-   * @return List of words
-   */
-  public List<CoreLabel> createCoreLabels(String text) {
-    edu.stanford.nlp.pipeline.Annotation document = new edu.stanford.nlp.pipeline.Annotation(text);
-    pipeline.annotate(document);
-    List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
-    List<CoreLabel> tokens = new ArrayList<>();
-    for(CoreMap sentence : sentences) {
-      for(CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
-        tokens.add(token);
-      }
-    }
-    return tokens;
-  }
-    
 }

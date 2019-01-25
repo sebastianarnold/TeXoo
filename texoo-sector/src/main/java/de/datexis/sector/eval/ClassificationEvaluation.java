@@ -6,10 +6,11 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
 import de.datexis.model.tag.Tag;
-import edu.stanford.nlp.util.IdentityHashSet;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,14 +92,14 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
    * @param matchAllPredicted - if TRUE, all remaining unmatched predicted annotations will be matched to expected via position, otherwise they are ignored
    */
   public void calculateScoresFromAnnotations(Collection<Document> documents, Class<? extends Annotation> annotationClass, boolean matchAllPredicted) {
-    Set<Annotation> matched = new IdentityHashSet<Annotation>();
+    Map<Annotation, Boolean> matched = new IdentityHashMap<>();
     countDocs += documents.size();
     for(Document doc : documents) {
       // match relevant annotations to predicted annotations
       for(Annotation expected : doc.getAnnotations(expectedSource, annotationClass)) {
         Optional<? extends Annotation> predicted = doc.getAnnotationMaxOverlap(predictedSource, annotationClass, expected);
         if(predicted.isPresent()) {
-          matched.add(predicted.get());
+          matched.put(predicted.get(), true);
           INDArray r = expected.getVector(encoder.getClass()).transpose();
           INDArray p = predicted.get().getVector(encoder.getClass()).transpose();
           evalExample(r, p);
@@ -109,7 +110,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
       if(!matchAllPredicted) continue;
       // match additional predicted annotations to expected
       for(Annotation predicted : doc.getAnnotations(predictedSource, annotationClass)) {
-        if(!matched.contains(predicted)) {
+        if(!matched.containsKey(predicted)) {
           Optional<? extends Annotation> expected = doc.getAnnotationMaxOverlap(expectedSource, annotationClass, predicted);
           if(expected.isPresent()) {
             INDArray r = expected.get().getVector(encoder.getClass()).transpose();

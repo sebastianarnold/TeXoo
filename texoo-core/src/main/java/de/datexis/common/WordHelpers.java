@@ -3,7 +3,6 @@ package de.datexis.common;
 import com.google.common.collect.Lists;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import edu.stanford.nlp.ling.Word;
 import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class WordHelpers {
   protected final static Logger log = LoggerFactory.getLogger(WordHelpers.class);
 
   public static Collection<String> skipSpaceBefore = Arrays.asList(",", ".", ":", ";", "?", "!", ")", "]", "'m", "'s", "'re", "'ve", "'d", "'ll", "n't");
-  public static Collection<String> skipSpaceAfter = Arrays.asList("(", "[", "");
+  public static Collection<String> skipSpaceAfter = Arrays.asList("(", "[", "", "\n");
   private static final String[][] umlautReplacements = { {"Ä","Ae"}, {"Ü","Ue"}, {"Ö","Oe"}, {"ä","ae"}, {"ü","ue"}, {"ö","oe"}, {"ß","ss"}, {"–","-"} };
   private static final String[][] tokenizationReplacements = { {"``","\""}, {"''","\""} };
   private static final Pattern punctPattern = Pattern.compile("[^\\w\\s\\-_]+");
@@ -90,25 +89,6 @@ public class WordHelpers {
       if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(t.getText())) res.append(" ");
  			res.append(t.getText());
       last = t.getText();
-		}
-		return res.toString().trim();
-  }
-  
-  public static String wordsToText(List<Word> sentence) {
-    StringBuilder res = new StringBuilder();
-    int cursor = 0;
-		for(Word t : sentence) {
-      if(cursor > t.beginPosition()) {
-        // reset in case of wrong offsets
-        res.append(" ");
-        cursor = t.beginPosition();
-      }
-      while(cursor < t.beginPosition()) {
-        res.append(" ");
-        cursor++;
-      }
-      res.append(t.word());
-      cursor = t.endPosition();
 		}
 		return res.toString().trim();
   }

@@ -12,12 +12,12 @@ import de.datexis.index.ArticleIndex;
 import de.datexis.index.ArticleRef;
 import de.datexis.index.impl.VectorArticleIndex;
 import de.datexis.preprocess.DocumentFactory;
-import edu.stanford.nlp.util.Iterables;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +107,7 @@ public class NamedEntityAnnotator extends Annotator {
    */
   public void disambiguateMentions(Document doc, Annotation.Source source) {
     //INDArray context = doc.getVector(encoder.getClass());
-    List<MentionAnnotation> anns = Iterables.asArrayList(doc.streamAnnotations(source, MentionAnnotation.class).iterator());
+    List<MentionAnnotation> anns = doc.streamAnnotations(source, MentionAnnotation.class).collect(Collectors.toList());
     for(MentionAnnotation mention : anns) {
       NamedEntityAnnotation entity = new NamedEntityAnnotation(mention, new ArrayList<>());
       //if(annotationExists(ner, doc.ge)) {

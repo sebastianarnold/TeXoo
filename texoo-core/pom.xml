@@ -85,19 +85,19 @@
     
     <!-- Logging -->
     <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>${logback.version}</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
     </dependency>
     <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-core</artifactId>
-        <version>${logback.version}</version>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
     </dependency>
 
     <!-- Deeplearning4j -->
@@ -143,33 +143,19 @@
      <version>9.2-7.1-1.4.2</version>
      <classifier>linux-x86_64-redist</classifier>
     </dependency>
-    <!-- Stanford CoreNLP -->
-    <!-- GPL v3 License https://stanfordnlp.github.io/CoreNLP/ -->
-    <dependency>
-      <groupId>edu.stanford.nlp</groupId>
-      <artifactId>stanford-corenlp</artifactId>
-      <version>${corenlp.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xerces</groupId>
-          <artifactId>xercesImpl</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    
+
     <!-- FastText for Java (BSD license with additional Facebook patent grant )-->
     <dependency>
       <groupId>com.github.sszuev</groupId>
       <artifactId>fasttext</artifactId>
       <version>1.0.0</version>
+    </dependency>
+    
+    <!-- Apache OpenNLP (Apache V2 License) -->
+    <dependency>
+      <groupId>org.apache.opennlp</groupId>
+      <artifactId>opennlp-tools</artifactId>
+      <version>1.9.0</version>
     </dependency>
     
     <!-- updated XML helpers -->
@@ -214,7 +200,6 @@
       <artifactId>reflections</artifactId>
       <version>0.9.11</version>
       <type>jar</type>
-      <!-- this might be the culprit for non-working 1.0.0-beta: reflections was removed from dl4j - just try 0.9.11 with guava 20???? -->
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>

@@ -154,8 +154,10 @@ public class CoNLLDatasetReader implements DatasetReader {
       } else if(line.length() == 0) {
         // end sentence
         if(!tokens.isEmpty()) {
-          tokens.add(new Token("\n"));
-          cursor++;
+          token = new Token("\n", cursor, cursor + 1);
+          token.putTag(annotationSource, BIO2Tag.O());
+          tokens.add(token);
+          cursor = token.getEnd();
           last = token.getText();
         }
         type = null;
@@ -163,9 +165,12 @@ public class CoNLLDatasetReader implements DatasetReader {
         // read token
         token = createTokenFromLine(line, cursor, type);
 				if(token != null) {
+          if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token.getText())) {
+            token.setBegin(token.getBegin() + 1);
+            token.setEnd(token.getEnd() + 1);
+          }
 					tokens.add(token);
           cursor = token.getEnd();
-          if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(token.getText())) cursor++;
 					type = token.getTag(annotationSource, BIO2Tag.class).getType();
           last = token.getText();
 				}

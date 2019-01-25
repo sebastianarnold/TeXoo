@@ -6,7 +6,6 @@ import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
-import edu.stanford.nlp.util.Iterables;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -351,7 +350,7 @@ public class BIOESTag implements Tag {
    */
   public static synchronized void correctCRF(Sentence sent, Annotation.Source source) {
 
-    ArrayList<Token> tokens;
+    List<Token> tokens;
     final SortedMap<Double,BIOESTag.Label[]> scores = new TreeMap<>();
     
     if(BIOESTag.isCorrect(source, sent.getTokens())) return;
@@ -360,7 +359,7 @@ public class BIOESTag implements Tag {
     BIOESTag.Label[] tag = new BIOESTag.Label[5];
     int size = 5;
     double score = 0;
-    tokens = Iterables.asArrayList(sent.getTokens().iterator());
+    tokens = sent.getTokens();
 
     for(int cursor=0; cursor < tokens.size(); cursor++) {
 
@@ -407,12 +406,12 @@ public class BIOESTag implements Tag {
     
   }
 
-  private static INDArray getLabelVector(ArrayList<Token> tokens, int pos, Annotation.Source source) {
+  private static INDArray getLabelVector(List<Token> tokens, int pos, Annotation.Source source) {
     if(pos < 0 || pos >= tokens.size()) return BIOESTag.getVector(BIOESTag.Label.O);
     else return tokens.get(pos).getTag(source, BIOESTag.class).getVector();
   }
   
-  private static Label getLabel(ArrayList<Token> tokens, int pos, Annotation.Source source) {
+  private static Label getLabel(List<Token> tokens, int pos, Annotation.Source source) {
     if(pos < 0 || pos >= tokens.size()) return BIOESTag.Label.O;
     else return tokens.get(pos).getTag(source, BIOESTag.class).get();
   }
