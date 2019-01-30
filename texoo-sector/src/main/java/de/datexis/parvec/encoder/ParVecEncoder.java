@@ -219,6 +219,12 @@ public class ParVecEncoder extends LookupCacheEncoder implements IDecoder {
     }
   }
 
+  public static ParVecEncoder load(Resource path) throws IOException {
+    ParVecEncoder encoder = new ParVecEncoder();
+    encoder.loadModel(path);
+    return encoder;
+  }
+
   @Override
   public void loadModel(Resource modelFile) throws IOException {
     model = WordVectorSerializer.readParagraphVectors(modelFile.getInputStream());
