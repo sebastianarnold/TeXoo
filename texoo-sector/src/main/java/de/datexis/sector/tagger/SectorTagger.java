@@ -55,15 +55,15 @@ import org.nd4j.linalg.schedule.ScheduleType;
 import org.nd4j.shade.jackson.databind.JsonNode;
 
 /**
- * SECTOR Recurrent NEtwork with separated FW/BW layers.
- * @author sarnold
+ * SECTOR Recurrent Network with separated FW/BW layers. Implementation of:
+ * Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser:
+ * "SECTOR: A Neural Model for Coherent Topic Segmentation and Classification."
+ * Transactions of the Association for Computational Linguistics (2019).
+ * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public class SectorTagger extends Tagger {
 
   protected static final Logger log = LoggerFactory.getLogger(SectorTagger.class);
-  
-  // sector tagger can only be accessed from one thread at a time
-  protected final Object lock = new Object();
   
   // n-hot encoder, such as bag-of-words or trigrams
   protected Encoder bagEncoder = null;

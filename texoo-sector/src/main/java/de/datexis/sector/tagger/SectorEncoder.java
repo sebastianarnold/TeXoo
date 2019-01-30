@@ -103,7 +103,6 @@ public class SectorEncoder extends Encoder {
           if(t >= maxTimeSteps) break;
           if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), target.getRow(batchNum).getColumn(t));
           if(embedding != null) s.putVector(SectorEncoder.class, embedding.getRow(batchNum).getColumn(t));
-          //s.putVector(SegmentEncoder.class, lstm.getRow(batchNum).getColumn(t));
           t++;
         }
         batchNum++;

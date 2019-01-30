@@ -43,7 +43,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An Annotator that detects sections in a Document and assigns labels.
+ * An Annotator that detects sections in a Document and assigns labels. Implementation of:
+ * Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser:
+ * "SECTOR: A Neural Model for Coherent Topic Segmentation and Classification."
+ * Transactions of the Association for Computational Linguistics (2019).
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public class SectorAnnotator extends Annotator {
@@ -53,15 +56,14 @@ public class SectorAnnotator extends Annotator {
   public static enum SegmentationMethod {
     NONE, // don't segment, only tag sentences
     GOLD, // use provided gold standard segmentation (perfect case)
-    NEWLINES, // segment at every newline (will produce too many segments)
-    TARGET_LABEL, // segment if top-2 labels change
-    TARGET_PCA, // segment if top-8 principal components change
-    TARGET_MAGNITUDE, // segmentation based on edge detection on target magnitude
-    EMBEDDING_MAGNITUDE, // segmentation based on edge detection on embedding magnitude
-    FWBW_MAGNITUDE, // segmentation based on edge detection on FW/BW embedding magnitude
-    FWBW_MAGNITUDE_FIXEDNUMBER, // use provided ground truth number of sections
+    NL, // segment at every newline (will produce too many segments)
+    MAX, // segment if top-2 labels change
+    EMD, // segmentation based on edge detection on embedding deviation
+    BEMD, // segmentation based on edge detection on bidirectional embedding deviation (FW/BW)
+    BEMD_FIXED, // use BEMD with provided ground truth number of sections
   };
-  
+
+  /** used for JSON deserialization */
   public SectorAnnotator() {
   }
   
@@ -81,23 +83,37 @@ public class SectorAnnotator extends Annotator {
   public LookupCacheEncoder getTargetEncoder() {
     return (LookupCacheEncoder) getTagger().getTargetEncoder();
   }
-  
+
+  /**
+   * Annotate given Documents using SECTOR, i.e. attach SectorAnnotator vectors to sentences.
+   */
   @Override
   public void annotate(Collection<Document> docs) {
-    annotate(docs, SegmentationMethod.NEWLINES);
+    annotate(docs, SegmentationMethod.NONE);
   }
-  
+
+  /**
+   * Annotate given Documents using SECTOR, i.e. attach SectorEncoder vectors to sentences.
+   * If a segmentation method is given, also attach SectionAnnotations to each Document.
+   */
   public void annotate(Collection<Document> docs, SegmentationMethod segmentation) {
     // use tagger to generate and attach PRED vectors to Sentences
     log.info("Running SECTOR neural net encoding...");
     getTagger().attachVectors(docs, DocumentSentenceIterator.Stage.ENCODE, getTargetEncoder().getClass());
-    if(!segmentation.equals(SegmentationMethod.NONE)) segment(docs, segmentation);
+    if(!segmentation.equals(SegmentationMethod.NONE)) segment(docs, segmentation, true);
   }
-  
-  public void segment(Collection<Document> docs, SegmentationMethod segmentation) {
+
+  /**
+   * Attach SectionAnnotations to each Document with a given segmentation strategy.
+   * If there are no SectorEncoder vectors attached to sentences yet, please use annotate().
+   */
+  public void segment(Collection<Document> docs, SegmentationMethod segmentation, boolean mergeSections) {
     // create Annotations and attach vectors
     log.info("Predicting segmentation {}...", segmentation.toString());
     detectSections(docs, segmentation);
+    if(mergeSections) {
+      // TODO: merge sections
+    }
     // attach vectors to annotations
     log.info("Attaching Annotations...");
     for(Document doc : docs) attachVectorsToAnnotations(doc, getTargetEncoder());
@@ -110,51 +126,30 @@ public class SectorAnnotator extends Annotator {
     MemoryWorkspace workspace =
             getTagger().getNN().getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
                     : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
-    
-//    WorkspaceMode wsm = getTagger().getNN().getConfiguration().getInferenceWorkspaceMode();
-//    LayerWorkspaceMgr mgr;
-//    if(wsm == WorkspaceMode.NONE){
-//        mgr = LayerWorkspaceMgr.noWorkspaces();
-//    } else {
-//        mgr = LayerWorkspaceMgr.builder()
-//                .noWorkspaceFor(ArrayType.ACTIVATIONS)
-//                .noWorkspaceFor(ArrayType.INPUT)
-//                .with(ArrayType.FF_WORKING_MEM, WS_LAYER_WORKING_MEM, WS_LAYER_WORKING_MEM_CONFIG)
-//                .with(ArrayType.RNN_FF_LOOP_WORKING_MEM, WS_RNN_LOOP_WORKING_MEM, WS_RNN_LOOP_WORKING_MEM_CONFIG)
-//                .build();
-//    }
-//    mgr.setHelperWorkspacePointers(helperWorkspaces);
-    
+
     for(Document doc : docs) {
       try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
         switch(segmentation) {
           case GOLD: {
             applySectionsFromGold(doc); 
           } break;
-          case TARGET_LABEL: {
+          case MAX: {
             applySectionsFromTargetLabels(doc, getTargetEncoder(), 2); 
           } break;
-          case TARGET_PCA: {
-            detectSectionsFromTargetPCA(doc, getTargetEncoder()); 
-          } break;
-          case TARGET_MAGNITUDE: {
-            INDArray mag = detectSectionsFromTargetMagnitude(doc, getTargetEncoder()); 
+          case EMD: {
+            INDArray mag = detectSectionsFromEmbeddingDeviation(doc);
             applySectionsFromEdges(doc, detectEdges(mag));
           } break;
-          case EMBEDDING_MAGNITUDE: {
-            INDArray mag = detectSectionsFromEmbeddingMagnitude(doc); 
+          case BEMD: {
+            INDArray mag = detectSectionsFromBidirectionalEmbeddingDeviation(doc);
             applySectionsFromEdges(doc, detectEdges(mag));
           } break;
-          case FWBW_MAGNITUDE: {
-            INDArray mag = detectSectionsFromFWBWEmbeddingMagnitude(doc); 
-            applySectionsFromEdges(doc, detectEdges(mag));
-          } break;
-          case FWBW_MAGNITUDE_FIXEDNUMBER: {
-            INDArray mag = detectSectionsFromFWBWEmbeddingMagnitude(doc);
+          case BEMD_FIXED: {
+            INDArray mag = detectSectionsFromBidirectionalEmbeddingDeviation(doc);
             int expectedNumberOfSections = (int) doc.countAnnotations(Source.GOLD);
             applySectionsFromEdges(doc, detectEdges(mag, expectedNumberOfSections));
           } break;
-          case NEWLINES:
+          case NL:
           default: {
             applySectionsFromNewlines(doc);
           }
@@ -165,47 +160,84 @@ public class SectorAnnotator extends Annotator {
     getTagger().getNN().getConfiguration().setTrainingWorkspaceMode(cMode);
     
   }
-  
+
+  /**
+   * Evaluate SECTOR model using a given Dataset. This method will print a result table.
+   * @return MAP score for segment-level evaluation.
+   */
   public double evaluateModel(Dataset test) {
-    return evaluateModel(test, false, true, true);
+    return evaluateModel(test, true, true, true);
   }
-  
+
+  /**
+   * Evaluate SECTOR model using a given Dataset. This method will print a result table.
+   * @param evalSentenceClassification - enable/disable the evaluation of sentence-level classification (P/R scores)
+   * @param evalSegmentation - enable/disable the evaluation of text segmentation (Pk/WD scores)
+   * @param evalSegmentClassification - enable/disable the evaluation of segment-level classification (P/R scores)
+   * @return MAP score for segment-level evaluation.
+   */
   public double evaluateModel(Dataset test, boolean evalSentenceClassification, boolean evalSegmentation, boolean evalSegmentClassification)  {
     SectorEvaluation eval;
     if(getTargetEncoder().getClass() == HeadingEncoder.class) {
       HeadingEncoder headings = ((HeadingEncoder)getComponent(HeadingEncoder.ID));
       eval = new SectorEvaluation(test.getName(), Annotation.Source.GOLD, Annotation.Source.PRED, headings);
       // we need tags for sentence-level evaluation
-      log.info("Creating tags...");
-      removeTags(test.getDocuments(), Annotation.Source.PRED);
-      createHeadingTags(test.getDocuments(), Annotation.Source.GOLD, headings);
-      createHeadingTags(test.getDocuments(), Annotation.Source.PRED, headings);
+      if(evalSentenceClassification) {
+        log.info("Creating tags...");
+        removeTags(test.getDocuments(), Annotation.Source.PRED);
+        createHeadingTags(test.getDocuments(), Annotation.Source.GOLD, headings);
+        createHeadingTags(test.getDocuments(), Annotation.Source.PRED, headings);
+      }
     } else if(getTargetEncoder().getClass() == ClassEncoder.class) {
       ClassEncoder classes = ((ClassEncoder)getComponent(ClassEncoder.ID));
       eval = new SectorEvaluation(test.getName(), Annotation.Source.GOLD, Annotation.Source.PRED, classes);
       // we need tags for sentence-level evaluation
-      removeTags(test.getDocuments(), Annotation.Source.PRED);
-      createClassTags(test.getDocuments(), Annotation.Source.GOLD, classes);
-      createClassTags(test.getDocuments(), Annotation.Source.PRED, classes);
+      if(evalSentenceClassification) {
+        log.info("Creating tags...");
+        removeTags(test.getDocuments(), Annotation.Source.PRED);
+        createClassTags(test.getDocuments(), Annotation.Source.GOLD, classes);
+        createClassTags(test.getDocuments(), Annotation.Source.PRED, classes);
+      }
     } else {
       throw new IllegalArgumentException("Target encoder has no evaluation: " + getTargetEncoder().getClass().toString());
     }
     // calculate and print scores
-    eval.withSegmentClassEvaluation(evalSegmentation)
-        .withSegmentationEvaluation(evalSegmentation)
-        .withSentenceClassEvaluation(evalSentenceClassification)
+    eval.withSentenceClassEvaluation(evalSentenceClassification)
+        .withSegmentationEvaluation(evalSegmentClassification)
+        .withSegmentClassEvaluation(evalSegmentation)
         .calculateScores(test);
     getTagger().appendTestLog(eval.printDatasetStats(test));
     getTagger().appendTestLog(eval.printEvaluationStats());
     getTagger().appendTestLog(eval.printSingleClassStats());
     return eval.getScore();
   }
-  
+
+  /**
+   * Train a SECTOR model with configured number of epochs.
+   */
+  public void trainModel(Dataset train) {
+    provenance.setDataset(train.getName());
+    provenance.setLanguage(train.getLanguage());
+    getTagger().trainModel(train);
+  }
+
+  /**
+   * Train a SECTOR model with given fixed number of epochs.
+   */
   public void trainModel(Dataset train, int numEpochs) {
-    // train tagger
+    provenance.setDataset(train.getName());
+    provenance.setLanguage(train.getLanguage());
     getTagger().trainModel(train, numEpochs);
   }
-  
+
+  /**
+   * Train a SECTOR model with early stopping based on MAP score. The best model will be used after this call.
+   * @param train training Dataset with GOLD Annotations
+   * @param validation validation Dataset with GOLD Annotations
+   * @param minEpochs training will not be stopped before this number of epochs (absolute value)
+   * @param minEpochsNoImprovement training will be stopped after this number of epochs without a MAP improvement (relative value)
+   * @param maxEpochs training will be stopped after this number of epochs (absolute value)
+   */
   public void trainModelEarlyStopping(Dataset train, Dataset validation, int minEpochs, int minEpochsNoImprovement, int maxEpochs) {
     EarlyStoppingConfiguration conf = new EarlyStoppingConfiguration.Builder()
         .evaluateEveryNEpochs(1)
@@ -216,8 +248,11 @@ public class SectorAnnotator extends Annotator {
     EarlyStoppingResult<ComputationGraph> result = getTagger().trainModel(train, validation, conf);
     getTagger().appendTrainLog("Training complete " + result.toString());
   }
-    
-  protected void createHeadingTags(Iterable<Document> docs, Annotation.Source source, HeadingEncoder headings) {
+
+  /**
+   * Create heading tags that are only required for Sentence-level evaluation
+   */
+  private void createHeadingTags(Iterable<Document> docs, Annotation.Source source, HeadingEncoder headings) {
     HeadingTag.Factory headingTags = new HeadingTag.Factory(headings);
     for(Document doc : docs) {
       if(!doc.isTagAvaliable(source, HeadingTag.class)) {
@@ -226,8 +261,11 @@ public class SectorAnnotator extends Annotator {
       }
     }
   }
-  
-  protected void createClassTags(Iterable<Document> docs, Annotation.Source source, ClassEncoder classes) {
+
+  /**
+   * Create class tags that are only required for Sentence-level evaluation
+   */
+  private void createClassTags(Iterable<Document> docs, Annotation.Source source, ClassEncoder classes) {
     ClassTag.Factory classTags = new ClassTag.Factory(classes);
     for(Document doc : docs) {
       if(!doc.isTagAvaliable(source, ClassTag.class)) {
@@ -236,8 +274,11 @@ public class SectorAnnotator extends Annotator {
       }
     }
   }
-  
-  protected static void removeTags(Iterable<Document> docs, Annotation.Source source) {
+
+  /**
+   * Clear tags that are only required for Sentence-level evaluation
+   */
+  private static void removeTags(Iterable<Document> docs, Annotation.Source source) {
     for(Document doc : docs) {
       for(Sentence s : doc.getSentences()) {
         s.clearTags(source);
@@ -248,7 +289,7 @@ public class SectorAnnotator extends Annotator {
   }
   
   /**
-   * Add vectors to GOLD and PRED annotations (required for evaluation)
+   * Add vectors and class labels for all existing GOLD and PRED annotations.
    */
   protected static void attachVectorsToAnnotations(Document doc, LookupCacheEncoder targetEncoder) {
     // attach GOLD vectors
@@ -286,7 +327,7 @@ public class SectorAnnotator extends Annotator {
   /**
    * Add PRED SectionAnnotations from provided gold standard segmentation (perfect case)
    */
-  protected static void applySectionsFromGold(Document doc) {
+  private static void applySectionsFromGold(Document doc) {
     SectionAnnotation section = null;
     for(SectionAnnotation ann : doc.getAnnotations(Source.GOLD, SectionAnnotation.class)) {
       section = new SectionAnnotation(Annotation.Source.PRED);
@@ -299,7 +340,7 @@ public class SectorAnnotator extends Annotator {
   /**
    * Add PRED SectionAnnotation at every newline (will produce too many segments)
    */
-  protected static void applySectionsFromNewlines(Document doc) {
+  private static void applySectionsFromNewlines(Document doc) {
     SectionAnnotation section = null;
     for(Sentence s : doc.getSentences()) {
       boolean endPar = s.streamTokens().anyMatch(t -> t.getText().equals("*NL*") || t.getText().equals("\n"));
@@ -326,7 +367,7 @@ public class SectorAnnotator extends Annotator {
    * A new segment will start if top label is not contained in previous top-k labels.
    * @param k - the number of labels to check for change (usually 1-3)
    */
-  protected static void applySectionsFromTargetLabels(Document doc, LookupCacheEncoder targetEncoder, int k) {
+  private static void applySectionsFromTargetLabels(Document doc, LookupCacheEncoder targetEncoder, int k) {
     // start first section
     String lastSection = "";
     INDArray sectionPredictions = Nd4j.create(1, targetEncoder.getEmbeddingVectorSize()).transposei();
@@ -356,64 +397,11 @@ public class SectorAnnotator extends Annotator {
     // add last section
     if(!lastSection.isEmpty()) doc.addAnnotation(section);
   }
-  
-  protected static void detectSectionsFromTargetPCA(Document doc, LookupCacheEncoder targetEncoder) {
-    
-    int PCA_DIMS = 8;
-    
-    // preprocess PCA
-    INDArray docTargets = Nd4j.zeros(doc.countSentences(), targetEncoder.getEmbeddingVectorSize());
-    int t = 0;
-    for(Sentence s : doc.getSentences()) {
-      docTargets.getRow(t++).assign(s.getVector(targetEncoder.getClass()));
-    }
-    INDArray docTargetsPCA = docTargets.mmul(PCA.pca_factor(docTargets.dup(), PCA_DIMS, true));
-    INDArray docTargetsDelta = deltaMatrix(docTargetsPCA);
-    
-    // start first section
-    int sectionLength = 0;
-    SectionAnnotation section = new SectionAnnotation(Annotation.Source.PRED);
-    section.setBegin(doc.getBegin());
 
-    t = 0;
-    for(Sentence s : doc.getSentences()) {
-      // start new section
-      if(docTargetsDelta.getDouble(t) >= 1/(double)PCA_DIMS) {
-        if(sectionLength > 0) doc.addAnnotation(section);
-        section = new SectionAnnotation(Annotation.Source.PRED);
-        section.setBegin(s.getBegin());
-        sectionLength = 0;
-      }
-      // update current section
-      sectionLength++;
-      section.setEnd(s.getEnd());
-      t++;
-    }
-
-    // add last section
-    if(sectionLength > 0) doc.addAnnotation(section);
-    
-  }
-  
-  protected static INDArray detectSectionsFromTargetMagnitude(Document doc, LookupCacheEncoder targetEncoder) {
-    
-    int PCA_DIMS = 8;
-    
-    if(doc.countSentences() < 2) return null;
-      
-    // initialize target matrix
-    INDArray docTargets = getLayerMatrix(doc, targetEncoder.getClass());
-    
-    INDArray docTargetPCA = pca(docTargets, PCA_DIMS);
-    INDArray docTargetSmooth = gaussianSmooth(docTargetPCA);
-    INDArray docTargetMag = magnitude(docTargetSmooth);
-    
-    return docTargetMag;
-    
-  }
-    
-  
-  protected static void applySectionsFromEdges(Document doc, INDArray docEdges) {
+  /**
+   * Add PRED SectionAnnotations from given edge array.
+   */
+  private static void applySectionsFromEdges(Document doc, INDArray docEdges) {
     
     // no sentence
     if(doc.countSentences() < 1) {
@@ -456,9 +444,9 @@ public class SectorAnnotator extends Annotator {
   }
   
   /**
-   * Add PRED SectionAnnotations based on edge detection on FW/BW embedding magnitude.
+   * Add PRED SectionAnnotations based on edge detection on embedding deviation.
    */
-  protected static INDArray detectSectionsFromEmbeddingMagnitude(Document doc) {
+  private static INDArray detectSectionsFromEmbeddingDeviation(Document doc) {
     
     int PCA_DIMS = 16;
     
@@ -469,16 +457,16 @@ public class SectorAnnotator extends Annotator {
     
     INDArray docPCA = pca(docEmbs, PCA_DIMS);
     INDArray docSmooth = gaussianSmooth(docPCA);
-    INDArray docMag = magnitude(docSmooth);
+    INDArray docMag = deviation(docSmooth);
     
     return docMag;
     
   }
   
   /**
-   * Add PRED SectionAnnotations based on edge detection on FW/BW embedding magnitude.
+   * Add PRED SectionAnnotations based on edge detection on bidirectional (FW/BW) embedding deviation.
    */
-  protected static INDArray detectSectionsFromFWBWEmbeddingMagnitude(Document doc) {
+  private static INDArray detectSectionsFromBidirectionalEmbeddingDeviation(Document doc) {
     
     int PCA_DIMS = 16;
     double SMOOTH_FACTOR = 1.5;
@@ -509,7 +497,7 @@ public class SectorAnnotator extends Annotator {
     docBwPCA.putColumn(1, zeros);
     INDArray docFwPCAs = gaussianSmooth(docFwPCA, SMOOTH_FACTOR);
     INDArray docBwPCAs = gaussianSmooth(docBwPCA, SMOOTH_FACTOR);
-    INDArray docMag = magnitude(docFwPCAs, docBwPCAs);
+    INDArray docMag = deviation(docFwPCAs, docBwPCAs);
     
     return docMag;
     
@@ -535,7 +523,7 @@ public class SectorAnnotator extends Annotator {
     return docWeights;
     
   }
-  
+
   protected static INDArray getLayerMatrix(Document doc, Class layerClass) {
     return getLayerMatrix(doc, layerClass.getCanonicalName());
   }
@@ -546,19 +534,18 @@ public class SectorAnnotator extends Annotator {
   protected static INDArray getEmbeddingMatrix(Document doc) {
     return getLayerMatrix(doc, SectorEncoder.class);
   }
-  
+
   protected static INDArray pca(INDArray m, int dimensions) {
     return m.mmul(PCA.pca_factor(m.dup(), dimensions, true));
   }
-  
+
   protected static INDArray gaussianSmooth(INDArray target) {
     return gaussianSmooth(target, 2.5);
   }
-  
+
   protected static INDArray gaussianSmooth(INDArray target, double sd) {
     INDArray matrix = target.dup('c');
     INDArray kernel = Nd4j.zeros(matrix.rows(), 1, 'c');
-    //INDArray docTargetsSmooth = Convolution.convn(docTargetsPCA, kernel, Convolution.Type.FULL);
     INDArray smooth = Nd4j.zerosLike(target);
     // convolution
     for(int t=0; t<kernel.length(); t++) {
@@ -575,39 +562,39 @@ public class SectorAnnotator extends Annotator {
   /**
    * Returns a matrix [Tx1] that contains cosine distances between forward and backward layer.
    */
-  protected static INDArray magnitude(INDArray fw, INDArray bw) {
-    INDArray mag = Nd4j.zeros(fw.rows(), 1);
-    for(int t = 1; t < mag.rows(); t++) { // calculate first derivative in cosine distance
-      double fwd1 = (t < mag.rows() - 1) ? // FW is too late
+  protected static INDArray deviation(INDArray fw, INDArray bw) {
+    INDArray dev = Nd4j.zeros(fw.rows(), 1);
+    for(int t = 1; t < dev.rows(); t++) { // calculate first derivative in cosine distance
+      double fwd1 = (t < dev.rows() - 1) ? // FW is too late
           Transforms.cosineDistance(fw.getRow(t), fw.getRow(t+1)) : 0; 
       double bwd1 = (t > 2) ? // BW is too early
           Transforms.cosineDistance(bw.getRow(t-1), bw.getRow(t-2)) : 0; 
-      //mag.putScalar(t, 0, Math.sqrt(Math.pow(fwd1, 2) + Math.pow(bwd1, 2) / 2.)); // quadratic mean
+      //dev.putScalar(t, 0, Math.sqrt(Math.pow(fwd1, 2) + Math.pow(bwd1, 2) / 2.)); // quadratic mean
       double geom = Math.sqrt(fwd1 * bwd1);
-      mag.putScalar(t, 0, Double.isNaN(geom) ? 0. : geom); // geometric mean
+      dev.putScalar(t, 0, Double.isNaN(geom) ? 0. : geom); // geometric mean
     }
-    return mag;
+    return dev;
   }
   
   /**
    * Returns a matrix [Tx1] that contains cosine distances between t-1 and t.
    */
-  protected static INDArray magnitude(INDArray target) {
-    INDArray mag = Nd4j.zeros(target.rows(), 1);
-    for(int t = 1; t < mag.rows(); t++) {
-      mag.putScalar(t, 0, Transforms.cosineDistance(target.getRow(t), target.getRow(t-1))); // first derivative
+  protected static INDArray deviation(INDArray target) {
+    INDArray dev = Nd4j.zeros(target.rows(), 1);
+    for(int t = 1; t < dev.rows(); t++) {
+      dev.putScalar(t, 0, Transforms.cosineDistance(target.getRow(t), target.getRow(t-1))); // first derivative
     }
-    return mag;
+    return dev;
   }
   
   /**
-   * Returns a matrix [Tx1] that contains edges in magnitude.
+   * Returns a matrix [Tx1] that contains edges in deviation.
    */
-  protected static INDArray detectEdges(INDArray mag) {
-    if(mag == null) return null;
-    INDArray result = Nd4j.zeros(mag.rows(), 1);
+  protected static INDArray detectEdges(INDArray dev) {
+    if(dev == null) return null;
+    INDArray result = Nd4j.zeros(dev.rows(), 1);
     for(int t = 1; t < result.rows() - 1; t++) {
-      result.putScalar(t, 0, ((mag.getDouble(t - 1) < mag.getDouble(t)) && (mag.getDouble(t + 1) < mag.getDouble(t))) ? 1 : 0);
+      result.putScalar(t, 0, ((dev.getDouble(t - 1) < dev.getDouble(t)) && (dev.getDouble(t + 1) < dev.getDouble(t))) ? 1 : 0);
     }
     // overwrite first timestep values
     result.putScalar(0, 0, 1);
@@ -615,25 +602,25 @@ public class SectorAnnotator extends Annotator {
   }
   
   /**
-   * Returns a matrix [Tx1] that contains edges with given count in magnitude.
+   * Returns a matrix [Tx1] that contains edges with given count in deviation.
    */
-  protected static INDArray detectEdges(INDArray mag, int count) {
-    if(mag == null) return null;
-    INDArray peaks = Nd4j.zeros(mag.rows(), 1);
+  protected static INDArray detectEdges(INDArray dev, int count) {
+    if(dev == null) return null;
+    INDArray peaks = Nd4j.zeros(dev.rows(), 1);
     for(int t = 1; t < peaks.rows() - 1; t++) {
-      if((mag.getDouble(t - 1) < mag.getDouble(t)) && (mag.getDouble(t + 1) < mag.getDouble(t))) {
-        peaks.putScalar(t, 0, mag.getDouble(t));
+      if((dev.getDouble(t - 1) < dev.getDouble(t)) && (dev.getDouble(t + 1) < dev.getDouble(t))) {
+        peaks.putScalar(t, 0, dev.getDouble(t));
       } else {
         peaks.putScalar(t, 0, 0);
       }
     }
     
-    INDArray result = Nd4j.zeros(mag.rows(), 1);
+    INDArray result = Nd4j.zeros(dev.rows(), 1);
     
     // sort magnitudes and peaks
     INDArray[] p = Nd4j.sortWithIndices(Nd4j.toFlattened(peaks).dup(), 1, false); // index,value
     INDArray sortedPeaks = p[0]; // ranked indexes
-    INDArray[] m = Nd4j.sortWithIndices(Nd4j.toFlattened(mag).dup(), 1, false); // index,value
+    INDArray[] m = Nd4j.sortWithIndices(Nd4j.toFlattened(dev).dup(), 1, false); // index,value
     INDArray sortedMags = m[0]; // ranked indexes
     
     // pick N - 1 highest peaks
@@ -646,7 +633,7 @@ public class SectorAnnotator extends Annotator {
     
     // fill with highest magnitudes
     int i = 0;
-    while(i < mag.rows() && result.sumNumber().intValue() < count - 1) {
+    while(i < dev.rows() && result.sumNumber().intValue() < count - 1) {
       int idx = sortedMags.getInt(i++);
       if(idx == 0) continue; // first one is always a new section
       if(result.getDouble(idx) == 1.) continue; // was already found as peak
@@ -673,7 +660,10 @@ public class SectorAnnotator extends Annotator {
     result.putScalar(0, 0, 1);
     return result;
   }
-      
+
+  /**
+   * Builder pattern for creating new SECTOR Annotators.
+   */
   public static class Builder {
     
     SectorAnnotator ann;
@@ -825,7 +815,6 @@ public class SectorAnnotator extends Annotator {
       line.append("dropout").append("\t").append(dropOut).append("\n");
       line.append("loss").append("\t").append(lossFunc.toString()).append(requireSubsampling ? " (1-hot subsampled)" : " (1-hot/n-hot)").append("\n");
       line.append("\n");
-      //System.out.println(line.toString());
       return line.toString();
     }
 
