@@ -127,6 +127,7 @@ public class Annotator {
    * @param path Directory to write to
    */
   public void writeModel(Resource path, String name) {
+    log.info("Writing model to {}", path.toString());
     writeComponents(path);
     AnnotatorFactory.writeXML(this, path.resolve(name + ".xml"));
   }
