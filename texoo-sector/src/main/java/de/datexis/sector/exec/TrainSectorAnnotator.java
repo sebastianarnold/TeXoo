@@ -42,6 +42,9 @@ public class TrainSectorAnnotator {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp("texoo-train-sector", "TeXoo: train SectorAnnotator from WikiSection dataset", params.setUpCliOptions(), "", true);
       System.exit(1);
+    } catch(Exception e) {
+      e.printStackTrace();
+      System.exit(1);
     }
    
   }
@@ -77,7 +80,7 @@ public class TrainSectorAnnotator {
       op.addOption("h", "headings", false, "train multi-label model (SEC>H), otherwise single-label model (SEC>T) is used");
       op.addRequiredOption("o", "output", true, "path to create and store the model");
       op.addOption("v", "validation", true, "file name of WikiSection validation dataset (will use early stopping if given)");
-      op.addOption("t", "test", true, "file name of WikiSection test dataset (will test if given)");
+      op.addOption("t", "test", true, "file name of WikiSection test dataset (will test after training if given)");
       op.addOption("e", "embedding", true, "path to word embedding model, will use bloom filters if not given");
       op.addOption("l", "language", true, "language to use for sentence splitting and stopwords (EN or DE)");
       op.addOption("u", "ui", false, "enable training UI (http://127.0.0.1:9000)");
@@ -121,25 +124,41 @@ public class TrainSectorAnnotator {
     // Build the Annotator
     SectorAnnotator sector = builder
       .withDataset(train.getName(), lang)
-      .withModelParams(0, 256, 128)                // ffwLayerSize, lstmLayerSize, embeddingLayerSize is hardcoded here
-      .withTrainingParams(0.01, 0.5, 2048, 16, 10) // learningrate, dropout, batchsize, epochs is hardcoded here
+      .withModelParams(0, 256, 128)                     // ffwLayerSize, lstmLayerSize, embeddingLayerSize is hardcoded here
+      .withTrainingParams(0.01, 0.5, 2048, 396, 16, 10) // learningrate, dropout, epochsize, maxlength, batchsize, epochs is hardcoded here
       .enableTrainingUI(params.trainingUI)
       .build();
 
+    boolean success = false;
     try {
 
       // Train model
       if(validation == null) sector.trainModel(train);
-      else sector.trainModelEarlyStopping(train, validation, 10, 10, 100);
+      else sector.trainModelEarlyStopping(train, validation, 1, 2, 100);
 
       // Save model
+      output = output.resolve(sector.getTagger().getName());
       output.toFile().mkdirs();
-      sector.writeModel(output, sector.getTagger().getName());
+      sector.writeModel(output);
       sector.writeTrainLog(output);
+
+      // Test model
+      if(test != null) {
+        sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.BEMD);
+        sector.evaluateModel(test, false, true, true);
+      }
       sector.writeTestLog(output);
+      success = true;
 
     } finally {
-      if(params.trainingUI) UIServer.getInstance().stop();
+      try {
+        // try to stop the training UI without exception handling and then exit
+        if(params.trainingUI) UIServer.getInstance().stop();
+      } catch(NoClassDefFoundError e) {
+      } catch(Exception e) {
+      } finally {
+        System.exit(success ? 0 : 1);
+      }
     }
 
   }

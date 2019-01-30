@@ -62,8 +62,6 @@ public class ClassificationScoreCalculator extends BaseIEvaluationScoreCalculato
       eval = ((MultiLayerNetwork) network).doEvaluation(i, eval)[0];
     } else if(network instanceof ComputationGraph) {
       MultiDataSetIterator i = (iterator != null ? iterator : new MultiDataSetIteratorAdapter(iter));
-      // FIXME: we cannot call this with multiple outputs
-      //eval = ((ComputationGraph) network).doEvaluation(i, eval)[0];
       evaluate((ComputationGraph)network, eval, i);
       tagger.appendTrainLog(eval.printClassificationAtKStats());
     } else {

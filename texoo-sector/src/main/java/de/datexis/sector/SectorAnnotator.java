@@ -780,7 +780,7 @@ public class SectorAnnotator extends Annotator {
     }
     
     public SectorAnnotator build() {
-      tagger.buildMultiFwBwSectorNetwork(ffwLayerSize, lstmLayerSize, embeddingLayerSize, iterations, learningRate, dropOut, lossFunc, activation);
+      tagger.buildSECTORModel(ffwLayerSize, lstmLayerSize, embeddingLayerSize, iterations, learningRate, dropOut, lossFunc, activation);
       if(enabletrainingUI) tagger.enableTrainingUI();
       tagger.setRequireSubsampling(requireSubsampling);
       tagger.setTrainingParams(examplesPerEpoch, maxTimeSeriesLength, batchSize, numEpochs, true);

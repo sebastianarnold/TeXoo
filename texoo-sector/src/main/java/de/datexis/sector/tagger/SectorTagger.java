@@ -221,7 +221,7 @@ public class SectorTagger extends Tagger {
     this.embeddingLayerSize = embeddingLayerSize;
   }
   
-  public SectorTagger buildMultiFwBwSectorNetwork(int ffwLayerSize, int lstmLayerSize, int embeddingLayerSize, int iterations, double learningRate, double dropout, ILossFunction lossFunc, Activation activation) {
+  public SectorTagger buildSECTORModel(int ffwLayerSize, int lstmLayerSize, int embeddingLayerSize, int iterations, double learningRate, double dropout, ILossFunction lossFunc, Activation activation) {
     log.info("initializing graph with layer sizes bag={}, lstm={}, emb={} and {} loss", ffwLayerSize, lstmLayerSize, embeddingLayerSize, lossFunc.name());
     
     // size of the concatenated input vector (after FF layers)
@@ -269,7 +269,6 @@ public class SectorTagger extends Tagger {
           .gateActivationFunction(Activation.SIGMOID)
           //.dropOut(dropout) // not working in beta2 https://github.com/deeplearning4j/deeplearning4j/issues/6326
           .build()), "sentence");
-      //gb.addVertex("BLSTMFW", new PreprocessorVertex(new RnnToFeedForwardPreProcessor()), "BLSTM");
       gb.addVertex("FW", new SubsetVertex(0, lstmLayerSize - 1), "BLSTM");
       gb.addVertex("BW", new SubsetVertex(lstmLayerSize, (2 * lstmLayerSize) - 1), "BLSTM");
     // EMBEDDING LAYER
@@ -278,14 +277,10 @@ public class SectorTagger extends Tagger {
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
             .build(), "FW")
-        //.addVertex("embeddingFW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckFW")
         .addLayer("embeddingBW", new DenseLayer.Builder()
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
             .build(), "BW");
-        //.addVertex("embeddingBW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckBW");
-        //.addVertex("prev", new LastTimeStepVertex("bag"), "target")
-      //gb.addVertex("embedding", new ElementWiseVertex(ElementWiseVertex.Op.Average), "embeddingFW", "embeddingBW").allowDisconnected(true);
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
@@ -308,8 +303,6 @@ public class SectorTagger extends Tagger {
             .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "BW");
       }
-      //gb.allowDisconnected(true);
-     // gb.addVertex("target", new ElementWiseVertex(ElementWiseVertex.Op.Average), "targetFW", "targetBW");
       // OUTPUT LAYER
       gb.setOutputs("targetFW", "targetBW")
         .setInputTypes(InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize))
@@ -347,13 +340,13 @@ public class SectorTagger extends Tagger {
     int n = 0;
     Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
-      appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
+      appendTrainLog("Starting epoch " + i + " of " + numEpochs);
       triggerEpochListeners(true, i - 1);
       getNN().fit(it);
       //wrapper.fit(it);
       n += numExamples;
       timer.setSplit("epoch");
-      appendTrainLog("Completed epoch " + i + " of " + numEpochs + "\t" + n, timer.getLong("epoch"));
+      appendTrainLog("Completed epoch " + i + " of " + numEpochs, timer.getLong("epoch"));
       triggerEpochListeners(false, i - 1);
       if(i < numEpochs) it.reset(); // shuffling may take some time
       Nd4j.getMemoryManager().invokeGc();
@@ -365,8 +358,8 @@ public class SectorTagger extends Tagger {
   }
   
   public EarlyStoppingResult<ComputationGraph> trainModel(Dataset train, Dataset validation, EarlyStoppingConfiguration conf) {
-    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, batchSize, maxTimeSeriesLength, true, requireSubsampling);
-    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, batchSize, maxTimeSeriesLength, false, requireSubsampling);
+    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
+    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, -1, maxTimeSeriesLength, batchSize, false, requireSubsampling);
     int batches = trainIt.numExamples / batchSize;
     timer.start();
     appendTrainLog("Training " + getName() + " with " + trainIt.numExamples + " examples in " + batches + " batches using early stopping.");
@@ -375,27 +368,29 @@ public class SectorTagger extends Tagger {
       @Override
       public void onStart(EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
         //Nd4j.getWorkspaceManager().destroyAllWorkspacesForCurrentThread();
-        Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
+        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
       }
       @Override
       public void onEpoch(int epochNum, double score, EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
         log.info("Finished epoch {} with score {}", epochNum, 1. - score);
-        Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
-        Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
+        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
+        //Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
         /*try(MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace("SECTOR_TRAINING")) {
           ws.destroyWorkspace();
         }*/
+        Nd4j.getMemoryManager().invokeGc();
       }
       @Override
       public void onCompletion(EarlyStoppingResult<ComputationGraph> result) {
         log.info("Finished training with result {}", result.toString());
       }
     };
-    
+
     //EarlyStoppingParallelTrainer trainer = new EarlyStoppingParallelTrainer(conf, getNN(), null, trainIt, listener, 4, 4, 1, false, false);
     EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(conf, getNN(), trainIt, listener);
-
+    Nd4j.getMemoryManager().togglePeriodicGc(false);
     EarlyStoppingResult<ComputationGraph> result = trainer.fit();
+    Nd4j.getMemoryManager().togglePeriodicGc(true);
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
     net = result.getBestModel();

@@ -176,17 +176,30 @@ public class SectorEvaluation extends AnnotatorEvaluation {
    * Print out the Evaluation results table.
    */
   public String printEvaluationStats() {
+
+    if(sentenceClassEval == null) enableSentenceEval = false;
+    if(segmentationEval == null) enableSegmentationEval = false;
+    if(segmentClassEval == null) enableSegmentEval = false;
+
     StringBuilder line = new StringBuilder();
     line.append("SECTOR EVALUATION [micro-avg] ").append(targetEncoderClass.getSimpleName()).append("\n")
-        .append("|statistics ---\t|sentence classification -------------------------------------\t|segmentation --------------------------------\t|segment classification ----------------------------\n")
-        .append("||docs|\t|sents|\t| A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP\t| |exp|\t |relv|\t |pred|\t |retr|\t Pk\t WD\t| A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP")
-        .append("\n");
+        .append("|statistics ---\t");
+    if(enableSentenceEval)     line.append("|sentence classification -------------------------------------\t");
+    if(enableSegmentationEval) line.append("|segmentation --------------------------------\t");
+    if(enableSegmentEval)      line.append("|segment classification ----------------------------");
+    line.append("\n")
+        .append("||docs|\t|sents|\t");
+    if(enableSentenceEval)     line.append("| A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP\t");
+    if(enableSegmentationEval) line.append("| |exp|\t |relv|\t |pred|\t |retr|\t Pk\t WD\t");
+    if(enableSegmentEval)      line.append("| A@1\t A@3\t P@1\t P@3\t R@1\t R@3\t MAP");
+    line.append("\n");
+
     // statistics
     line.append(fInt(this.countDocuments())).append("\t");
     line.append(fInt(this.countExamples())).append("\t");
     
     // Topic Classification: label(s) per sentence
-    if(enableSentenceEval && sentenceClassEval != null) {
+    if(enableSentenceEval) {
       line.append(fDbl(sentenceClassEval.getAccuracy())).append("\t");
       line.append(fDbl(sentenceClassEval.getAccuracyK())).append("\t");
       line.append(fDbl(sentenceClassEval.getPrecision1())).append("\t");
@@ -194,24 +207,20 @@ public class SectorEvaluation extends AnnotatorEvaluation {
       line.append(fDbl(sentenceClassEval.getRecall1())).append("\t");
       line.append(fDbl(sentenceClassEval.getRecallK())).append("\t");
       line.append(fDbl(sentenceClassEval.getMAP())).append("\t");
-    } else {
-      line.append("\t\t\t\t\t\t\t");
     }
     
     // Topic Segementation: segmentation
-    if(enableSegmentationEval && segmentationEval != null) {
+    if(enableSegmentationEval) {
       line.append(fInt(this.countSections())).append("\t");
       line.append(fInt(segmentationEval.getCountExpected())).append("\t");
       line.append(fInt(this.countPredictions())).append("\t");
       line.append(fInt(segmentationEval.getCountPredicted())).append("\t");
       line.append(fDbl(segmentationEval.getPk())).append("\t");
       line.append(fDbl(segmentationEval.getWD())).append("\t");
-    } else {
-      line.append("\t\t\t\t\t\t");
     }
     
     // Topic Classification: label(s) per segment
-    if(enableSegmentEval && segmentClassEval != null) {
+    if(enableSegmentEval) {
       line.append(fDbl(segmentClassEval.getAccuracy())).append("\t");
       line.append(fDbl(segmentClassEval.getAccuracyK())).append("\t");
       line.append(fDbl(segmentClassEval.getPrecision1())).append("\t");
@@ -219,8 +228,6 @@ public class SectorEvaluation extends AnnotatorEvaluation {
       line.append(fDbl(segmentClassEval.getRecall1())).append("\t");
       line.append(fDbl(segmentClassEval.getRecallK())).append("\t");
       line.append(fDbl(segmentClassEval.getMAP())).append("\t");
-    } else {
-      line.append("\t\t\t\t\t\t\t");
     }
     
     line.append("\n");

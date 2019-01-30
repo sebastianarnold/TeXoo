@@ -34,8 +34,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
   protected int numClasses;
   protected int K;
   protected Evaluation eval;
-  protected ROCMultiClass evalROC;
-  
+
   /** average precision */
   protected double mrrsum = 0., mapsum = 0., p1sum = 0., r1sum = 0., pksum = 0., rksum = 0.;
   
@@ -56,8 +55,6 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
 
   protected void clear() {
     eval = new Evaluation(encoder.getWords(), K);
-    evalROC = new ROCMultiClass();
-    evalROC.setLabels(encoder.getWords());
     countDocs = 0;
     countExamples = 0;
     mrrsum = 0.;
@@ -147,12 +144,10 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
   public void evalExample(INDArray Y, INDArray Z) {
     // pre-calculate ranked indices
     INDArray[] z = Nd4j.sortWithIndices(Nd4j.toFlattened(Z).dup(), 1, false); // index,value
-    if(z[0].sumNumber().doubleValue() == 0.) // TODO: sortWithIndices could be run on dimension -1 / 0 / 1 ?
+    if(z[0].sumNumber().doubleValue() == 0.)
       log.warn("Sort on zero vector - please check vector dimensions!");
     INDArray Zi = z[0]; // ranked indexes
     eval.eval(Y, Z);
-    // FIXME: evalROC accesses array pointer from LOOP workspace?
-    // if(Y.length() < 256) evalROC.eval(Y, Z); // ROC evaluation is too slow for larger vectors
     mapsum += AP(Y, Z, Zi);
     mrrsum += RR(Y, Z, Zi);
     p1sum += Prec(Y, Z, Zi, 1);
@@ -373,36 +368,6 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     return eval.f1(c);
   }
   
-  protected double getMicroAUC() {
-    double sum = 0.0;
-    for (int c = 0; c < numClasses; c++) {
-      sum += eval.getConfusionMatrix().getActualTotal(c) * getAUC(c);
-    }
-    return sum / countExamples;
-  }
-  
-  protected double getMacroAUC() {
-    double sum = 0.0;
-    for (int c = 0; c < numClasses; c++) {
-      sum += getAUC(c);
-    }
-    return sum / numClasses;
-  }
-  
-  protected double getAUC(int c) {
-    if(evalROC.getNumClasses() <= 0) return 0.0; // ROC might not have been calculated due to too many classes
-    double auc = evalROC.calculateAUC(c);
-    return Double.isNaN(auc) ? 0.5 : auc;
-  }
-  
-  protected double getMCC() {
-    return eval.matthewsCorrelation(EvaluationAveraging.Micro);
-  }
-  
-  protected double getMCC(int c) {
-    return eval.matthewsCorrelation(c);
-  }
-  
   protected double getMRR() {
     return mrrsum / countExamples;
   }
@@ -509,8 +474,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
   public String printClassificationAtKStats() {
     ClassificationEvaluation eval = this;
     StringBuilder line = new StringBuilder();
-    line.append(" AUC\t Acc@1\t Acc@").append(K).append("\t P@1\t P@").append(K).append("\t R@1\t R@").append(K).append("\t MAP\n");
-    line.append(fDbl(eval.getMicroAUC())).append("\t");
+    line.append(" Acc@1\t Acc@").append(K).append("\t P@1\t P@").append(K).append("\t R@1\t R@").append(K).append("\t MAP\n");
     line.append(fDbl(eval.getAccuracy())).append("\t");
     line.append(fDbl(eval.getAccuracyK())).append("\t");
     line.append(fDbl(eval.getPrecision1())).append("\t");
@@ -526,12 +490,10 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
   public String printClassificationStats() {
     ClassificationEvaluation eval = this;
     StringBuilder line = new StringBuilder();    
-    line.append(" count\t TP\t FP\t micAUC\t macAUC\t MRR\t P@1\t MAP\t mPrec\t mRec\t mF1\n");
+    line.append(" count\t TP\t FP\t MRR\t P@1\t MAP\t mPrec\t mRec\t mF1\n");
     line.append(fInt(eval.countExamples())).append("\t");
     line.append(fInt(eval.eval.getTruePositives().totalCount())).append("\t");
     line.append(fInt(eval.eval.getFalsePositives().totalCount())).append("\t");
-    line.append(fDbl(eval.getMicroAUC())).append("\t");
-    line.append(fDbl(eval.getMacroAUC())).append("\t");
     line.append(fDbl(eval.getMRR() / 100.)).append("\t");
     line.append(fDbl(eval.getAccuracy())).append("\t"); // Accuracy = Micro F1
     line.append(fDbl(eval.getMAP())).append("\t");
