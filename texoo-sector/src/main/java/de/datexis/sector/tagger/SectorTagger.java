@@ -41,9 +41,7 @@ import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
-import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
@@ -372,7 +370,7 @@ public class SectorTagger extends Tagger {
       }
       @Override
       public void onEpoch(int epochNum, double score, EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
-        log.info("Finished epoch {} with score {}", epochNum, 1. - score);
+        //log.info("Finished epoch {} with score {}", epochNum, score);
         //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
         //Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
         /*try(MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace("SECTOR_TRAINING")) {

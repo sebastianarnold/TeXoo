@@ -12,13 +12,11 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.evaluation.EvaluationAveraging;
 import org.nd4j.evaluation.EvaluationUtils;
 import org.nd4j.evaluation.IEvaluation;
-import org.nd4j.evaluation.classification.ROCMultiClass;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.primitives.Pair;
@@ -37,8 +35,6 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
 
   /** average precision */
   protected double mrrsum = 0., mapsum = 0., p1sum = 0., r1sum = 0., pksum = 0., rksum = 0.;
-  
-  //protected TreeMap<Measure,Counter<Integer>> counts;
   
   public ClassificationEvaluation(String experimentName, LookupCacheEncoder encoder) {
     this(experimentName, Annotation.Source.GOLD, Annotation.Source.PRED, encoder, 3);
@@ -483,7 +479,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     line.append(fDbl(eval.getRecallK())).append("\t");
     line.append(fDbl(eval.getMAP())).append("\t");
     line.append("\n");
-    System.out.println(line.toString());
+    //System.out.println(line.toString());
     return line.toString();
   }
   
@@ -501,7 +497,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     line.append(fDbl(eval.getMacroRecall())).append("\t");
     line.append(fDbl(eval.getMacroF1())).append("\t");
     line.append("\n");
-    System.out.println(line.toString());
+    //System.out.println(line.toString());
     return line.toString();
   }
   

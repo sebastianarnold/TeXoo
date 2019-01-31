@@ -2,10 +2,8 @@ package de.datexis.sector.exec;
 
 import de.datexis.common.*;
 import de.datexis.common.CommandLineParser;
-import de.datexis.encoder.*;
 import de.datexis.encoder.impl.*;
 import de.datexis.model.*;
-import de.datexis.parvec.encoder.ParVecWordsEncoder;
 import de.datexis.rnn.loss.MultiClassDosSantosPairwiseRankingLoss;
 import de.datexis.sector.SectorAnnotator;
 import de.datexis.sector.encoder.*;
@@ -134,7 +132,7 @@ public class TrainSectorAnnotator {
 
       // Train model
       if(validation == null) sector.trainModel(train);
-      else sector.trainModelEarlyStopping(train, validation, 1, 2, 100);
+      else sector.trainModelEarlyStopping(train, validation, 10, 10, 100);
 
       // Save model
       output = output.resolve(sector.getTagger().getName());
@@ -199,9 +197,6 @@ public class TrainSectorAnnotator {
     // build Section Encoder
     ClassEncoder targetEncoder = new ClassEncoder();
     targetEncoder.trainModel(sections, 0);
-    ClassTag.Factory classTags = new ClassTag.Factory(targetEncoder);
-    // FIXME: not needed?
-    //for(Document doc : train.getDocuments()) classTags.attachFromSectionAnnotations(doc, Annotation.Source.GOLD);
 
     return builder
       .withId("SEC>T")
@@ -226,9 +221,6 @@ public class TrainSectorAnnotator {
     // build Heading Encoder
     HeadingEncoder targetEncoder = new HeadingEncoder();
     targetEncoder.trainModel(headings, 20, lang); // ignore words with less than 20 occurences
-    HeadingTag.Factory headingTags = new HeadingTag.Factory(targetEncoder);
-    // FIXME: not needed?
-    //for(Document doc : train.getDocuments()) headingTags.attachFromSectionAnnotations(doc, Annotation.Source.GOLD);
 
     return builder
       .withId("SEC>H")
