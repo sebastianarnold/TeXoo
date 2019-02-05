@@ -1,17 +1,27 @@
 package de.datexis.encoder.impl;
 
 import cc.fasttext.FastText;
+import cc.fasttext.Matrix;
 import cc.fasttext.Vector;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import de.datexis.common.*;
 import de.datexis.encoder.Encoder;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import de.datexis.model.*;
 import de.datexis.model.Token;
 import java.io.IOException;
-import java.util.Collection;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import de.datexis.preprocess.SentenceDetectorMENL;
 import org.apache.commons.io.FileUtils;
-import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.apache.commons.lang.Validate;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -32,13 +42,34 @@ public class FastTextEncoder extends Encoder {
   private Resource modelPath;
   private long size = 0;
   private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
-  
+
+  private Method getPrecomputedWordVectors, findNN;
+
 	public FastTextEncoder() {
     super("FT");
   }
   
   public FastTextEncoder(String id) {
     super(id);
+  }
+
+  private void initializeMethodsFromReflection() {
+    try {
+      // we need to get some methods from FastText through reflection
+      getPrecomputedWordVectors = ft.getClass().getDeclaredMethod("getPrecomputedWordVectors");
+      getPrecomputedWordVectors.setAccessible(true);
+      findNN = ft.getClass().getDeclaredMethod("findNN", Matrix.class, Vector.class, int.class, Set.class);
+      findNN.setAccessible(true);
+      /*for(Method method : ft.getClass().getDeclaredMethods()) {
+        if(method.getName().equals("getPrecomputedWordVectors")) {
+          getPrecomputedWordVectors = method;
+        } else if(method.getName().equals("findNN")) {
+          findNN = method;
+        }
+      }*/
+    } catch(Exception ex) {
+      java.util.logging.Logger.getLogger(SentenceDetectorMENL.class.getName()).log(Level.SEVERE, null, ex);
+    }
   }
 
   public static FastTextEncoder load(Resource path) throws IOException {
@@ -51,6 +82,7 @@ public class FastTextEncoder extends Encoder {
   public void loadModel(Resource modelFile) throws IOException {
     log.info("Loading FastText model: " +  modelFile.getFileName());
     ft = FastText.DEFAULT_FACTORY.load(modelFile.getInputStream());
+    initializeMethodsFromReflection();
     size = ft.getWordVector("the").size();
     setModel(modelFile);
     setModelAvailable(true);
@@ -90,11 +122,20 @@ public class FastTextEncoder extends Encoder {
     }
     return arr;
   }
+
+  /**
+   * @return INDArray as FastText Vector
+   */
+  protected Vector asVector(INDArray arr) {
+    Vector vec = new Vector((int)arr.length());
+    for(int i = 0; i < arr.length(); i++) {
+      vec.set(i, arr.getFloat(i));
+    }
+    return vec;
+  }
   
 	/**
 	 * Use this function to access word vectors
-	 * @param word
-	 * @return
 	 */
 	protected INDArray getWordVector(String word) {
 		return asINDArray(ft.getWordVector(word));
@@ -102,8 +143,6 @@ public class FastTextEncoder extends Encoder {
   
   /**
 	 * Use this function to access sentence vectors
-	 * @param word
-	 * @return
 	 */
 	protected INDArray getSentenceVector(String sentence) {
 		return asINDArray(ft.getSentenceVector(sentence));
@@ -127,20 +166,37 @@ public class FastTextEncoder extends Encoder {
 
   /**
    * Encodes the word. Returns nullvector if word was not found.
-   * @param word
-   * @return 
    */
 	@Override
 	public INDArray encode(String word) {
-    return getWordVector(word);
+	  if(word.contains(" ")) return getSentenceVector(word);
+	  else return getWordVector(word);
 	}
 
-	public Collection<String> getNearestNeighbours(String word, int k) {
-		return ft.nn(k, word).keySet();
+	public List<String> getNearestNeighbours(String word, int k) {
+    Multimap<String, Float> result = ft.nn(k, word);
+    return result.entries().stream()
+      .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+      .map(e -> e.getKey())
+      .collect(Collectors.toList());
 	}
 
-	public Collection<String> getNearestNeighbours(INDArray v, int k) {
-		throw new UnsupportedOperationException("not implemented");
-	}
+	public List<String> getNearestNeighbours(INDArray v, int k) {
+    try {
+      Validate.isTrue(k > 0, "Not positive factor");
+      Matrix wordVectors = null;
+      wordVectors = (Matrix) getPrecomputedWordVectors.invoke(ft);
+      Set<String> banSet = new HashSet<>();
+      Vector queryVec = asVector(v);
+      Multimap<String, Float> result = Multimaps.invertFrom((Multimap<Float, String>) findNN.invoke(ft, wordVectors, queryVec, k, banSet), ArrayListMultimap.create());
+      return result.entries().stream()
+        .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+        .map(e -> e.getKey())
+        .collect(Collectors.toList());
+    } catch(IllegalAccessException | InvocationTargetException e) {
+      e.printStackTrace();
+    }
+    return Collections.EMPTY_LIST;
+  }
 
 }
