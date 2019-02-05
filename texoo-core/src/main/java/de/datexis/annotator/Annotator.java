@@ -142,7 +142,7 @@ public class Annotator {
   
   public void writeComponents(Resource path) {
       if(tagger != null) tagger.saveModel(path, tagger.getId().toLowerCase());
-      for(AnnotatorComponent comp : components.values()) {
+      for(IComponent comp : components.values()) {
         try {
           comp.saveModel(path, comp.getId().toLowerCase());
         } catch(UnsupportedOperationException ex) {
@@ -159,7 +159,7 @@ public class Annotator {
     return tagger.isModelAvailableInChildren();
   }
   
-  public AnnotatorComponent getComponent(String id) {
+  public IComponent getComponent(String id) {
     return components.get(id);
   }
   

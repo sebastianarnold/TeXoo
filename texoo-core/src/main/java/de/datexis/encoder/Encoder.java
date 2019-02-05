@@ -3,6 +3,7 @@ package de.datexis.encoder;
 import com.google.common.collect.Lists;
 
 import de.datexis.annotator.AnnotatorComponent;
+import de.datexis.annotator.IComponent;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
@@ -21,7 +22,7 @@ import org.nd4j.linalg.factory.Nd4j;
  * E.g. word embedding
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public abstract class Encoder extends AnnotatorComponent implements IEncoder {
+public abstract class Encoder extends AnnotatorComponent implements IEncoder, IComponent {
 
   public Encoder() {
     this("");

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
+import de.datexis.encoder.IEncoder;
 import de.datexis.model.tag.Tag;
 import java.io.IOException;
 import java.util.EnumMap;
@@ -129,7 +130,7 @@ public abstract class Span implements Comparable<Span> {
    * @param type The Encoder class that generated the vector.
    * @param vec  The Vector itself. Will be cached in memory.
    */
-  public void putVector(Class<? extends Encoder> type, INDArray vec) {
+  public void putVector(Class<? extends IEncoder> type, INDArray vec) {
     putVector(type.getCanonicalName(), vec);
   }
   
@@ -178,7 +179,7 @@ public abstract class Span implements Comparable<Span> {
    * @param type The Encoder class that generated the vector.
    * @return A previously added INDArray or null
    */
-  public INDArray getVector(Class<? extends Encoder> type) {
+  public INDArray getVector(Class<? extends IEncoder> type) {
     return getVector(type.getCanonicalName());
   }
   

@@ -1,5 +1,6 @@
 package de.datexis.sector.tagger;
 
+import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
@@ -72,17 +74,10 @@ public class SectorTagger extends Tagger {
   // a single target encoder
   protected Encoder targetEncoder = null;
   
-  protected int batchSize = 16;
-  protected int maxTimeSeriesLength = -1;
-  protected int numExamples = -1;
-  protected int numEpochs = 1;
-  protected boolean randomize = true;
   protected int workers = 4;
   
   protected boolean requireSubsampling;
-  
-  protected int embeddingLayerSize;
-  
+
   protected ModelEvaluation eval = new ModelEvaluation("null");
   protected final FeedForwardToRnnPreProcessor ff2rnn = new FeedForwardToRnnPreProcessor();
 
@@ -123,15 +118,6 @@ public class SectorTagger extends Tagger {
     this.targetEncoder = targetEncoder;
   }
 
-  public SectorTagger setTrainingParams(int examplesPerEpoch, int maxTimeSeriesLength, int batchSize, int numEpochs, boolean randomize) {
-    this.numExamples = examplesPerEpoch;
-    this.maxTimeSeriesLength = maxTimeSeriesLength;
-    this.batchSize = batchSize;
-    this.numEpochs = numEpochs;
-    this.randomize = randomize;
-    return this;
-  }
-  
   public SectorTagger setWorkspaceParams(int workers) {
     this.workers = workers;
     return this;
@@ -139,84 +125,23 @@ public class SectorTagger extends Tagger {
 
   @Override
   @JsonIgnore
-  public EncoderSet getEncoders() {
-    // FIXME: better return a map <role,encoder>
-    return new EncoderSet(bagEncoder, embEncoder, flagEncoder);
-  }
-
-  @Override
-  public void addInputEncoder(Encoder e) {
-    if(bagEncoder == null) bagEncoder = e;
-    else if(embEncoder == null) embEncoder = e;
-    else if(flagEncoder == null) flagEncoder = e;
-    else throw new IllegalArgumentException("all three input encoders are already set");
-  }
-
-  @Override
-  @JsonIgnore
-  public EncoderSet getTargetEncoders() {
-    return new EncoderSet(targetEncoder);
+  public List<Encoder> getEncoders() {
+    return Lists.newArrayList(bagEncoder, embEncoder, flagEncoder, targetEncoder);
   }
 
   @JsonIgnore
   public Encoder getTargetEncoder() {
     return targetEncoder;
   }
-  
+
   @Override
-  public void addTargetEncoder(Encoder e) {
-    if(targetEncoder == null) targetEncoder = e;
-    else throw new IllegalArgumentException("target encoder is already set");
-  }
-  
-  public void setEval(ModelEvaluation eval) {
-    this.eval = eval;
-  }
-  
-  @Override
-  public SectorTagger setEncoders(EncoderSet encoders) {
-    this.encoders = encoders;
-    this.inputVectorSize = encoders.getEmbeddingVectorSize();
-    return this;
-  }
-  
-  @Override
-  @Deprecated
-  public void addEncoder(Encoder e) {
-    // FIXME: we should add input and target encodersets to the XML
-    throw new UnsupportedOperationException("multi encoders not implemented yet.");
-  }
-
-  public int getBatchSize() {
-    return batchSize;
-  }
-
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
-  }
-
-  public int getNumEpochs() {
-    return numEpochs;
-  }
-
-  public void setNumEpochs(int numEpochs) {
-    this.numEpochs = numEpochs;
-  }
-
-  public boolean isRandomize() {
-    return randomize;
-  }
-
-  public void setRandomize(boolean randomize) {
-    this.randomize = randomize;
-  }
-
-  public int getEmbeddingLayerSize() {
-    return embeddingLayerSize;
-  }
-
-  public void setEmbeddingLayerSize(int embeddingLayerSize) {
-    this.embeddingLayerSize = embeddingLayerSize;
+  public void setEncoders(List<Encoder> encoders) {
+    if(encoders.size() != 4)
+      throw new IllegalArgumentException("wrong number of encoders given (expected=4, actual=" + encoders.size() + ")");
+    bagEncoder = encoders.get(0);
+    embEncoder = encoders.get(1);
+    flagEncoder = encoders.get(2);
+    targetEncoder = encoders.get(3);
   }
   
   public SectorTagger buildSECTORModel(int ffwLayerSize, int lstmLayerSize, int embeddingLayerSize, int iterations, double learningRate, double dropout, ILossFunction lossFunc, Activation activation) {

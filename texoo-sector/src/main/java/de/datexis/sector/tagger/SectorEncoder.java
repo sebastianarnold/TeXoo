@@ -140,34 +140,6 @@ public class SectorEncoder extends Encoder {
   }
 
   @Override
-  @JsonIgnore
-  public EncoderSet getEncoders() {
-    return tagger.getEncoders();
-  }
-
-  @Override
-  public AnnotatorComponent setEncoders(EncoderSet encs) {
-    tagger.setEncoders(encs);
-    return this;
-  }
-  
-  @Override
-  @JsonIgnore
-  public EncoderSet getTargetEncoders() {
-    return tagger.getTargetEncoders();
-  }
-
-  @Override
-  public void addInputEncoder(Encoder e) {
-    tagger.addInputEncoder(e);
-  }
-
-  @Override
-  public void addTargetEncoder(Encoder e) {
-    tagger.addTargetEncoder(e);
-  }
-  
-  @Override
   public String getName() {
     return tagger.getName();
   }

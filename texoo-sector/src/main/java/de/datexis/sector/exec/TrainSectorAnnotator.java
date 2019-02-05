@@ -132,7 +132,7 @@ public class TrainSectorAnnotator {
 
       // Train model
       if(validation == null) sector.trainModel(train);
-      else sector.trainModelEarlyStopping(train, validation, 10, 10, 100);
+      else sector.trainModelEarlyStopping(train, validation, 10, 10, 100); // minepochs, tryepochs, maxepochs is hardcoded here
 
       // Save model
       output = output.resolve(sector.getTagger().getName());

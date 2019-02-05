@@ -10,9 +10,7 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
 import de.datexis.sector.encoder.ClassEncoder;
-import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
-import de.datexis.sector.encoder.HeadingTag;
 
 import de.datexis.sector.model.SectionAnnotation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -25,10 +23,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Iterates through a Dataset with Document-Level Batches of Sentences
@@ -131,14 +125,14 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       Iterator<SectionAnnotation> it = anns.iterator();
       if(!it.hasNext()) return encoding; // no annotations
       SectionAnnotation ann = it.next();
-      INDArray vec = encodeTag(tagger.targetEncoder, ann);
+      INDArray vec = encodeAnnotation(tagger.targetEncoder, ann);
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         Span s = spansToEncode.get(t);
         if(s.getBegin() >= ann.getEnd() && it.hasNext()) {
           // encode the next section
           ann = it.next();
-          vec = encodeTag(tagger.targetEncoder, ann);
+          vec = encodeAnnotation(tagger.targetEncoder, ann);
         }
         encoding.getRow(batchIndex).getColumn(t).assign(vec.dup()); // this one is faster
       }
@@ -147,7 +141,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
     return encoding;
   }
 
-  protected INDArray encodeTag(Encoder enc, SectionAnnotation ann) {
+  protected INDArray encodeAnnotation(Encoder enc, SectionAnnotation ann) {
     if(enc instanceof HeadingEncoder) {
       if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(ann.getSectionHeading());
       else return ((HeadingEncoder) enc).encode(ann.getSectionHeading());

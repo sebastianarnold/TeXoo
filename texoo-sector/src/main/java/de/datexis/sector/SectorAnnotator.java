@@ -758,14 +758,6 @@ public class SectorAnnotator extends Annotator {
       return this;
     }
     
-    public Builder withExistingComponents(SectorAnnotator parent) {
-      for(Map.Entry<String, AnnotatorComponent> comp : parent.components.entrySet()) {
-        //if(!ann.components.containsKey(comp.getKey())) ann.addComponent(comp.getValue()); // String Key match
-        if(!ann.components.containsValue(comp.getValue())) ann.addComponent(comp.getValue()); // Instance match
-      }
-      return this;
-    }
-        
     public Builder enableTrainingUI(boolean enable) {
       this.enabletrainingUI = enable;
       return this;
@@ -793,12 +785,8 @@ public class SectorAnnotator extends Annotator {
     private String printParams() {
       StringBuilder line = new StringBuilder();
       line.append("TRAINING PARAMS: ").append(tagger.getName()).append("\n");
-      line.append("\nInput Encoders:\n");
+      line.append("\nEncoders:\n");
       for(Encoder e : tagger.getEncoders()) {
-        line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getEmbeddingVectorSize()).append("\n");
-      }
-      line.append("\nTarget Encoders:\n");
-      for(Encoder e : tagger.getTargetEncoders()) {
         line.append(e.getId()).append("\t").append(e.getClass().getSimpleName()).append("\t").append(e.getEmbeddingVectorSize()).append("\n");
       }
       line.append("\nNetwork Params:\n");

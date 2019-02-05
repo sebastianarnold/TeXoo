@@ -1,7 +1,11 @@
 package de.datexis.tagger;
 
 import de.datexis.annotator.AnnotatorComponent;
+import de.datexis.annotator.IComponent;
 import de.datexis.common.Resource;
+import de.datexis.encoder.Encoder;
+import de.datexis.encoder.IDecoder;
+import de.datexis.encoder.IEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
@@ -12,7 +16,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
@@ -29,28 +35,41 @@ import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.nd4j.shade.jackson.databind.JsonNode;
 
 /**
- * A Tagger is a neural network that adds Tags to Spans, e.g. LSTM for Named Entity Recognition.
- * @author sarnold
+ * A Deep Neural Network Tagger. This is basically a wrapper for ComputationGraph
+ * with references to its Encoders.
+ * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public abstract class Tagger extends AnnotatorComponent {
   
   protected static final Logger log = LoggerFactory.getLogger(Tagger.class);
 
-  /**
-   * Size of the input vector
-   */
+  // --- network parameters ----------------------------------------------------
+
+  /** Size of the input vector */
   protected long inputVectorSize;
-  
-  /**
-   * Size of the output vector
-   */
+
+  /** Size of the embedding vector */
+  protected long embeddingVectorSize;
+
+  /** Size of the output vector */
   protected long outputVectorSize;
-  
-  /**
-   * The network to train
-   */
+
+  private List<Encoder> encoders = new ArrayList<>();
+
+  // --- training parameters ---------------------------------------------------
+
+  protected int batchSize = 16;
+  protected int maxTimeSeriesLength = -1;
+  protected int numExamples = -1;
+  protected int numEpochs = 1;
+  protected boolean randomize = true;
+  protected int embeddingLayerSize;
+
+  /** The network to train */
   protected Model net;
-  
+
+  // --- constructors ----------------------------------------------------------
+
   public Tagger(String id) {
     super(false);
     this.id = id;
@@ -70,44 +89,66 @@ public abstract class Tagger extends AnnotatorComponent {
     //this.inputVectorSize = lstm.getLayerWiseConfigurations().getConf(0).
     //this.outputVectorSize = outputVectorSize; // number of outputs (K)
   }
-  
-  public void tag(Stream<Document> docs) {
-    tag(docs.collect(Collectors.toList()));
+
+  // --- property getters / setters --------------------------------------------
+
+  public int getBatchSize() {
+    return batchSize;
   }
-  
-  public abstract void tag(Collection<Document> docs);
-  
-  public void trainModel(Dataset train) {
-    trainModel(train, Annotation.Source.GOLD);
+
+  public void setBatchSize(int batchSize) {
+    this.batchSize = batchSize;
   }
-  
-  public void trainModel(Dataset train, Annotation.Source expected) {
-    throw new UnsupportedOperationException("Training not implemented");
+
+  public int getNumEpochs() {
+    return numEpochs;
   }
-  
-  /*public void trainModel(Stream<Document> train) {
-    throw new UnsupportedOperationException("Training not implemented");
-  }*/
-  
-  public void testModel(Dataset test) {
-    testModel(test, Annotation.Source.GOLD);
+
+  public void setNumEpochs(int numEpochs) {
+    this.numEpochs = numEpochs;
   }
-  
-  public void testModel(Dataset test, Annotation.Source expected) {
-    throw new UnsupportedOperationException("Testing not implemented");
+
+  public boolean isRandomize() {
+    return randomize;
   }
-  
+
+  public void setRandomize(boolean randomize) {
+    this.randomize = randomize;
+  }
+
+  public int getEmbeddingLayerSize() {
+    return embeddingLayerSize;
+  }
+
+  public void setEmbeddingLayerSize(int embeddingLayerSize) {
+    this.embeddingLayerSize = embeddingLayerSize;
+  }
+
   @JsonIgnore
   public Model getNN() {
     return net;
   }
-  
+
+  // --- serialization getters / setters ---------------------------------------
+
+  public void setEncoders(List<Encoder> encs) {
+    encoders = encs;
+  }
+
+  /**
+   * @return all Encoders (input & output) as Components (not IEncoder)
+   */
+  @JsonIgnore
+  public List<Encoder> getEncoders() {
+    return encoders;
+  }
+
   public ComputationGraphConfiguration getGraphConfiguration() {
     if(net == null) return null;
     else if(net instanceof ComputationGraph) return ((ComputationGraph) net).getConfiguration();
     else return null;
   }
-  
+
   public void setGraphConfiguration(JsonNode conf) {
     if(conf != null) {
       String json = conf.toString();
@@ -117,13 +158,13 @@ public abstract class Tagger extends AnnotatorComponent {
       }
     }
   }
-  
+
   public MultiLayerConfiguration getLayerConfiguration() {
     if(net == null) return null;
     else if(net instanceof MultiLayerNetwork) return ((MultiLayerNetwork) net).getLayerWiseConfigurations();
     else return null;
   }
-  
+
   public void setLayerConfiguration(JsonNode conf) {
     if(conf != null) {
       String json = conf.toString();
@@ -133,11 +174,30 @@ public abstract class Tagger extends AnnotatorComponent {
       }
     }
   }
-  
+
   public void setListeners(IterationListener... listeners) {
     net.setListeners(listeners);
   }
-  
+
+  /**
+   * @return True, iff all models in all children components are loaded and trained.
+   */
+  @Override
+  @JsonIgnore
+  public boolean isModelAvailableInChildren() {
+    return encoders.stream().allMatch(child -> child.isModelAvailable());
+  }
+
+  // --- builder setters -------------------------------------------------------
+
+  public void setTrainingParams(int examplesPerEpoch, int maxTimeSeriesLength, int batchSize, int numEpochs, boolean randomize) {
+    this.numExamples = examplesPerEpoch;
+    this.maxTimeSeriesLength = maxTimeSeriesLength;
+    this.batchSize = batchSize;
+    this.numEpochs = numEpochs;
+    this.randomize = randomize;
+  }
+
   /**
    * Saves the model to <name>.bin.gz
    * @param modelPath
@@ -217,16 +277,21 @@ public abstract class Tagger extends AnnotatorComponent {
       log.error(ex.toString());
     }
   }
-  
-  public void printModelStats() {
-    /*Layer[] layers = net.getLayers();
-		int totalNumParams = 0;
-		for (int i = 0; i < layers.length; i++) {
-			int nParams = layers[i].numParams();
-			log.debug("Number of parameters in layer " + i + ": " + nParams);
-			totalNumParams += nParams;
-		}
-		log.debug("Total number of network parameters: " + totalNumParams);*/
+
+  public void trainModel(Dataset train) {
+    throw new UnsupportedOperationException("Training not implemented");
   }
-  
+
+  public void testModel(Dataset dataset) {
+    throw new UnsupportedOperationException("Testing not implemented");
+  }
+
+  @Deprecated // should be named attachVectors()
+  public void tag(Stream<Document> docs) {
+    tag(docs.collect(Collectors.toList()));
+  }
+
+  @Deprecated // should be named attachVectors()
+  public abstract void tag(Collection<Document> docs);
+
 }
