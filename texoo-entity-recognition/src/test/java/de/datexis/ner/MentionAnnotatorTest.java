@@ -1,5 +1,6 @@
 package de.datexis.ner;
 
+import com.google.common.collect.Lists;
 import de.datexis.annotator.Annotator;
 import de.datexis.annotator.AnnotatorFactory;
 
@@ -84,10 +85,10 @@ public class MentionAnnotatorTest {
     trigram.trainModel(data.getDocuments());
     trigram.saveModel(path, "trigram");
     
-    MentionTagger tagger = new MentionTagger("BLSTM")
-            .setTagset(BIO2Tag.class, "TEST")
-            .setEncoders(new EncoderSet(trigram))
-            .build(50, 20, 1, 0.01);
+    MentionTagger tagger = new MentionTagger("BLSTM");
+    tagger.setTagset(BIO2Tag.class, "TEST");
+    tagger.setEncoders(Lists.newArrayList(trigram));
+    tagger.setModelParams(50, 20, 1, 0.01);
     tagger.setTrainingParams(5, 1, false);
     tagger.trainModel(data);
     tagger.saveModel(path, "ner");
@@ -106,7 +107,7 @@ public class MentionAnnotatorTest {
     ann.writeTestLog(path);
     ann.writeModel(path, "ner_test");
     
-    assertEquals("MentionAnnotator_en_NER_Test+tri_" + ann.getProvenance().getDate(), ann.getProvenance().toString());
+    assertEquals("MentionAnnotator_NER_en_Test+tri_" + ann.getProvenance().getDate(), ann.getProvenance().toString());
     
     // test model
     assertEquals(MentionAnnotator.class, ann.getClass());

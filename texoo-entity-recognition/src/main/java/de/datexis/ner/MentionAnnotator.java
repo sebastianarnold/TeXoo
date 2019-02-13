@@ -1,5 +1,6 @@
 package de.datexis.ner;
 
+import com.google.common.collect.Lists;
 import de.datexis.annotator.Annotator;
 import de.datexis.common.Resource;
 import de.datexis.common.Timer;
@@ -17,7 +18,10 @@ import de.datexis.ner.eval.HTMLExport;
 import de.datexis.ner.eval.MentionAnnotatorEvaluation;
 import de.datexis.ner.tagger.MentionTagger;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,7 +217,7 @@ public class MentionAnnotator extends Annotator {
     
     protected String types = MentionAnnotation.Type.GENERIC;
     protected Class tagset = BIOESTag.class;
-    protected Encoder[] encoders = new Encoder[0];
+    protected List<Encoder> encoders = new ArrayList<>();
     
     private int trainingSize = -1;
     private int ffwLayerSize = 300;
@@ -266,7 +270,7 @@ public class MentionAnnotator extends Annotator {
     }
     
     public Builder withEncoders(Encoder... encoders) {
-      this.encoders = encoders;
+      this.encoders = Lists.newArrayList(encoders);
       ann.getProvenance().setArchitecture(this.encoders.toString());
       return this;
     }
@@ -290,8 +294,8 @@ public class MentionAnnotator extends Annotator {
         ann.addComponent(e);
       }
       tagger.setTagset(tagset, types);
-      tagger.setEncoders(new EncoderSet(encoders));
-      tagger.build(ffwLayerSize, lstmLayerSize, iterations, learningRate * batchSize);
+      tagger.setEncoders(encoders);
+      tagger.setModelParams(ffwLayerSize, lstmLayerSize, iterations, learningRate * batchSize);
       if(enabletrainingUI) tagger.enableTrainingUI();
       tagger.setTrainingParams(batchSize, numEpochs, true);
       tagger.setWorkspaceParams(workers);

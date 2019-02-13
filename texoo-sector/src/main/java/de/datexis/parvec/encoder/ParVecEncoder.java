@@ -33,7 +33,7 @@ import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ParVecEncoder extends LookupCacheEncoder implements IDecoder {
+public class ParVecEncoder extends LookupCacheEncoder {
 
   protected final static Logger log = LoggerFactory.getLogger(ParVecEncoder.class);
   
@@ -182,22 +182,6 @@ public class ParVecEncoder extends LookupCacheEncoder implements IDecoder {
   }
 
   @Override
-  public INDArray decode(String word) {
-    // TODO: decode into classification
-    throw new UnsupportedOperationException("Not implemented yet.");
-  }
-
-  @Override
-  public INDArray decode(Span span) {
-    throw new UnsupportedOperationException("Not implemented yet.");
-  }
-
-  @Override
-  public INDArray decode(Iterable<? extends Span> spans) {
-    throw new UnsupportedOperationException("Not implemented yet.");
-  }
-  
-  @Override
   public void saveModel(Resource modelPath, String name) {
     try {
       Resource modelFile = modelPath.resolve(name + ".zip");
@@ -244,7 +228,6 @@ public class ParVecEncoder extends LookupCacheEncoder implements IDecoder {
     return model.inferVector("test").length();
   }
 
-  @Override
   public long getOutputVectorSize() {
     // return number of classes!
     return targetSize;

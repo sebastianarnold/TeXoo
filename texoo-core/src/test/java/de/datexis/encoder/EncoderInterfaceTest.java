@@ -1,12 +1,6 @@
 package de.datexis.encoder;
 
-import com.google.common.collect.Lists;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Span;
-import de.datexis.model.Token;
-import java.util.Collections;
-import java.util.List;
+import de.datexis.encoder.impl.ExampleEncoder;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -44,26 +38,6 @@ public class EncoderInterfaceTest {
   }
   
   @Test
-  public void testDecoders() {
-    
-    // TODO: find all IEncoders via reflection
-    // TODO: run the test on each encoder that is loadable without model
-    
-    IDecoder enc = new ExampleEncoder();
-    long m = enc.getOutputVectorSize();
-    assertTrue(m > 0);
-    assertEquals(m, enc.getOutputVectorSize());
-    INDArray vec = enc.decode("Test");
-    System.out.println(vec.toString());
-    assertNotNull(vec);
-    assertTrue(vec.isColumnVector());
-    assertEquals(m, vec.rows());
-    assertEquals(1, vec.columns());
-    assertArrayEquals(new long[]{m, 1}, vec.shape());
-    
-  }
-  
-  @Test
   public void testTimeSeriesMatrix() {
     
     long batchSize = 3;
@@ -83,7 +57,6 @@ public class EncoderInterfaceTest {
       }
     }
     
-    // FIXME: equals() returns the same result, but we had moments where getRow().getColumn().assign() produced error in training (at least on CPU backend)
     assertEquals(indexEncoding, rowcolEncoding);
     
   }

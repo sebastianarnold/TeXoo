@@ -133,6 +133,11 @@ public abstract class Tagger extends AnnotatorComponent {
 
   public void setEncoders(List<Encoder> encs) {
     encoders = encs;
+    long i = 0;
+    for(Encoder e : encs) {
+      i += e.getEmbeddingVectorSize();
+    }
+    inputVectorSize = i;
   }
 
   /**
