@@ -13,6 +13,7 @@ import de.datexis.model.Sentence;
 import de.datexis.preprocess.DocumentFactory;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.paragraphvectors.ParagraphVectors;
 import org.deeplearning4j.models.word2vec.VocabWord;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
@@ -27,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
 import org.deeplearning4j.models.word2vec.wordstore.inmemory.AbstractCache;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
@@ -36,7 +38,8 @@ import org.slf4j.LoggerFactory;
 public class ParVecEncoder extends LookupCacheEncoder {
 
   protected final static Logger log = LoggerFactory.getLogger(ParVecEncoder.class);
-  
+
+  protected WordVectors word2Vec;
   protected ParagraphVectors model;
 
   protected double learningRate = 0.025;
@@ -47,7 +50,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
   protected int layerSize = 256;
   protected int targetSize;
   protected int windowSize = 10;
-  
+
   protected static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
   protected final DefaultTokenizerFactory tokenizerFactory;
   protected List<VocabWord> labelsList;
@@ -55,16 +58,21 @@ public class ParVecEncoder extends LookupCacheEncoder {
 
   public ParVecEncoder() {
     super("PV");
-    
+
     tokenizerFactory = new DefaultTokenizerFactory();
     tokenizerFactory.setTokenPreProcessor(preprocessor);
+  }
+
+  public ParVecEncoder withWordEmbedding(WordVectors word2Vec) {
+    this.word2Vec = word2Vec;
+    return this;
   }
 
   public void setModelParams(int layerSize, int windowSize) {
     this.layerSize = layerSize;
     this.windowSize = windowSize;
   }
-  
+
   public void setTrainingParams(double learningRate, double minLearningRate, int batchSize, int iterations, int numEpochs) {
     this.learningRate = learningRate;
     this.minLearningRate = minLearningRate;
@@ -72,23 +80,23 @@ public class ParVecEncoder extends LookupCacheEncoder {
     this.iterations = iterations;
     this.numEpochs = numEpochs;
   }
-  
+
   public void setStopWords(List<String> words) {
     this.stopwords = words;
   }
-  
+
   @Override
   public void trainModel(Collection<Document> documents) {
     throw new UnsupportedOperationException("Please call trainModel(Dataset train)");
   }
-  
+
   public void trainModel(Dataset train) {
-    
+
     ParVecIterator it = new ParVecIterator(train, true);
-    
+
     AbstractCache<VocabWord> cache = new AbstractCache<>();
-    
-    model =  new ParagraphVectors.Builder()
+
+    final ParagraphVectors.Builder builder = new ParagraphVectors.Builder()
         .minWordFrequency(3)
         .iterations(iterations)
         .epochs(numEpochs)
@@ -102,17 +110,20 @@ public class ParVecEncoder extends LookupCacheEncoder {
         .vocabCache(cache)
         .tokenizerFactory(tokenizerFactory)
         .stopWords(stopwords)
-        .sampling(0)
-        //.negativeSample(10)
-        //.useUnknown(true)
-        .build();
-    
+        .sampling(0);
+    //.negativeSample(10)
+    //.useUnknown(true)
+
+    if (word2Vec != null) builder.useExistingWordVectors(word2Vec);
+
+    model = builder.build();
+
     log.info("training ParVec...");
 
     model.fit();
-    
+
     log.info("training complete.");
-    
+
     try {
       // get label information using reflection
       Field labelsListField = ParagraphVectors.class.getDeclaredField("labelsList");
@@ -123,11 +134,11 @@ public class ParVecEncoder extends LookupCacheEncoder {
       log.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
-    
+
     setModelAvailable(true);
-    
+
   }
-  
+
   @Override
   public INDArray encode(Span span) {
     if(span instanceof Sentence) {
@@ -145,7 +156,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
       return encode(span.getText());
     }
   }
-  
+
   public INDArray encode(Annotation ann, Document doc) {
     String text = doc.streamSentencesInRange(ann.getBegin(), ann.getEnd(), false)
         .map(s -> s
@@ -191,7 +202,13 @@ public class ParVecEncoder extends LookupCacheEncoder {
       log.error(ex.toString());
     }
   }
-  
+
+  public static ParVecEncoder load(Resource path) throws IOException {
+    ParVecEncoder encoder = new ParVecEncoder();
+    encoder.loadModel(path);
+    return encoder;
+  }
+
   @Override
   public void loadModel(Resource modelFile) throws IOException {
     model = WordVectorSerializer.readParagraphVectors(modelFile.getInputStream());
@@ -203,7 +220,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
       labelsListField.setAccessible(true);
       labelsList = (List) labelsListField.get(model);
       targetSize = labelsList.size();
-    } catch(NoSuchFieldException | IllegalAccessException e) {
+    } catch (NoSuchFieldException | IllegalAccessException e) {
       log.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
@@ -222,7 +239,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
   public int getTotalWords() {
     return labelsList.size();
   }
-  
+
   @Override
   public long getEmbeddingVectorSize() {
     return model.inferVector("test").length();
@@ -232,7 +249,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
     // return number of classes!
     return targetSize;
   }
-  
+
   public int getInputVectorSize() {
     return 0;
   }
@@ -242,7 +259,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
     if(labelsList.size() < index) return null;
     else return labelsList.get(index).getWord();
   }
-  
+
   @Override
   public int getIndex(String word) {
     //String w = preprocessor.preProcess(word);
@@ -252,7 +269,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
         .findFirst()
         .orElse(-1);
   }
-  
+
   @Override
   public INDArray oneHot(String word) {
     INDArray vector = Nd4j.zeros(targetSize);
@@ -261,7 +278,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
     else log.warn("could not encode class '{}'. is it contained in training set?", word);
     return vector.transpose();
   }
-  
+
   @Override
   public String getNearestNeighbour(INDArray v) {
     return getNearestNeighbours(v, 1).stream().findFirst().orElse(null);
@@ -289,10 +306,10 @@ public class ParVecEncoder extends LookupCacheEncoder {
     }
     return result;
   }
-  
+
   public INDArray getPredictions(INDArray v) {
     LabelSeeker seeker = new LabelSeeker(getWords(), (InMemoryLookupTable<VocabWord>) model.getLookupTable());
     return seeker.getScoresAsVector(v).transpose();
   }
-  
+
 }
