@@ -103,7 +103,6 @@ public class SectorEncoder extends Encoder {
           if(t >= maxTimeSteps) break;
           if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), target.getRow(batchNum).getColumn(t));
           if(embedding != null) s.putVector(SectorEncoder.class, embedding.getRow(batchNum).getColumn(t));
-          //s.putVector(SegmentEncoder.class, lstm.getRow(batchNum).getColumn(t));
           t++;
         }
         batchNum++;
@@ -140,34 +139,6 @@ public class SectorEncoder extends Encoder {
     setModelFilename(tagger.getModel());
   }
 
-  @Override
-  @JsonIgnore
-  public EncoderSet getEncoders() {
-    return tagger.getEncoders();
-  }
-
-  @Override
-  public AnnotatorComponent setEncoders(EncoderSet encs) {
-    tagger.setEncoders(encs);
-    return this;
-  }
-  
-  @Override
-  @JsonIgnore
-  public EncoderSet getTargetEncoders() {
-    return tagger.getTargetEncoders();
-  }
-
-  @Override
-  public void addInputEncoder(Encoder e) {
-    tagger.addInputEncoder(e);
-  }
-
-  @Override
-  public void addTargetEncoder(Encoder e) {
-    tagger.addTargetEncoder(e);
-  }
-  
   @Override
   public String getName() {
     return tagger.getName();

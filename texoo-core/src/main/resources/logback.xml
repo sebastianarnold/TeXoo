@@ -4,7 +4,7 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%d{dd.MM.yy HH:mm:ss} [%thread] %-5level %logger{36}:%L %msg%n</pattern>
+      <pattern>%d{dd.MM.yy HH:mm:ss} %-5level %logger{36} %msg%n</pattern>
     </encoder>
   </appender>
 
@@ -16,7 +16,6 @@
   <logger name="org.reflections.Reflections" level="INFO"/>
   <logger name="org.deeplearning4j.ui" level="WARN"/>
   <logger name="com.optimaize.langdetect" level="WARN"/>
-  <logger name="edu.stanford.nlp" level="WARN"/>
   <logger name="org.reflections" level="ERROR"/>
   <logger name="de.datexis" level="DEBUG"/>
   

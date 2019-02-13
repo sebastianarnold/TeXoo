@@ -3,26 +3,21 @@ package de.datexis.sector.eval;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.sector.tagger.SectorTagger;
 import de.datexis.tagger.Tagger;
-import java.util.Map;
 import org.deeplearning4j.datasets.iterator.AsyncMultiDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultiDataSetWrapperIterator;
 import org.deeplearning4j.datasets.iterator.impl.MultiDataSetIteratorAdapter;
 import org.deeplearning4j.earlystopping.scorecalc.base.BaseIEvaluationScoreCalculator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.BackpropType;
-import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.graph.vertex.GraphVertex;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.memory.abstracts.DummyWorkspace;
+
+import java.util.Map;
 
 /**
  * Score function for evaluating a MultiLayerNetwork according to an evaluation metric ({@link Evaluation.Metric} such
@@ -62,10 +57,8 @@ public class ClassificationScoreCalculator extends BaseIEvaluationScoreCalculato
       eval = ((MultiLayerNetwork) network).doEvaluation(i, eval)[0];
     } else if(network instanceof ComputationGraph) {
       MultiDataSetIterator i = (iterator != null ? iterator : new MultiDataSetIteratorAdapter(iter));
-      // FIXME: we cannot call this with multiple outputs
-      //eval = ((ComputationGraph) network).doEvaluation(i, eval)[0];
       evaluate((ComputationGraph)network, eval, i);
-      tagger.appendTrainLog(eval.printClassificationAtKStats());
+      tagger.appendTrainLog("Validation score:\n" + eval.printClassificationAtKStats());
     } else {
       throw new RuntimeException("Unknown model type: " + network.getClass());
     }
@@ -74,10 +67,6 @@ public class ClassificationScoreCalculator extends BaseIEvaluationScoreCalculato
   
   /**
    * Override evaluation to use average of forward/backward layers in a single score.
-   * @param net
-   * @param evaluation
-   * @param iterator 
-   * @see ComputationGraph.doEvaluation()
    */
   protected void evaluate(ComputationGraph net, ClassificationEvaluation evaluation, MultiDataSetIterator iterator) {
 
@@ -151,10 +140,9 @@ public class ClassificationScoreCalculator extends BaseIEvaluationScoreCalculato
     
   @Override
   protected double finalScore(ClassificationEvaluation e) {
-      return 1. - e.getScore();
+      return e.getScore();
   }
 
-  //@Override
   public boolean minimizeScore() {
     // false = score should be maximized
     return false;

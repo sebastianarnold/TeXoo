@@ -10,10 +10,9 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
 import de.datexis.sector.encoder.ClassEncoder;
-import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
-import de.datexis.sector.encoder.HeadingTag;
 
+import de.datexis.sector.model.SectionAnnotation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -21,10 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import org.nd4j.linalg.indexing.INDArrayIndex;
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
+import java.util.stream.Collectors;
 
 /**
  * Iterates through a Dataset with Document-Level Batches of Sentences
@@ -65,7 +63,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   
   @Override
   public MultiDataSet generateDataSet(DocumentBatch batch) {
-    
+
     // input encodings
     INDArray inputMask = createMask(batch.docs, batch.maxDocLength, Sentence.class);
     //INDArray labelMask = createMask(batch.docs, batch.maxDocLength, Sentence.class); // same as input mask
@@ -119,33 +117,36 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
       if(timeStepClass == Token.class) spansToEncode = Lists.newArrayList(example.getTokens());
       else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
 
+      List<SectionAnnotation> anns = example
+        .streamAnnotations(Annotation.Source.GOLD, SectionAnnotation.class)
+        .sorted()
+        .collect(Collectors.toList());
+
+      Iterator<SectionAnnotation> it = anns.iterator();
+      if(!it.hasNext()) return encoding; // no annotations
+      SectionAnnotation ann = it.next();
+      INDArray vec = encodeAnnotation(tagger.targetEncoder, ann);
+
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
-        // TODO: this function is a copy from Encoder and only this line is changed:
-        INDArray vec = encodeTag(tagger.targetEncoder, spansToEncode.get(t), Annotation.Source.GOLD);
-        // encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
-        encoding.getRow(batchIndex).getColumn(t).assign(vec); // this one is faster
+        Span s = spansToEncode.get(t);
+        if(s.getBegin() >= ann.getEnd() && it.hasNext()) {
+          // encode the next section
+          ann = it.next();
+          vec = encodeAnnotation(tagger.targetEncoder, ann);
+        }
+        encoding.getRow(batchIndex).getColumn(t).assign(vec.dup()); // this one is faster
       }
       
     }
     return encoding;
   }
-  
-  /*protected INDArray encode(Encoder enc, Sentence s, Optional<SectionAnnotation> ann) {
-    String sectionTitle = ann.isPresent() ? ann.get().getSectionTitle() : "other";
-    String sectionClass = ann.isPresent() ? ann.get().getSectionClass(): "other";
-    if(enc instanceof HeadingEncoder) return ((HeadingEncoder) enc).encodeSubsampled(sectionTitle);
-    else return Nd4j.create(0);
-  }*/
-  
-  protected INDArray encodeTag(Encoder enc, Span s, Annotation.Source source) {
+
+  protected INDArray encodeAnnotation(Encoder enc, SectionAnnotation ann) {
     if(enc instanceof HeadingEncoder) {
-      // TODO: this is the only position where Tags are needed for training. We could also just access the Annotations to get the label strings.
-      HeadingTag heading = s.getTag(source, HeadingTag.class);
-      if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(heading.getTag());
-      else return ((HeadingEncoder) enc).encode(heading.getTag());
+      if(requireSubsampling) return ((HeadingEncoder) enc).encodeSubsampled(ann.getSectionHeading());
+      else return ((HeadingEncoder) enc).encode(ann.getSectionHeading());
     } else if(enc instanceof ClassEncoder) {
-      ClassTag clss = s.getTag(source, ClassTag.class);
-      return ((ClassEncoder) enc).encode(clss.getTag());
+      return ((ClassEncoder) enc).encode(ann.getSectionLabel());
     } else return Nd4j.create(1);
   }
   

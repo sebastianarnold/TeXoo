@@ -1,5 +1,7 @@
 package de.datexis.annotator;
 
+import com.google.common.collect.Lists;
+import de.datexis.common.ExternalResource;
 import de.datexis.tagger.Tagger;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
@@ -8,35 +10,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.bind.*;
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 import org.reflections.Configuration;
 import org.reflections.Reflections;
-import org.reflections.scanners.TypeAnnotationsScanner;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
+import org.w3c.dom.*;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -86,7 +74,6 @@ public class AnnotatorFactory {
       
       Element xmlAnn = xmlDoc.createElement("annotator");
       xmlAnn.setAttribute("class", annotator.getClass().getSimpleName());
-      //xmlAnn.setAttribute("version", Configuration.getVersion());
       xmlAnn.setAttribute("tagger", annotator.tagger.getId());
       JAXBContext provContext = JAXBContext.newInstance(Provenance.class);
       Provenance p = annotator.getProvenance();
@@ -95,7 +82,7 @@ public class AnnotatorFactory {
       m.marshal(p, xmlProv);
       xmlAnn.appendChild(xmlProv.getFirstChild());
       xmlDoc.appendChild(xmlAnn);
-      
+
       writeComponent(annotator.tagger, xmlDoc, xmlAnn);
       for(AnnotatorComponent comp : annotator.components.values()) {
         writeComponent(comp, xmlDoc, xmlAnn);
@@ -115,7 +102,7 @@ public class AnnotatorFactory {
     }
     
   }
-  
+
   private static <C extends AnnotatorComponent> void writeComponent(C component, Document xmlDoc, Element xmlParent) {
     Element xmlComp = xmlDoc.createElement("component");
     xmlComp.setAttribute("class", component.getClass().getSimpleName());
@@ -127,44 +114,33 @@ public class AnnotatorFactory {
     Element xmlConf = xmlDoc.createElement("conf");
     xmlConf.appendChild(xmlDoc.createCDATASection(component.getConf()));
     xmlComp.appendChild(xmlConf);
-    if(component.getEncoders().iterator().hasNext()) {
-      Element xmlEncoders = xmlDoc.createElement("encoders");
-      for(Encoder e : component.getEncoders()) {
-        Element xmlEncoder = xmlDoc.createElement("encoder");
-        xmlEncoder.setAttribute("type", "input");
-        xmlEncoder.setAttribute("id", e.getId());
-        xmlEncoders.appendChild(xmlEncoder);
+    if(component instanceof Tagger) {
+      if(((Tagger)component).getEncoders().iterator().hasNext()) {
+        Element xmlEncoders = xmlDoc.createElement("encoders");
+        for(Encoder e : ((Tagger)component).getEncoders()) {
+          Element xmlEncoder = xmlDoc.createElement("encoder");
+          xmlEncoder.setAttribute("id", ((IComponent) e).getId());
+          xmlEncoders.appendChild(xmlEncoder);
+        }
+        xmlComp.appendChild(xmlEncoders);
       }
-      for(Encoder e : component.getTargetEncoders()) {
-        Element xmlEncoder = xmlDoc.createElement("encoder");
-        xmlEncoder.setAttribute("type", "target");
-        xmlEncoder.setAttribute("id", e.getId());
-        xmlEncoders.appendChild(xmlEncoder);
-      }
-      xmlComp.appendChild(xmlEncoders);
     }
   }
 
   public static Annotator fromXML(Resource path) throws IOException {
     return fromXML(path, findXML(path));
   }
-  
-  private static String findXML(Resource path) {
-    try(Stream<Path> paths = Files.find(path.getPath(), 1, (file,attrs) -> attrs.isRegularFile() && file.toString().endsWith(".xml"))) {
-      Optional<Path> p = paths.findFirst();
-      if(p.isPresent()) return p.get().getFileName().toString();
-      else return "annotator.xml";
-    } catch (IOException ex) {
-      log.warn("Could not find XML: " + ex.toString());
-      return "annotator.xml";
-    } catch (UnsupportedOperationException | NullPointerException ex) {
-      // might be an internal resource, let's try "annotator.xml" for now
-      return "annotator.xml";
-    }
+
+  public static Annotator loadAnnotator(Resource path, Resource... searchPaths) throws IOException {
+    return fromXML(path, findXML(path), searchPaths);
   }
-  
-  // TODO: what about ? extends Annotator?
+
   public static Annotator fromXML(Resource path, String name) throws IOException {
+    return fromXML(path, name, new Resource[]{});
+  }
+
+  // TODO: what about ? extends Annotator?
+  public static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
     
     ObjectMapper mapper = new ObjectMapper();
     
@@ -198,24 +174,44 @@ public class AnnotatorFactory {
         // TODO: refactor next lines into function
         // TODO: teach this mapper to recognize "BIOESTag" without package. We did this before somewhere..
         AnnotatorComponent comp = (AnnotatorComponent) mapper.readValue(json.getData(), clazz);
-        if(model != null && !model.isEmpty()) comp.loadModel(path.resolve(model));
+        // try to load model from given paths
+        if(model != null && !model.isEmpty()) {
+          Resource modelPath = path.resolve(model);
+          Resource absolutePath = new ExternalResource(model);
+          if(modelPath.exists()) {
+            comp.loadModel(modelPath);
+          } else if(absolutePath.exists()) {
+            comp.loadModel(new ExternalResource(model));
+          } else {
+            for(Resource searchPath : searchPaths) {
+              modelPath = searchPath.resolve(model);
+              if(modelPath.exists()) {
+                comp.loadModel(modelPath);
+                break;
+              }
+            }
+          }
+        }
         ann.components.put(id, comp);
       }
       
-      // attach encoders to all components
+      // attach encoders to all Taggers
       for(int i = 0; i < xmlComps.getLength(); i++) {
         Element xmlComp = (Element) xmlComps.item(i);
-        AnnotatorComponent comp = ann.components.get(xmlComp.getAttribute("id"));
-        NodeList xmlEncs = xmlComp.getElementsByTagName("encoders");
-        if(xmlEncs.getLength() > 0) {
-          xmlEncs = ((Element)xmlEncs.item(0)).getElementsByTagName("encoder");
-          for(int j = 0; j < xmlEncs.getLength(); j++) {
-            Element xmlEnc = (Element) xmlEncs.item(j); 
-            Encoder enc = (Encoder) ann.components.get(xmlEnc.getAttribute("id"));
-            if(xmlEnc.getAttribute("type").equals("input")) comp.addInputEncoder(enc);
-            else if(xmlEnc.getAttribute("type").equals("target")) comp.addTargetEncoder(enc);
-            else comp.addEncoder(enc);
+        AnnotatorComponent comp = (AnnotatorComponent) ann.components.get(xmlComp.getAttribute("id"));
+        if(comp instanceof Tagger) {
+          Tagger tagger = (Tagger) comp;
+          NodeList xmlEncs = xmlComp.getElementsByTagName("encoders");
+          List<Encoder> encoders = new ArrayList<>();
+          if(xmlEncs.getLength() > 0) {
+            xmlEncs = ((Element)xmlEncs.item(0)).getElementsByTagName("encoder");
+            for(int j = 0; j < xmlEncs.getLength(); j++) {
+              Element xmlEnc = (Element) xmlEncs.item(j);
+              Encoder enc = (Encoder) ann.components.get(xmlEnc.getAttribute("id"));
+              encoders.add(enc);
+            }
           }
+          tagger.setEncoders(encoders);
         }
       }
       
@@ -240,7 +236,21 @@ public class AnnotatorFactory {
       return null;
     }
   }
-  
+
+  private static String findXML(Resource path) {
+    try(Stream<Path> paths = Files.find(path.getPath(), 1, (file,attrs) -> attrs.isRegularFile() && file.toString().endsWith(".xml"))) {
+      Optional<Path> p = paths.findFirst();
+      if(p.isPresent()) return p.get().getFileName().toString();
+      else return "annotator.xml";
+    } catch (IOException ex) {
+      log.warn("Could not find XML: " + ex.toString());
+      return "annotator.xml";
+    } catch (UnsupportedOperationException | NullPointerException ex) {
+      // might be an internal resource, let's try "annotator.xml" for now
+      return "annotator.xml";
+    }
+  }
+
   /** please use GenericMentionAnnotator.create() */
   @Deprecated 
   public static void createGenericMentionAnnotator() {

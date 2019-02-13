@@ -23,6 +23,8 @@ nb-configuration.xml
 nbactions.xml
 nbproject
 nbproject/**
+**/nbactions.xml
+**/nbactions-*.xml
 
 # IntelliJ #
 ############

@@ -60,7 +60,7 @@ public class AnnotateSectorExample {
     Dataset validation = WikiSectionReader.readDatasetFromJSON(datasetPath).getSplit(0, 16);
     
     // --- annotate documents --------------------------------------------------
-    sector.annotate(validation.getDocuments(), SectorAnnotator.SegmentationMethod.TARGET_PCA);
+    sector.annotate(validation.getDocuments(), SectorAnnotator.SegmentationMethod.MAX);
     sector.evaluateModel(validation);
     
     // --- print some examples -------------------------------------------------

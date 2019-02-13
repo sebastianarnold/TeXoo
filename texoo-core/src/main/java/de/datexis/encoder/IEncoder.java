@@ -5,7 +5,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
  * An Encoder converts text (Span) to embedding vectors (INDArray).
- * E.g. word embedding
+ * E.g. word embeddings, bag-of-words
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public interface IEncoder {

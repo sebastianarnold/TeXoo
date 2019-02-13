@@ -29,7 +29,7 @@ public class WikiSectionReader implements DatasetReader {
   }
   
   public static Dataset readDatasetFromJSON(Resource path) throws IOException {
-    log.info("Reading Wiki Articles from JSON...");
+    log.info("Reading Wiki Articles from {}", path.toString());
     ObjectSerializer.getObjectMapper().registerSubtypes(SectionAnnotation.class);
     Dataset result = new Dataset(path.getFileName().replace(".json", ""));
     Iterator<Document> it = ObjectSerializer.readJSONDocumentIterable(path);
@@ -45,7 +45,7 @@ public class WikiSectionReader implements DatasetReader {
   }
   
   public static List<WikiDocument> readWikiDocumentsFromJSON(Resource path) throws IOException {
-    log.info("Reading Wiki Articles from JSON...");
+    log.info("Reading Wiki Articles from {}", path.toString());
     ObjectSerializer.getObjectMapper().registerSubtypes(SectionAnnotation.class);
     List<WikiDocument> result = new ArrayList<>();
     Iterator<WikiDocument> it = ObjectSerializer.getObjectMapper().readerFor(WikiDocument.class).readValues(path.getInputStream());

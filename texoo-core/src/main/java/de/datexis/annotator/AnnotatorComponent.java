@@ -1,5 +1,6 @@
 package de.datexis.annotator;
 
+import de.datexis.encoder.IEncoder;
 import de.datexis.tagger.Tagger;
 import de.datexis.common.Resource;
 import de.datexis.common.Timer;
@@ -24,33 +25,32 @@ import org.slf4j.LoggerFactory;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class AnnotatorComponent {
+public abstract class AnnotatorComponent implements IComponent {
     
   protected Logger log = LoggerFactory.getLogger(AnnotatorComponent.class);
 
-  private String name;
-  private String model = null;
+  // --- component parameters -------------------------------------------------
 
   protected String id;
-  
+  protected String name;
+  protected String model = null;
+
   protected Timer timer = new Timer();
+
   private StringBuilder trainLog = new StringBuilder();
   private StringBuilder testLog = new StringBuilder();
-  
-  // TODO: howto model EncoderSet?
-  private final List<Tagger> taggers = new ArrayList<>();
-  protected EncoderSet encoders = new EncoderSet();
-  protected EncoderSet targetEncoders = new EncoderSet();
-  
+
   protected boolean modelAvailable = false;
+
+  // --- constructors ----------------------------------------------------------
 
   public AnnotatorComponent(boolean modelAvailable) {
     this.modelAvailable = modelAvailable;
   }
-  
-  /**
-	 * @return The name of the model
-	 */
+
+  // --- property getters / setters --------------------------------------------
+
+  @Override
   public String getName() {
     return name;
   }
@@ -59,6 +59,7 @@ public abstract class AnnotatorComponent {
     this.name = name;
   }
 
+  @Override
   public String getId() {
     return id;
   }
@@ -74,6 +75,7 @@ public abstract class AnnotatorComponent {
   /**
    * @return True, iff all models in this Component (including children) are loaded and trained.
    */
+  @Override
   @JsonIgnore
   public boolean isModelAvailable() {
     return modelAvailable && isModelAvailableInChildren();
@@ -84,8 +86,7 @@ public abstract class AnnotatorComponent {
    */
   @JsonIgnore
   public boolean isModelAvailableInChildren() {
-    return StreamSupport.stream(encoders.spliterator(), false).allMatch(child -> child.isModelAvailable())
-            && taggers.stream().allMatch(child -> child.isModelAvailable());
+    return true;
   }
   
   /**
@@ -94,7 +95,6 @@ public abstract class AnnotatorComponent {
   @JsonIgnore
   public String getConf() {
     try {
-      //NeuralNetConfiguration.mapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
       String json = NeuralNetConfiguration.mapper().writer().writeValueAsString(this);
       return json.replaceAll("\\s", "");
     } catch (JsonProcessingException ex) {
@@ -109,6 +109,9 @@ public abstract class AnnotatorComponent {
   public void setConf() {
     throw new UnsupportedOperationException();
   }
+
+  // --- serialization getters / setters ---------------------------------------
+
   /**
    * @return Model reference as String (file reference or URL)
    */
@@ -129,53 +132,7 @@ public abstract class AnnotatorComponent {
   protected void setModelFilename(String model) {
     this.model = model;
   }
-  
-  @Deprecated // use addInputEncoder
-  public void addEncoder(Encoder e) {
-    encoders.addEncoder(e);
-  }
-  
-  public void addInputEncoder(Encoder e) {
-    encoders.addEncoder(e);
-  }
 
-  public void addTargetEncoder(Encoder e) {
-    targetEncoders.addEncoder(e);
-  }
-  
-  public AnnotatorComponent setEncoders(EncoderSet encs) {
-    encoders = encs;
-    return this;
-  }
-  
-  @JsonIgnore
-  public EncoderSet getEncoders() {
-    return encoders;
-  }
-  
-  @JsonIgnore
-  public EncoderSet getTargetEncoders() {
-    return targetEncoders;
-  }
-  
-  @JsonIgnore
-  public Iterable<? extends AnnotatorComponent> getChildren() {
-    return taggers;
-  }
-  
-  /**
-	 * Load a pre-trained model
-   * @param file The file to load
-	 */
-  public abstract void loadModel(Resource file) throws IOException;
-  
-  /**
-	 * Load a pre-trained model
-   * @param dir The path to create the file
-   * @param name The name of the model. File extension will be added automatically.
-	 */
-  public abstract void saveModel(Resource dir, String name);
-    
   public void appendTrainLog(String message) {
     trainLog.append(message).append("\n");
     log.info(message);

@@ -1,6 +1,7 @@
 package de.datexis.ner.tagger;
 
 import com.google.common.collect.Lists;
+import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.*;
 import de.datexis.model.tag.*;
@@ -12,6 +13,8 @@ import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -35,6 +38,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +50,10 @@ public class MentionTagger extends Tagger {
 
   protected static final Logger log = LoggerFactory.getLogger(MentionTagger.class);
   
-  /**
-   * Number of training examples
-   */
-  private int n = 0;
-  
-  protected int batchSize = 32;
-  protected int numEpochs = 1;
-  protected boolean randomize = true;
   protected int workers = 1;
   
   protected Class<? extends Tag> tagset = BIOESTag.class;
   protected String type = Tag.GENERIC;
-  
-  protected MentionTaggerEval eval;
   
   public MentionTagger() {
     this("BLSTM");
@@ -69,7 +63,6 @@ public class MentionTagger extends Tagger {
   public MentionTagger(String id) {
     super(id);
     setTagset(BIOESTag.class, Tag.GENERIC);
-    eval = new MentionTaggerEval("loaded");
   }
   
   public MentionTagger(AbstractIterator data, int ffwLayerSize, int lstmLayerSize, int iterations, double learningRate) {
@@ -77,7 +70,7 @@ public class MentionTagger extends Tagger {
 		net = createBLSTM(inputVectorSize, ffwLayerSize, lstmLayerSize, outputVectorSize, iterations, learningRate);
 	}
   
-  public MentionTagger build(int ffwLayerSize, int lstmLayerSize, int iterations, double learningRate) {
+  public MentionTagger setModelParams(int ffwLayerSize, int lstmLayerSize, int iterations, double learningRate) {
     net = createBLSTM(inputVectorSize, ffwLayerSize, lstmLayerSize, outputVectorSize, iterations, learningRate);
     return this;
   }
@@ -164,13 +157,6 @@ public class MentionTagger extends Tagger {
     return this;
   }
   
-  @Override
-  public MentionTagger setEncoders(EncoderSet encoderSet) {
-    super.setEncoders(encoderSet);
-    this.inputVectorSize = encoderSet.getEmbeddingVectorSize();
-    return this;
-  }
-  
   public MentionTagger setTrainingParams(int batchSize, int numEpochs, boolean randomize) {
     this.batchSize = batchSize;
     this.numEpochs = numEpochs;
@@ -183,28 +169,26 @@ public class MentionTagger extends Tagger {
     return this;
   }
   
-  public void activateCUDA() {
-    //DataTypeUtil.setDTypeForContext(DataBuffer.Type.HALF);
-     //CudaEnvironment.getInstance().getConfiguration()
-            // key option enabled
-//            .allowMultiGPU(true)
-            // we're allowing larger memory caches
-  //          .setMaximumDeviceCache(2L * 1024L * 1024L * 1024L)
-            // cross-device access is used for faster model averaging over pcie
-    //        .allowCrossDeviceAccess(true);
+  @JsonIgnore
+  @Deprecated
+  public EncoderSet getEncoderSet() {
+    return new EncoderSet(getEncoders().toArray(new Encoder[]{}));
   }
   
-  @Override
+  public void trainModel(Dataset dataset) {
+    trainModel(dataset, Annotation.Source.GOLD);
+  }
+  
   public void trainModel(Dataset dataset, Annotation.Source trainingAnnotations) {
     trainModel(dataset, trainingAnnotations, -1, randomize);
   }
   
   public void trainModel(Dataset dataset, Annotation.Source trainingAnnotations, int numExamples, boolean randomize) {
-    trainModel(new MentionTaggerIterator(dataset.getDocuments(), dataset.getName(), encoders, tagset, trainingAnnotations, numExamples, batchSize, randomize));
+    trainModel(new MentionTaggerIterator(dataset.getDocuments(), dataset.getName(), getEncoderSet(), tagset, trainingAnnotations, numExamples, batchSize, randomize));
   }
   
   public void trainModel(Collection<Sentence> sentences, Annotation.Source trainingTags, boolean randomize) {
-    trainModel(new MentionTaggerIterator(Lists.newArrayList(new Sample(sentences, randomize)), "training", encoders, tagset, trainingTags, -1, batchSize, randomize));
+    trainModel(new MentionTaggerIterator(Lists.newArrayList(new Sample(sentences, randomize)), "training", getEncoderSet(), tagset, trainingTags, -1, batchSize, randomize));
   }
   
   protected void trainModel(MentionTaggerIterator it) {
@@ -225,7 +209,6 @@ public class MentionTagger extends Tagger {
         .workspaceMode(WorkspaceMode.ENABLED)
         .build();
     }
-    eval = new MentionTaggerEval(getName(), tagset);
     timer.start();
 		for(int i = 1; i <= numEpochs; i++) {
       timer.setSplit("epoch");
@@ -241,7 +224,6 @@ public class MentionTagger extends Tagger {
 		}
     timer.stop();
 		appendTrainLog("Training complete", timer.getLong());
-    eval.setTrainDataset(new Dataset(), n, timer.getLong());
     setModelAvailable(true);
     
   }
@@ -254,7 +236,7 @@ public class MentionTagger extends Tagger {
   @Override
   public synchronized void tag(Collection<Document> documents) {
     log.debug("Labeling Documents...");
-    MentionTaggerIterator it = new MentionTaggerIterator(documents, "train", encoders, tagset, -1, batchSize, false);
+    MentionTaggerIterator it = new MentionTaggerIterator(documents, "train", getEncoderSet(), tagset, -1, batchSize, false);
     it.reset();
 		while(it.hasNext()) {
       // 1. Load a batch of sentences
@@ -289,11 +271,10 @@ public class MentionTagger extends Tagger {
    * @param dataset
    * @param expected 
    */
-  @Override
   public void testModel(Dataset dataset, Annotation.Source expected) {
     
     // Tag Dataset using BIOES and finally produce BIO2 tags
-    MentionTaggerIterator it = new MentionTaggerIterator(dataset.getDocuments(), dataset.getName(), encoders, tagset, -1, batchSize, false);
+    MentionTaggerIterator it = new MentionTaggerIterator(dataset.getDocuments(), dataset.getName(), getEncoderSet(), tagset, -1, batchSize, false);
     test(it);
     
     // Test tagging performance: BIOES or BIO2

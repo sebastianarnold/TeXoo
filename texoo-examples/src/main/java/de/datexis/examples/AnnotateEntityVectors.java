@@ -12,6 +12,7 @@ import de.datexis.ner.MentionAnnotation;
 import de.datexis.preprocess.DocumentFactory;
 import java.io.IOException;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

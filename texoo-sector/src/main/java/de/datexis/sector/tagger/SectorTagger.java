@@ -1,5 +1,6 @@
 package de.datexis.sector.tagger;
 
+import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
@@ -36,14 +37,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
 import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
-import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
@@ -55,15 +55,15 @@ import org.nd4j.linalg.schedule.ScheduleType;
 import org.nd4j.shade.jackson.databind.JsonNode;
 
 /**
- * SECTOR Recurrent NEtwork with separated FW/BW layers.
- * @author sarnold
+ * SECTOR Recurrent Network with separated FW/BW layers. Implementation of:
+ * Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser:
+ * "SECTOR: A Neural Model for Coherent Topic Segmentation and Classification."
+ * Transactions of the Association for Computational Linguistics (2019).
+ * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public class SectorTagger extends Tagger {
 
   protected static final Logger log = LoggerFactory.getLogger(SectorTagger.class);
-  
-  // sector tagger can only be accessed from one thread at a time
-  protected final Object lock = new Object();
   
   // n-hot encoder, such as bag-of-words or trigrams
   protected Encoder bagEncoder = null;
@@ -74,17 +74,10 @@ public class SectorTagger extends Tagger {
   // a single target encoder
   protected Encoder targetEncoder = null;
   
-  protected int batchSize = 16;
-  protected int maxTimeSeriesLength = -1;
-  protected int numExamples = -1;
-  protected int numEpochs = 1;
-  protected boolean randomize = true;
   protected int workers = 4;
   
   protected boolean requireSubsampling;
-  
-  protected int embeddingLayerSize;
-  
+
   protected ModelEvaluation eval = new ModelEvaluation("null");
   protected final FeedForwardToRnnPreProcessor ff2rnn = new FeedForwardToRnnPreProcessor();
 
@@ -125,15 +118,6 @@ public class SectorTagger extends Tagger {
     this.targetEncoder = targetEncoder;
   }
 
-  public SectorTagger setTrainingParams(int examplesPerEpoch, int maxTimeSeriesLength, int batchSize, int numEpochs, boolean randomize) {
-    this.numExamples = examplesPerEpoch;
-    this.maxTimeSeriesLength = maxTimeSeriesLength;
-    this.batchSize = batchSize;
-    this.numEpochs = numEpochs;
-    this.randomize = randomize;
-    return this;
-  }
-  
   public SectorTagger setWorkspaceParams(int workers) {
     this.workers = workers;
     return this;
@@ -141,87 +125,26 @@ public class SectorTagger extends Tagger {
 
   @Override
   @JsonIgnore
-  public EncoderSet getEncoders() {
-    // FIXME: better return a map <role,encoder>
-    return new EncoderSet(bagEncoder, embEncoder, flagEncoder);
-  }
-
-  @Override
-  public void addInputEncoder(Encoder e) {
-    if(bagEncoder == null) bagEncoder = e;
-    else if(embEncoder == null) embEncoder = e;
-    else if(flagEncoder == null) flagEncoder = e;
-    else throw new IllegalArgumentException("all three input encoders are already set");
-  }
-
-  @Override
-  @JsonIgnore
-  public EncoderSet getTargetEncoders() {
-    return new EncoderSet(targetEncoder);
+  public List<Encoder> getEncoders() {
+    return Lists.newArrayList(bagEncoder, embEncoder, flagEncoder, targetEncoder);
   }
 
   @JsonIgnore
   public Encoder getTargetEncoder() {
     return targetEncoder;
   }
-  
+
   @Override
-  public void addTargetEncoder(Encoder e) {
-    if(targetEncoder == null) targetEncoder = e;
-    else throw new IllegalArgumentException("target encoder is already set");
+  public void setEncoders(List<Encoder> encoders) {
+    if(encoders.size() != 4)
+      throw new IllegalArgumentException("wrong number of encoders given (expected=4, actual=" + encoders.size() + ")");
+    bagEncoder = encoders.get(0);
+    embEncoder = encoders.get(1);
+    flagEncoder = encoders.get(2);
+    targetEncoder = encoders.get(3);
   }
   
-  public void setEval(ModelEvaluation eval) {
-    this.eval = eval;
-  }
-  
-  @Override
-  public SectorTagger setEncoders(EncoderSet encoders) {
-    this.encoders = encoders;
-    this.inputVectorSize = encoders.getEmbeddingVectorSize();
-    return this;
-  }
-  
-  @Override
-  @Deprecated
-  public void addEncoder(Encoder e) {
-    // FIXME: we should add input and target encodersets to the XML
-    throw new UnsupportedOperationException("multi encoders not implemented yet.");
-  }
-
-  public int getBatchSize() {
-    return batchSize;
-  }
-
-  public void setBatchSize(int batchSize) {
-    this.batchSize = batchSize;
-  }
-
-  public int getNumEpochs() {
-    return numEpochs;
-  }
-
-  public void setNumEpochs(int numEpochs) {
-    this.numEpochs = numEpochs;
-  }
-
-  public boolean isRandomize() {
-    return randomize;
-  }
-
-  public void setRandomize(boolean randomize) {
-    this.randomize = randomize;
-  }
-
-  public int getEmbeddingLayerSize() {
-    return embeddingLayerSize;
-  }
-
-  public void setEmbeddingLayerSize(int embeddingLayerSize) {
-    this.embeddingLayerSize = embeddingLayerSize;
-  }
-  
-  public SectorTagger buildMultiFwBwSectorNetwork(int ffwLayerSize, int lstmLayerSize, int embeddingLayerSize, int iterations, double learningRate, double dropout, ILossFunction lossFunc, Activation activation) {
+  public SectorTagger buildSECTORModel(int ffwLayerSize, int lstmLayerSize, int embeddingLayerSize, int iterations, double learningRate, double dropout, ILossFunction lossFunc, Activation activation) {
     log.info("initializing graph with layer sizes bag={}, lstm={}, emb={} and {} loss", ffwLayerSize, lstmLayerSize, embeddingLayerSize, lossFunc.name());
     
     // size of the concatenated input vector (after FF layers)
@@ -269,7 +192,6 @@ public class SectorTagger extends Tagger {
           .gateActivationFunction(Activation.SIGMOID)
           //.dropOut(dropout) // not working in beta2 https://github.com/deeplearning4j/deeplearning4j/issues/6326
           .build()), "sentence");
-      //gb.addVertex("BLSTMFW", new PreprocessorVertex(new RnnToFeedForwardPreProcessor()), "BLSTM");
       gb.addVertex("FW", new SubsetVertex(0, lstmLayerSize - 1), "BLSTM");
       gb.addVertex("BW", new SubsetVertex(lstmLayerSize, (2 * lstmLayerSize) - 1), "BLSTM");
     // EMBEDDING LAYER
@@ -278,14 +200,10 @@ public class SectorTagger extends Tagger {
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
             .build(), "FW")
-        //.addVertex("embeddingFW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckFW")
         .addLayer("embeddingBW", new DenseLayer.Builder()
             .nIn(lstmLayerSize).nOut(embeddingLayerSize)
             .activation(Activation.TANH)
             .build(), "BW");
-        //.addVertex("embeddingBW", new L2NormalizeVertex(new int[] {}, 1e-6), "bottleneckBW");
-        //.addVertex("prev", new LastTimeStepVertex("bag"), "target")
-      //gb.addVertex("embedding", new ElementWiseVertex(ElementWiseVertex.Op.Average), "embeddingFW", "embeddingBW").allowDisconnected(true);
       gb.addLayer("targetFW", new RnnOutputLayer.Builder(lossFunc)
             .nIn(embeddingLayerSize).nOut(targetEncoder.getEmbeddingVectorSize())
             .activation(activation)
@@ -308,8 +226,6 @@ public class SectorTagger extends Tagger {
             .weightInit(WeightInit.SIGMOID_UNIFORM)
             .build(), "BW");
       }
-      //gb.allowDisconnected(true);
-     // gb.addVertex("target", new ElementWiseVertex(ElementWiseVertex.Op.Average), "targetFW", "targetBW");
       // OUTPUT LAYER
       gb.setOutputs("targetFW", "targetBW")
         .setInputTypes(InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize), InputType.recurrent(inputVectorSize))
@@ -347,13 +263,13 @@ public class SectorTagger extends Tagger {
     int n = 0;
     Nd4j.getMemoryManager().togglePeriodicGc(false);
     for(int i = 1; i <= numEpochs; i++) {
-      appendTrainLog("Starting epoch " + i + " of " + numEpochs + "\t" + n);
+      appendTrainLog("Starting epoch " + i + " of " + numEpochs);
       triggerEpochListeners(true, i - 1);
       getNN().fit(it);
       //wrapper.fit(it);
       n += numExamples;
       timer.setSplit("epoch");
-      appendTrainLog("Completed epoch " + i + " of " + numEpochs + "\t" + n, timer.getLong("epoch"));
+      appendTrainLog("Completed epoch " + i + " of " + numEpochs, timer.getLong("epoch"));
       triggerEpochListeners(false, i - 1);
       if(i < numEpochs) it.reset(); // shuffling may take some time
       Nd4j.getMemoryManager().invokeGc();
@@ -365,8 +281,8 @@ public class SectorTagger extends Tagger {
   }
   
   public EarlyStoppingResult<ComputationGraph> trainModel(Dataset train, Dataset validation, EarlyStoppingConfiguration conf) {
-    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, batchSize, maxTimeSeriesLength, true, requireSubsampling);
-    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, batchSize, maxTimeSeriesLength, false, requireSubsampling);
+    SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
+    SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, -1, maxTimeSeriesLength, batchSize, false, requireSubsampling);
     int batches = trainIt.numExamples / batchSize;
     timer.start();
     appendTrainLog("Training " + getName() + " with " + trainIt.numExamples + " examples in " + batches + " batches using early stopping.");
@@ -375,27 +291,29 @@ public class SectorTagger extends Tagger {
       @Override
       public void onStart(EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
         //Nd4j.getWorkspaceManager().destroyAllWorkspacesForCurrentThread();
-        Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
+        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
       }
       @Override
       public void onEpoch(int epochNum, double score, EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
-        log.info("Finished epoch {} with score {}", epochNum, 1. - score);
-        Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
-        Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
+        //log.info("Finished epoch {} with score {}", epochNum, score);
+        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
+        //Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
         /*try(MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace("SECTOR_TRAINING")) {
           ws.destroyWorkspace();
         }*/
+        Nd4j.getMemoryManager().invokeGc();
       }
       @Override
       public void onCompletion(EarlyStoppingResult<ComputationGraph> result) {
         log.info("Finished training with result {}", result.toString());
       }
     };
-    
+
     //EarlyStoppingParallelTrainer trainer = new EarlyStoppingParallelTrainer(conf, getNN(), null, trainIt, listener, 4, 4, 1, false, false);
     EarlyStoppingGraphTrainer trainer = new EarlyStoppingGraphTrainer(conf, getNN(), trainIt, listener);
-
+    Nd4j.getMemoryManager().togglePeriodicGc(false);
     EarlyStoppingResult<ComputationGraph> result = trainer.fit();
+    Nd4j.getMemoryManager().togglePeriodicGc(true);
     timer.stop();
     appendTrainLog("Training complete", timer.getLong());
     net = result.getBestModel();

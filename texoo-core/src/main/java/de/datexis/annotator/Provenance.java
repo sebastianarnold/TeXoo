@@ -173,8 +173,8 @@ public class Provenance {
   public String toString() {
     StringBuilder out = new StringBuilder();
     if(getName() != null)     out.append("_").append(getName());
-    if(getLanguage() != null) out.append("_").append(getLanguage());
     if(getTask()!= null)      out.append("_").append(getTask());
+    if(getLanguage() != null) out.append("_").append(getLanguage());
     if(getDataset()!= null)   out.append("_").append(getDataset());
     if(getFeatures()!= null)  out.append(getFeatures()); // starts with +
     if(getDate()!= null)      out.append("_").append(getDate());

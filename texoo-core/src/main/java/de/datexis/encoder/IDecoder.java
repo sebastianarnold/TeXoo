@@ -1,10 +1,9 @@
 package de.datexis.encoder;
 
-import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
- * A Decoder converts hidden layer vectors (INDArray) to output layer vectors (INDArray).
+ * A Decoder decodes classes (String / int) to vectors (INDArray).
  * E.g. classifier
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
@@ -15,26 +14,24 @@ public interface IDecoder {
 	 * @return INDArray vector length
 	 */
 	public long getOutputVectorSize();
-  
+
   /**
-	 * Generate a fixed-size vector of a String
-	 * @param word
-	 * @return Mx1 column vector (INDArray) containing the decoded String
-	 */
-	public abstract INDArray decode(String word);
-  
-  /**
-	 * Generate a fixed-size vector of a single Span
-   * @param span the Span to encode
-	 * @return Mx1 column vector (INDArray) containing the decoded Span
-	 */
-	public abstract INDArray decode(Span span);
-  
-  /**
-   * Encode a fixed-size vector from multiple Spans
-   * @param spans the Spans to encode
-   * @return Mx1 column vector (INDArray) containing all Spans combined (e.g. average)
+   * @return {0,1}^N vector representation of the given key (NOT the dense embedding)
    */
-  public INDArray decode(Iterable<? extends Span> spans);
-  
+  public INDArray decode(String key);
+
+  /**
+   * @return {0,1}^N vector representation of the given {0...1}^K embedding
+   */
+  public INDArray decode(INDArray vec);
+
+  /**
+   * @return {0,1}^N vector representation of the given {0...1}^N prediction (e.g. softmax)
+   */
+  public INDArray max(INDArray prediction);
+
+  /**
+   * @return confidence of the given {0...1}^N prediction
+   */
+  public double confidence(INDArray prediction);
 }
