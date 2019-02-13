@@ -7,34 +7,37 @@
   <name>TeXoo-examples</name>
   <packaging>jar</packaging>
   <version>1.1.1-SNAPSHOT</version>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <texoo.version>1.1.1-SNAPSHOT</texoo.version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>de.datexis</groupId>
       <artifactId>texoo-core</artifactId>
-      <version>${project.version}</version>
+      <version>${texoo.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>de.datexis</groupId>
       <artifactId>texoo-entity-recognition</artifactId>
-      <version>${project.version}</version>
+      <version>${texoo.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>de.datexis</groupId>
       <artifactId>texoo-entity-linking</artifactId>
-      <version>${project.version}</version>
+      <version>${texoo.version}</version>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>de.datexis</groupId>
       <artifactId>texoo-sector</artifactId>
-      <version>${project.version}</version>
+      <version>${texoo.version}</version>
       <type>jar</type>
     </dependency>
   </dependencies>
