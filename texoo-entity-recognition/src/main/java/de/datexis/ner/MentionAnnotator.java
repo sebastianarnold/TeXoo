@@ -139,8 +139,8 @@ public class MentionAnnotator extends Annotator {
       getTagger().appendTrainLog("EPOCH " + epoch + " complete: score " + score, timer.getLong("epoch"));
       if(score >= bestScore) {
         bestModel = Resource.createTempDirectory();
-        writeModel(bestModel, getTagger().getName());
         try {
+          writeModel(bestModel, getTagger().getName());
           HTMLExport htmlTest = new HTMLExport(validation.getDocuments(), BIOESTag.class, annotationSource, Annotation.Source.PRED);
           FileUtils.writeStringToFile(bestModel.resolve("test_" + epoch + ".html").toFile(), htmlTest.getHTML());
         } catch (IOException ex) {
