@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# TeXoo run script
+#
+
+# configure environment:
+bin/texoo-env
+export BACKEND_PRIORITY_CPU=2
+export BACKEND_PRIORITY_GPU=1
+
+# main class to run:
+CLASS=de.datexis.sector.exec.EvaluateSectorAnnotator
+
+# TODO: check if texoo is already compiled
+
+# exec Maven:
+mvn -e -B -q -DskipTests=true \
+  -pl texoo-sector exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
