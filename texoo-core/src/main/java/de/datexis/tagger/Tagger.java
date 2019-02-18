@@ -131,6 +131,7 @@ public abstract class Tagger extends AnnotatorComponent {
 
   // --- serialization getters / setters ---------------------------------------
 
+  @Override
   public void setEncoders(List<Encoder> encs) {
     encoders = encs;
     long i = 0;
@@ -143,6 +144,7 @@ public abstract class Tagger extends AnnotatorComponent {
   /**
    * @return all Encoders (input & output) as Components (not IEncoder)
    */
+  @Override
   @JsonIgnore
   public List<Encoder> getEncoders() {
     return encoders;

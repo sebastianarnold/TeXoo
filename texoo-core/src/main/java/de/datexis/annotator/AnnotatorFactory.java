@@ -114,16 +114,14 @@ public class AnnotatorFactory {
     Element xmlConf = xmlDoc.createElement("conf");
     xmlConf.appendChild(xmlDoc.createCDATASection(component.getConf()));
     xmlComp.appendChild(xmlConf);
-    if(component instanceof Tagger) {
-      if(((Tagger)component).getEncoders().iterator().hasNext()) {
-        Element xmlEncoders = xmlDoc.createElement("encoders");
-        for(Encoder e : ((Tagger)component).getEncoders()) {
-          Element xmlEncoder = xmlDoc.createElement("encoder");
-          xmlEncoder.setAttribute("id", ((IComponent) e).getId());
-          xmlEncoders.appendChild(xmlEncoder);
-        }
-        xmlComp.appendChild(xmlEncoders);
+    if(component.getEncoders().iterator().hasNext()) {
+      Element xmlEncoders = xmlDoc.createElement("encoders");
+      for(Encoder e : component.getEncoders()) {
+        Element xmlEncoder = xmlDoc.createElement("encoder");
+        xmlEncoder.setAttribute("id", ((IComponent) e).getId());
+        xmlEncoders.appendChild(xmlEncoder);
       }
+      xmlComp.appendChild(xmlEncoders);
     }
   }
 
@@ -207,19 +205,16 @@ public class AnnotatorFactory {
       for(int i = 0; i < xmlComps.getLength(); i++) {
         Element xmlComp = (Element) xmlComps.item(i);
         AnnotatorComponent comp = (AnnotatorComponent) ann.components.get(xmlComp.getAttribute("id"));
-        if(comp instanceof Tagger) {
-          Tagger tagger = (Tagger) comp;
-          NodeList xmlEncs = xmlComp.getElementsByTagName("encoders");
-          List<Encoder> encoders = new ArrayList<>();
-          if(xmlEncs.getLength() > 0) {
-            xmlEncs = ((Element)xmlEncs.item(0)).getElementsByTagName("encoder");
-            for(int j = 0; j < xmlEncs.getLength(); j++) {
-              Element xmlEnc = (Element) xmlEncs.item(j);
-              Encoder enc = (Encoder) ann.components.get(xmlEnc.getAttribute("id"));
-              encoders.add(enc);
-            }
+        NodeList xmlEncs = xmlComp.getElementsByTagName("encoders");
+        List<Encoder> encoders = new ArrayList<>();
+        if(xmlEncs.getLength() > 0) {
+          xmlEncs = ((Element)xmlEncs.item(0)).getElementsByTagName("encoder");
+          for(int j = 0; j < xmlEncs.getLength(); j++) {
+            Element xmlEnc = (Element) xmlEncs.item(j);
+            Encoder enc = (Encoder) ann.components.get(xmlEnc.getAttribute("id"));
+            encoders.add(enc);
           }
-          tagger.setEncoders(encoders);
+          comp.setEncoders(encoders);
         }
       }
       
