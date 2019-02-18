@@ -143,7 +143,7 @@ TeXoo: train MentionAnnotator with seed list
 
 If you use this module for research, please cite:
 
-> Sebastian Arnold, Felix A. Gers, Torsten Kilias, Alexander Löser: Robust Named Entity Recognition in Idiosyncratic Domains. arXiv:1608.06757 [cs.CL] 2016
+> Sebastian Arnold, Felix A. Gers, Torsten Kilias, Alexander Löser: Robust Named Entity Recognition in Idiosyncratic Domains. arXiv:1608.06757 [cs.CL] 2016 <https://arxiv.org/abs/1608.06757>
 
 
 ## [texoo-entity-linking](texoo-entity-linking/) – Named Entity Linking (NEL)
@@ -167,6 +167,11 @@ Annotators for **SECTOR** models from WikiSection dataset.
 | Package / Class                               | Description / Reference                                                |
 | --------------------------------------------- | ---------------------------------------------------------------------- |
 | [SectorAnnotator](texoo-sector/src/main/java/de/datexis/sector/SectorAnnotator.java)      | Topic Segmentation and Classification for Long Documents               |
+
+If you use this module for research, please cite:
+
+> Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser. "SECTOR: A Neural Model for Coherent Topic Segmentation and Classification." Transactions of the Association for Computational Linguistics (2019). <https://arxiv.org/abs/1902.04793>
+
 
 ### Command Line Usage:
 

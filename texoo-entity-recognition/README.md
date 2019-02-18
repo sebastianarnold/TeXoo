@@ -52,4 +52,4 @@ TeXoo: train MentionAnnotator with seed list
 
 If you use this module for research, please cite:
 
-> Sebastian Arnold, Felix A. Gers, Torsten Kilias, Alexander Löser: Robust Named Entity Recognition in Idiosyncratic Domains. arXiv:1608.06757 [cs.CL] 2016
+> Sebastian Arnold, Felix A. Gers, Torsten Kilias, Alexander Löser: Robust Named Entity Recognition in Idiosyncratic Domains. arXiv:1608.06757 [cs.CL] 2016 <https://arxiv.org/abs/1608.06757>
