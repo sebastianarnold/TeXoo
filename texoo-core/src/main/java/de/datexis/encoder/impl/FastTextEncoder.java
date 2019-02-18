@@ -9,7 +9,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import de.datexis.common.*;
 import de.datexis.encoder.Encoder;
-import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import de.datexis.model.*;
 import de.datexis.model.Token;
 import java.io.IOException;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 import de.datexis.preprocess.SentenceDetectorMENL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
-import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
@@ -39,9 +37,8 @@ public class FastTextEncoder extends Encoder {
 
 	private FastText ft;
   private String modelName;
-  private Resource modelPath;
+  private Resource modelSource;
   private long size = 0;
-  private static final TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
 
   private Method getPrecomputedWordVectors, findNN;
 
@@ -78,6 +75,9 @@ public class FastTextEncoder extends Encoder {
     return ft;
   }
   
+  /**
+   * Load an existing FastText binary model and keep a copy. On save, the model will be duplicated to Annotator folder.
+   */
   @Override
   public void loadModel(Resource modelFile) throws IOException {
     log.info("Loading FastText model: " +  modelFile.getFileName());
@@ -86,19 +86,30 @@ public class FastTextEncoder extends Encoder {
     size = ft.getWordVector("the").size();
     setModel(modelFile);
     setModelAvailable(true);
-    log.info("Loaded FastText model '{}' with {} words and vector size {}", 
+    modelSource = modelFile;
+    log.info("Loaded FastText model '{}' with {} words and vector size {}",
               modelFile.getFileName(), ft.getDictionary().size(), size);
 	}
   
+  /**
+   * Load an existing FastText binary model and keep its reference. On save, the model will not be copied.
+   */
+	public void loadModelAsReference(Resource modelFile) throws IOException {
+	  loadModel(modelFile);
+    modelSource = null;
+  }
+  
   @Override
   public void saveModel(Resource modelPath, String name) {
-     try {
-      Resource modelFile = modelPath.resolve(name + ".bin");
-      FileUtils.copyFile(Resource.fromFile(getModel()).toFile(), modelFile.toFile());
-      setModel(modelFile);
-    } catch(IOException ex) {
-      log.error(ex.toString());
-    }
+     if(modelSource != null) {
+       try {
+         Resource modelFile = modelPath.resolve(name + ".bin");
+         FileUtils.copyFile(modelSource.toFile(), modelFile.toFile());
+         setModel(modelPath);
+       } catch(IOException ex) {
+         log.error(ex.toString());
+       }
+     } // else rely on AnnotatorFactory to find the model in the search path
   }
   
   @Override
