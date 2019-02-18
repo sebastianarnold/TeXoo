@@ -4,7 +4,7 @@
 #
 
 # configure environment:
-texoo-env
+. bin/texoo-env
 
 # main class to run:
 CLASS=de.datexis.ner.exec.TrainMentionAnnotatorSeedList

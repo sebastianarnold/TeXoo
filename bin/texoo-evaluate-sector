@@ -4,9 +4,7 @@
 #
 
 # configure environment:
-bin/texoo-env
-export BACKEND_PRIORITY_CPU=2
-export BACKEND_PRIORITY_GPU=1
+. bin/texoo-env
 
 # main class to run:
 CLASS=de.datexis.sector.exec.EvaluateSectorAnnotator
