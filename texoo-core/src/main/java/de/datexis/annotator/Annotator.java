@@ -118,7 +118,7 @@ public class Annotator {
    * Writes annotator.xml and binary model
    * @param path Directory to write to
    */
-  public void writeModel(Resource path) {
+  public void writeModel(Resource path) throws IOException {
     writeModel(path, "annotator");
   }
   
@@ -126,7 +126,7 @@ public class Annotator {
    * Writes <name>.xml and binary models
    * @param path Directory to write to
    */
-  public void writeModel(Resource path, String name) {
+  public void writeModel(Resource path, String name) throws IOException {
     log.info("Writing model to {}", path.toString());
     writeComponents(path);
     AnnotatorFactory.writeXML(this, path.resolve(name + ".xml"));
@@ -140,7 +140,7 @@ public class Annotator {
     throw new UnsupportedOperationException();
   }
   
-  public void writeComponents(Resource path) {
+  public void writeComponents(Resource path) throws IOException {
       if(tagger != null) tagger.saveModel(path, tagger.getId().toLowerCase());
       for(IComponent comp : components.values()) {
         try {

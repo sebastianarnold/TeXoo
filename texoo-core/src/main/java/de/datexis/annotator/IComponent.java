@@ -34,6 +34,6 @@ public interface IComponent {
    * @param dir The path to create the file
    * @param name The name of the model. File extension will be added automatically.
 	 */
-  void saveModel(Resource dir, String name);
+  void saveModel(Resource dir, String name) throws IOException;
 
 }

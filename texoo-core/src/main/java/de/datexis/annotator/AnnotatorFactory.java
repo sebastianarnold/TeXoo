@@ -127,6 +127,7 @@ public class AnnotatorFactory {
     }
   }
 
+  @Deprecated //** please use loadAnnotator() */
   public static Annotator fromXML(Resource path) throws IOException {
     return fromXML(path, findXML(path));
   }
@@ -134,12 +135,13 @@ public class AnnotatorFactory {
   public static Annotator loadAnnotator(Resource path, Resource... searchPaths) throws IOException {
     return fromXML(path, findXML(path), searchPaths);
   }
-
+  
+  @Deprecated //** please use loadAnnotator() */
   public static Annotator fromXML(Resource path, String name) throws IOException {
     return fromXML(path, name, new Resource[]{});
   }
-
-  // TODO: what about ? extends Annotator?
+  
+  @Deprecated //** please use loadAnnotator() */
   public static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
     
     ObjectMapper mapper = new ObjectMapper();
