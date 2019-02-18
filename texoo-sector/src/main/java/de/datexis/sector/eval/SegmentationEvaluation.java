@@ -227,7 +227,8 @@ public class SegmentationEvaluation extends AnnotatorEvaluation {
     for(SectionAnnotation ann : anns) {
       int begin = doc.getSentenceIndexAtPosition(ann.getBegin());
       // fill previous section until here
-      if(begin < cursor) throw new IllegalArgumentException("document is not properly annotated");
+      if(begin < cursor) log.warn("document '{}' is not properly annotated at sentence {}", doc.getId(), cursor);
+      if(begin < 0) begin = 0; // use first sentence
       for(int t = cursor; t < begin; t++) {
         array[t] = sectionIndex;
         cursor++;

@@ -124,13 +124,13 @@ public class SectorEvaluation extends AnnotatorEvaluation {
         sentenceClassEval.calculateScoresFromTags(docs, Sentence.class, ClassTag.class);
       }
     }
-    if(enableSegmentEval && segmentClassEval != null) {
-      log.info("calculating segment scores from annotations...");
-      segmentClassEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class, true);
-    }
     if(enableSegmentationEval && segmentationEval != null) {
       log.info("calculating segmentation scores from annotations...");
       segmentationEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class);
+    }
+    if(enableSegmentEval && segmentClassEval != null) {
+      log.info("calculating segment scores from annotations...");
+      segmentClassEval.calculateScoresFromAnnotations(docs, SectionAnnotation.class, true);
     }
     log.info("done.");
     
