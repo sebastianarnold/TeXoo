@@ -180,19 +180,25 @@ public class AnnotatorFactory {
         if(model != null && !model.isEmpty()) {
           Resource modelPath = path.resolve(model);
           Resource absolutePath = new ExternalResource(model);
+          boolean loaded = false;
           if(modelPath.exists()) {
             comp.loadModel(modelPath);
+            loaded = true;
           } else if(absolutePath.exists()) {
             comp.loadModel(new ExternalResource(model));
+            loaded = true;
           } else {
             for(Resource searchPath : searchPaths) {
               modelPath = searchPath.resolve(model);
               if(modelPath.exists()) {
                 comp.loadModel(modelPath);
+                loaded = true;
                 break;
               }
             }
           }
+          if(!loaded) /*!comp.isModelAvailable()*/
+            throw new IllegalArgumentException("Model '" + model + "' not found for component " + comp.getName());
         }
         ann.components.put(id, comp);
       }
