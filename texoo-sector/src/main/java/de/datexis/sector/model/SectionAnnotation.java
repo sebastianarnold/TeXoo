@@ -26,6 +26,9 @@ public class SectionAnnotation extends Annotation {
   protected String sectionHeading;
   protected String sectionLabel;
   
+  
+  public static enum Field { HEADING, LABEL };
+  
   /**  Used for JSON Deserialization */
   protected SectionAnnotation() {}
   
@@ -60,6 +63,11 @@ public class SectionAnnotation extends Annotation {
     if(sectionLabel != null && !sectionLabel.isEmpty()) return sectionLabel;
     if(sectionHeading != null && !sectionHeading.isEmpty()) return sectionHeading;
     else return "";
+  }
+  
+  public String getAnnotation(Field field) {
+    if(field.equals(Field.HEADING)) return sectionHeading;
+    else return sectionLabel;
   }
   
   @JsonIgnore
