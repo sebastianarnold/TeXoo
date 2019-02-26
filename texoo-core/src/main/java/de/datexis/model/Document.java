@@ -115,11 +115,11 @@ public class Document extends Span {
   
   /**
    * Returns a single Sentence from this Document
-   * @param offset position (number of sentences) starting at 0
+   * @param index position (number of sentences) starting at 0
    * @return 
    */
-  public Sentence getSentence(int offset) {
-    return sentences.get(offset);
+  public Sentence getSentence(int index) {
+    return sentences.get(index);
   }
   
   /**
@@ -172,8 +172,8 @@ public class Document extends Span {
                                            (t.getBegin() < end && t.getEnd() >= end));
   }
 
-  public Optional<Token> getToken(int pos) {
-    return streamTokens().skip(pos).limit(1).findFirst();
+  public Optional<Token> getToken(int index) {
+    return streamTokens().skip(index).limit(1).findFirst();
   }
   
   /**

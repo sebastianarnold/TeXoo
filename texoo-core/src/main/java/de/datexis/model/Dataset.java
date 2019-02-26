@@ -106,20 +106,20 @@ public class Dataset {
   
   /**
    * Iterate over a subset of Documents in this Dataset
-   * @param offset
+   * @param startIndex
    * @param count
    * @return 
    */
-  public List<Document> getDocuments(int offset, int count) {
-    return streamDocuments(offset, count).collect(Collectors.toList());
+  public List<Document> getDocuments(int startIndex, int count) {
+    return streamDocuments(startIndex, count).collect(Collectors.toList());
   }
   
-  public Stream<Document> streamDocuments(int offset, int count) {
-    return streamDocuments().skip(offset).limit(count);
+  public Stream<Document> streamDocuments(int startIndex, int count) {
+    return streamDocuments().skip(startIndex).limit(count);
   }
   
-  public Optional<Document> getDocument(int offset) {
-     return streamDocuments().skip(offset).findFirst();
+  public Optional<Document> getDocument(int index) {
+     return streamDocuments().skip(index).findFirst();
   }
   
   /**
