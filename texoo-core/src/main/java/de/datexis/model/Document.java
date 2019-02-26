@@ -448,7 +448,7 @@ public class Document extends Span {
    * @return the Text that a given Annotation refers to
    */
 	public String getText(Annotation a) {
-    return getText().substring(a.begin, a.end);
+    return getText().substring(a.getBegin(), a.getEnd());
   }
   
   /**

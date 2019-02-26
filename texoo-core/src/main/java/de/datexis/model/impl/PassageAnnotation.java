@@ -8,14 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An Annotation used to point at a paragraph in a document
+ * An Annotation used to point at a passage in a document
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonPropertyOrder({"class", "source", "begin", "length", "id" })
 @JsonIgnoreProperties({"confidence", "text"})
-public class ParagraphAnnotation extends Annotation {
+public class PassageAnnotation extends Annotation {
 
-  protected final static Logger log = LoggerFactory.getLogger(ParagraphAnnotation.class);
+  protected final static Logger log = LoggerFactory.getLogger(PassageAnnotation.class);
   
   /**
    * The ID of this Annotation
@@ -23,13 +23,13 @@ public class ParagraphAnnotation extends Annotation {
   private String id = null;
   
   /**  Used for JSON Deserialization */
-  protected ParagraphAnnotation() {}
+  protected PassageAnnotation() {}
   
-  public ParagraphAnnotation(Source source) {
+  public PassageAnnotation(Source source) {
     super(source, "");
   }
   
-  public ParagraphAnnotation(Source source, String type, String sectionHeading) {
+  public PassageAnnotation(Source source, String type, String sectionHeading) {
     super(source, "");
   }
   
@@ -52,7 +52,7 @@ public class ParagraphAnnotation extends Annotation {
     if(this == obj) return true;
     if(obj == null) return false;
     if(getClass() != obj.getClass()) return false;
-    final ParagraphAnnotation other = (ParagraphAnnotation) obj;
+    final PassageAnnotation other = (PassageAnnotation) obj;
     if(this.begin != other.getBegin()) return false;
     if(this.end != other.getEnd()) return false;
     // if(this.source != other.source) return false; // DON'T include source to compare GOLD and PRED
