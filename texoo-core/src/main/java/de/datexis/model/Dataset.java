@@ -29,6 +29,9 @@ public class Dataset {
   /** A list of all Documents in this dataset */
   private List<Document> documents;
   
+  /** A list of Queries and their Results on this dataset */
+  List<Query> queries = new ArrayList<>();
+  
   /** Random seed */
   protected static Random random = new Random();
   
@@ -213,6 +216,13 @@ public class Dataset {
   }
   
   /**
+   * @return the number of Queries in this Dataset
+   */
+  public long countQueries() {
+    return getQueries().size();
+  }
+  
+  /**
    * @return the number of Annotations from a given source in all Documents in this Dataset
    */
   public long countAnnotations(Annotation.Source source) {
@@ -226,6 +236,20 @@ public class Dataset {
   public Sentence getRandomSentence() {
     int index = random.nextInt(countDocuments());
     return getDocument(index).get().getRandomSentence();
+  }
+  
+  public Collection<Query> getQueries() {
+    return queries;
+  }
+  
+  public void addQuery(Query q) {
+    this.queries.add(q);
+  }
+  
+  public Optional<Query> getQuery(String id) {
+    return queries.stream()
+      .filter(q -> q.getId().equals(id))
+      .findFirst();
   }
   
   /**
