@@ -30,7 +30,7 @@ public abstract class Span implements Comparable<Span> {
   protected static final org.slf4j.Logger log = LoggerFactory.getLogger(Span.class);
   
   /**
-   * Reference to the Document that this Span belongs to.
+   * Reference to the Document that this Span belongs to (may be set if needed).
    */
   private Document documentRef;
   

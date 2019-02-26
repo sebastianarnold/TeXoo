@@ -20,7 +20,14 @@ public class Token extends Span {
    * The text of this Token
    */
   private String text;
-    
+  
+  /**
+   * Create a new Token from plain text
+   */
+  public static Token create(String text) {
+    return new Token(text);
+  }
+  
   /**
    * Default constructor.
    * @deprecated only used for JSON deserialization.

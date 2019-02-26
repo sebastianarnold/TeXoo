@@ -72,6 +72,13 @@ public class Document extends Span {
    */
   private EnumMap<Annotation.Source, TreeSet<String>> assignedTags = null;
   
+  /**
+   * Create a new Document from plain text
+   */
+  public static Document create(String text) {
+    return DocumentFactory.fromText(text, Newlines.KEEP);
+  }
+  
 	/**
 	 * Create an empty Document
 	 */
@@ -79,7 +86,7 @@ public class Document extends Span {
 		sentences = new ArrayList<>();
     annotations = new ArrayList<>();
 	}
-  
+ 
 	/**
 	 * Set sentences
 	 * @param s new value for sentences of this Document instance
@@ -280,7 +287,7 @@ public class Document extends Span {
  
   /**
    * Adds a List of Annotations to this document.
-   * @param ann The Annotations to add. Duplicates will not be replaced.
+   * @param anns The Annotations to add. Duplicates will not be replaced.
    */
   public void addAnnotations(List<? extends Annotation> anns) {
     if(annotations == null) annotations = new ArrayList<>(Math.max(countSentences() * 4, anns.size() * 2));
@@ -436,6 +443,13 @@ public class Document extends Span {
       return "";
     }
 	}
+  
+  /**
+   * @return the Text that a given Annotation refers to
+   */
+	public String getText(Annotation a) {
+    return getText().substring(a.begin, a.end);
+  }
   
   /**
    * @return the number of sentences in the Document

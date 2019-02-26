@@ -2,16 +2,12 @@ package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Holds a collection of Documents in memory(!)
@@ -21,32 +17,32 @@ public class Dataset {
   
   private static final Logger log = LoggerFactory.getLogger(Dataset.class);
   
+  /** The name of this dataset */
   private String name;
+  
+  /** The language of this dataset */
   private String language = null;
   
-  /**
-   * The unique ID of this span (e.g. database primary key)
-   */
-  protected Long uid = null;
+  /** The unique ID of this dataset (e.g. database primary key) */
+  private Long uid = null;
   
+  /** A list of all Documents in this dataset */
   private List<Document> documents;
-  public static Random random = new Random();
+  
+  /** Random seed */
+  protected static Random random = new Random();
+  
+  public Dataset() {
+    this("");
+  }
   
   public Dataset(String name) {
-    documents = new ArrayList<>();
-    this.name = name;
+    this(name, new ArrayList<>());
   }
   
   public Dataset(String name, List<Document> docs) {
     this.documents = docs;
     this.name = name;
-  }
-  
-  /**
-   * Default constructor.
-   */
-  public Dataset() {
-    this("");
   }
   
   public String getName() {
@@ -56,7 +52,8 @@ public class Dataset {
   public void setName(String name) {
     this.name = name;
   }
-
+  
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   public String getLanguage() {
     return language;
   }
@@ -75,60 +72,72 @@ public class Dataset {
   }
   
   /**
-   * Create a Dataset that references to a split of documents. Caution: this is not a deep copy.
-   * @param offset
-   * @param count
-   * @return 
+   * @return a Dataset that references to a split of documents. Caution: this is not a deep copy.
    */
   public Dataset getSplit(int offset, int count) {
     if(offset < 0) offset = countDocuments() + offset;
     if(count < 0) count = countDocuments() + count;
-    try {
-      List<Document> docs = documents.subList(offset, offset + count);
-      return new Dataset(getName(), docs);
-    } catch(IndexOutOfBoundsException ex) {
-      log.warn("Document index out of bounds, returning whole dataset " + ex);
-      return new Dataset(getName(), documents);
-    }
+    List<Document> docs = streamDocuments(offset, count).collect(Collectors.toList());
+    return new Dataset(getName(), docs);
   }
   
   /**
-   * Iterate over all Documents in this Dataset
-   * @return 
+   * @return all Documents in this Dataset in no particular order
    */
-  public List<Document> getDocuments() {
+  public Collection<Document> getDocuments() {
     return documents;
   }
   
+  /**
+   * @return a Stream of all Documents in this Dataset
+   */
   public Stream<Document> streamDocuments() {
     return documents.stream();
   }
   
   /**
-   * Iterate over a subset of Documents in this Dataset
-   * @param startIndex
-   * @param count
-   * @return 
+   * @return a subset of Documents in this Dataset
    */
   public List<Document> getDocuments(int startIndex, int count) {
-    return streamDocuments(startIndex, count).collect(Collectors.toList());
-  }
-  
-  public Stream<Document> streamDocuments(int startIndex, int count) {
-    return streamDocuments().skip(startIndex).limit(count);
-  }
-  
-  public Optional<Document> getDocument(int index) {
-     return streamDocuments().skip(index).findFirst();
+    return streamDocuments(startIndex, count)
+      .collect(Collectors.toList());
   }
   
   /**
-   * Return a random Document of this Dataset
-   * @return 
+   * @return a Stream of Documents
+   */
+  public Stream<Document> streamDocuments(int startIndex, int count) {
+    return streamDocuments()
+      .skip(startIndex)
+      .limit(count);
+  }
+  
+  /**
+   * @return the Document with given index
+   */
+  public Optional<Document> getDocument(int index) {
+     return streamDocuments()
+       .skip(index)
+       .findFirst();
+  }
+  
+  /**
+   * Find a Document with given ID in the Dataset.
+   * If multiple Documents exist with the same ID, only one is returned.
+   * @return the Document with given ID
+   */
+  public Optional<Document> getDocument(String id) {
+    return streamDocuments()
+      .filter(doc -> doc.getId().equals(id))
+      .findFirst();
+  }
+  
+  /**
+   * @return a random Document of this Dataset
    */
   @JsonIgnore
   public Optional<Document> getRandomDocument() {
-    int index = random.nextInt(documents.size());
+    int index = random.nextInt(countDocuments());
     return getDocument(index);
   }
 
@@ -165,7 +174,6 @@ public class Dataset {
   
   /**
    * Add a document to the end of this Dataset
-   * @param doc 
    */
   public void addDocument(Document doc) {
     if(language == null) setLanguage(doc.getLanguage());
@@ -177,8 +185,7 @@ public class Dataset {
   }
   
   /**
-   * Returns the number of Documents in this Dataset
-   * @return 
+   * @return the number of Documents in this Dataset
    */
   public int countDocuments() {
     return documents.size();
@@ -205,18 +212,24 @@ public class Dataset {
     return streamDocuments().mapToLong(d -> d.countAnnotations()).sum();
   }
   
+  /**
+   * @return the number of Annotations from a given source in all Documents in this Dataset
+   */
   public long countAnnotations(Annotation.Source source) {
     return streamDocuments().mapToLong(d -> d.countAnnotations(source)).sum();
   }
   
+  /**
+   * @return a random Sentence from the Dataset
+   */
   @JsonIgnore
   public Sentence getRandomSentence() {
-    int index = random.nextInt(documents.size());
-    return documents.get(index).getRandomSentence();
+    int index = random.nextInt(countDocuments());
+    return getDocument(index).get().getRandomSentence();
   }
   
   /**
-   * @return a deep copy of this Dataset
+   * @return a deep copy of this Dataset (not fully implemented yet!)
    */
   public Dataset clone() {
     ArrayList<Document> docs = new ArrayList<>(countDocuments());

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.datexis.common.WordHelpers;
+import de.datexis.preprocess.DocumentFactory;
+
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,13 +23,30 @@ public class Sentence extends Span {
 	 */
 	private List<Token> tokens;
   
+  /**
+   * Create a new Sentence from plain text
+   */
+  public static Sentence create(String text) {
+    return create(text, false);
+  }
+  
+  /**
+   * Create a new Sentence from plain text
+   * @param tokenized set to True if the text is already tokenized
+   */
+  public static Sentence create(String text, boolean tokenized) {
+    return DocumentFactory.createSentenceFromTokens(tokenized ?
+      DocumentFactory.createTokensFromTokenizedText(text) :
+      DocumentFactory.createTokensFromText(text));
+  }
+	
 	/**
 	 * Create an empty Sentence
 	 */
 	public Sentence() {
 		tokens = new ArrayList<>();
 	}
-	
+  
 	/**
 	 * Constructor using fields
 	 * 
