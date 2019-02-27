@@ -4,9 +4,7 @@ import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,6 +31,15 @@ public class Query extends Document {
   
   public Query() {
     results = new ArrayList<>();
+  }
+  
+  /**
+   * @return the Annotation that is attached to this Query. Caution: for simplicity of use, we assume there is a single
+   * Annotation of this type attached and only this one is returned.
+   * @throws NoSuchElementException if there is no Annotation present
+   */
+  public <A extends Annotation> A getAnnotation(Class<A> type) {
+    return streamAnnotations(type).findFirst().get();
   }
   
   /**
@@ -89,6 +96,13 @@ public class Query extends Document {
      */
     public Annotation getAnnotation() {
       return annotation;
+    }
+  
+    /**
+     * @return the Annotation that this result refers to, cast to the specified type
+     */
+    public <A extends Annotation> A getAnnotation(Class<A> type) {
+      return (A) annotation;
     }
     
     public double getRelevance() {
