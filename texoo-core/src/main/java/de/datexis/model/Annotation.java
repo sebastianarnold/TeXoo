@@ -106,7 +106,7 @@ public class Annotation extends Span {
    * @param other
    * @return 
    */
-  public boolean intersects(Annotation other) {
+  public boolean intersects(Span other) {
     if(this.begin <= other.begin && this.end > other.begin) return true;
     else if(other.begin <= this.begin && other.end > this.begin) return true;
     else return false;
@@ -117,7 +117,7 @@ public class Annotation extends Span {
    * @param other
    * @return 
    */
-  public boolean contains(Annotation other) {
+  public boolean contains(Span other) {
     if(this.begin <= other.begin && this.end >= other.end) return true;
     else return false;
   }
