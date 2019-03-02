@@ -4,7 +4,10 @@ import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.NoSuchElementException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,7 +21,7 @@ public class Query extends Document {
   
   protected final static Logger log = LoggerFactory.getLogger(Query.class);
   
-  public List<Result> results;
+  public SortedSet<Result> results;
   
   /**
    * Create a new Document from plain text
@@ -30,7 +33,7 @@ public class Query extends Document {
   }
   
   public Query() {
-    results = new ArrayList<>();
+    results = new TreeSet<>();
   }
   
   /**
@@ -71,7 +74,7 @@ public class Query extends Document {
    * A Result contains the retrieved Document and an Annotation that points to the
    * Span of the Result (e.g. a Paragraph)
    */
-  public class Result {
+  public class Result implements Comparable<Result> {
     
     /** The Document that contains the result */
     private Document document;
@@ -114,6 +117,11 @@ public class Query extends Document {
         this.getAnnotation().matches(other.getAnnotation());
     }
     
+    @Override
+    public int compareTo(Result other) {
+      return Double.compare(other.getRelevance(), this.getRelevance());
+    }
+  
   }
   
 }
