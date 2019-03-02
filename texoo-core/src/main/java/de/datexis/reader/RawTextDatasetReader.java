@@ -1,13 +1,13 @@
 package de.datexis.reader;
 
 import de.datexis.common.Resource;
-import de.datexis.model.*;
+import de.datexis.model.Dataset;
+import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Reads all files from a directory into a Dataset.
@@ -32,6 +30,7 @@ public class RawTextDatasetReader implements DatasetReader {
   protected boolean randomizeDocuments = false;
   protected boolean useFirstSentenceAsTitle = false;
   protected boolean isTokenized = false;
+  protected boolean generateUIDs = false;
   protected long limit = -1;
   
   /**
@@ -65,6 +64,15 @@ public class RawTextDatasetReader implements DatasetReader {
     this.isTokenized = isTokenized;
     return this;
   }
+  
+  /**
+   * Set to TRUE if the documents should be assigned incremental UIDs.
+   */
+  public RawTextDatasetReader withGeneratedUIDs(boolean generate) {
+    this.generateUIDs = generate;
+    return this;
+  }
+  
   
   /**
    * Read Dataset from a given directory or file.
@@ -105,8 +113,12 @@ public class RawTextDatasetReader implements DatasetReader {
       docs = docs.limit(limit);
     }
     docs.forEach(d -> {
+      long n = progress.incrementAndGet();
+      if(generateUIDs) {
+        // TODO: possibly generate real UIDs here, and go deeper into sentences etc.
+        d.setUid(n - 1);
+      }
       data.addDocument(d);
-      int n = progress.incrementAndGet();
       if(n % 1000 == 0) {
         double free = Runtime.getRuntime().freeMemory() / (1024. * 1024. * 1024.);
         double total = Runtime.getRuntime().totalMemory() / (1024. * 1024. * 1024.);
