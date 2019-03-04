@@ -118,24 +118,19 @@
     </dependency>
     <dependency>
       <groupId>org.nd4j</groupId>
-      <artifactId>${nd4j.backend}</artifactId>
-      <version>${dl4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-native</artifactId>
+      <artifactId>nd4j-native-platform</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
     <!-- ND4j CUDA -->
     <dependency>
       <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-cuda-9.2-platform</artifactId>
+      <artifactId>nd4j-cuda-${cuda.version}-platform</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
     <!-- DL4j cuDNN -->
     <dependency>
       <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-cuda-9.2</artifactId>
+      <artifactId>deeplearning4j-cuda-${cuda.version}</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
     <!-- DL4j CUDA + cuDNN binaries -->
@@ -146,7 +141,7 @@
      <classifier>linux-x86_64-redist</classifier>
     </dependency>
 
-    <!-- FastText for Java (BSD license with additional Facebook patent grant )-->
+    <!-- FastText for Java (MIT license)-->
     <dependency>
       <groupId>com.github.sszuev</groupId>
       <artifactId>fasttext</artifactId>
