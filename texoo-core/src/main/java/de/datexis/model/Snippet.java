@@ -17,14 +17,14 @@ import org.slf4j.LoggerFactory;
  * New Annotations should be added to the original Documents. 
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-public class Sample extends Document {
+public class Snippet extends Document {
 
-  protected final static Logger log = LoggerFactory.getLogger(Sample.class);
+  protected final static Logger log = LoggerFactory.getLogger(Snippet.class);
   
   /**
-   * Create a Sample from existing Document. Sample is extended to Sentence boundaries.
+   * Create a Snippet from existing Document. Snippet is extended to Sentence boundaries.
    */ 
-  public Sample(Document documentRef, int begin, int length) {
+  public Snippet(Document documentRef, int begin, int length) {
     this.sentences = documentRef.streamSentencesInRange(begin, begin + length, false).collect(Collectors.toList());
     this.setDocumentRef(documentRef);
     if(!sentences.isEmpty()) {
@@ -37,10 +37,10 @@ public class Sample extends Document {
   }
   
   /**
-   * Create a Sample with existing Sentences.
+   * Create a Snippet with existing Sentences.
    */
   @Deprecated
-  public Sample(Collection<Sentence> sentences, boolean randomizeOrder) {
+  public Snippet(Collection<Sentence> sentences, boolean randomizeOrder) {
     if(!sentences.isEmpty()) {
       List<Sentence> list = new ArrayList<>(sentences);
       if(randomizeOrder) Collections.shuffle(list, new Random(System.nanoTime()));
@@ -49,7 +49,7 @@ public class Sample extends Document {
   }
   
   /**
-   * Appends a Sentence to the end of the Sample. Offsets and Reference are not changed.
+   * Appends a Sentence to the end of the Snippet. Offsets and Reference are not changed.
    * @param s The Sentence to add.
    */
   @Override
@@ -58,7 +58,7 @@ public class Sample extends Document {
 	}
   
    /**
-   * Appends a Sentence to the end of the Sample. Offsets and Reference are not changed.
+   * Appends a Sentence to the end of the Snippet. Offsets and Reference are not changed.
    * @param s The Sentence to add.
    * @param adjustOffsets ignored
    */

@@ -3,7 +3,7 @@ package de.datexis.index;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import de.datexis.model.Article;
+import de.datexis.nel.model.Article;
 import java.util.Comparator;
 import java.util.Objects;
 import org.nd4j.linalg.api.ndarray.INDArray;

@@ -2,7 +2,7 @@ package de.datexis.index;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.datexis.model.Article;
+import de.datexis.nel.model.Article;
 import java.io.IOException;
 import org.junit.Test;
 import static org.junit.Assert.*;

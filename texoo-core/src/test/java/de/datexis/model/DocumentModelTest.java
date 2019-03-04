@@ -138,9 +138,9 @@ public class DocumentModelTest {
     assertEquals(medText + " " + deText, doc.getText());
     assertEquals(doc, doc.getSentence(0).getDocumentRef());
     assertEquals(doc, doc.getSentence(2).getDocumentRef());
-    Document doc3 = new Sample(doc2.getSentences(), false);
+    Document doc3 = new Snippet(doc2.getSentences(), false);
     assertEquals(doc, doc3.getSentence(0).getDocumentRef());
-    Document doc4 = new Sample(doc.getSentences(), false);
+    Document doc4 = new Snippet(doc.getSentences(), false);
     assertEquals(doc, doc4.getSentence(0).getDocumentRef());
   }
 

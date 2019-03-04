@@ -1,7 +1,7 @@
 package de.datexis.index;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import de.datexis.model.Article;
+import de.datexis.nel.model.Article;
 
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

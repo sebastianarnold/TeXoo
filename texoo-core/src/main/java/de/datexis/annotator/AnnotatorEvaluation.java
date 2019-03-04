@@ -109,6 +109,7 @@ public abstract class AnnotatorEvaluation {
     return countAnnotations;
   }
   
+  public String printEvaluationStats() { return ""; };
   
   /**
    * @return format Double for Table with 2 decimals

@@ -1,10 +1,12 @@
-package de.datexis.model;
+package de.datexis.nel.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Set;
 import java.util.TreeSet;
+
+import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

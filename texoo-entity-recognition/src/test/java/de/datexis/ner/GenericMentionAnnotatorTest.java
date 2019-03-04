@@ -5,7 +5,7 @@ import de.datexis.annotator.AnnotatorFactory;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
-import de.datexis.model.Sample;
+import de.datexis.model.Snippet;
 import de.datexis.model.Sentence;
 import de.datexis.preprocess.DocumentFactory;
 import java.io.IOException;
@@ -81,15 +81,15 @@ public class GenericMentionAnnotatorTest {
     
     List<Sentence> sents = Lists.newArrayList(doc1.getSentence(0), doc1.getSentence(1), doc2.getSentence(0), doc2.getSentence(1));
 
-    Sample sample = new Sample(sents, false);
+    Snippet snippet = new Snippet(sents, false);
     
     Assert.assertEquals(0, doc1.countAnnotations());
     Assert.assertEquals(0, doc2.countAnnotations());
-    Assert.assertEquals(4, sample.countSentences());
-    Assert.assertEquals(0, sample.countAnnotations());
-    //Assert.assertEquals(4, sample.countTokens());
+    Assert.assertEquals(4, snippet.countSentences());
+    Assert.assertEquals(0, snippet.countAnnotations());
+    //Assert.assertEquals(4, snippet.countTokens());
     
-    ann.annotate(sample);
+    ann.annotate(snippet);
     
     // Retrieve all Annotations and print
     doc1.streamAnnotations(Annotation.Source.PRED, MentionAnnotation.class).forEach(ann -> {
@@ -99,7 +99,7 @@ public class GenericMentionAnnotatorTest {
       //System.out.println(String.format("-- doc2 -- %s [%s]\t%s", ann.getText(), ann.getType(), ann.getConfidence()));
     });
     
-    Assert.assertEquals(0, sample.countAnnotations()); // Annotations on Sample should land in their original Documents
+    Assert.assertEquals(0, snippet.countAnnotations()); // Annotations on Snippet should land in their original Documents
     Assert.assertEquals(9, doc1.countAnnotations());
     Assert.assertEquals(14, doc2.countAnnotations());
     

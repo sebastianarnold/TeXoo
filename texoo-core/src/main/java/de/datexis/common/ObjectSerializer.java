@@ -3,18 +3,8 @@ package de.datexis.common;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.datexis.model.Annotation;
-import de.datexis.model.Article;
 import de.datexis.model.Document;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
+import de.datexis.model.Span;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -23,6 +13,9 @@ import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.Iterator;
 
 /**
  * Helper class for Object JSON serialization
@@ -39,8 +32,8 @@ public class ObjectSerializer {
       mapper = new ObjectMapper();
       org.reflections.Configuration conf = ConfigurationBuilder.build("de.datexis").setExpandSuperTypes(false);
       Reflections reflections = new Reflections(conf);
-      for(Class<? extends Annotation> c : reflections.getSubTypesOf(Annotation.class)) mapper.registerSubtypes(c);
-      for(Class<? extends Article> c : reflections.getSubTypesOf(Article.class)) mapper.registerSubtypes(c);
+      // search for all extensions of datexis Document model
+      for(Class<? extends Span> c : reflections.getSubTypesOf(Span.class)) mapper.registerSubtypes(c);
       mapper.setSerializationInclusion(Include.NON_NULL);
     }
     return mapper;

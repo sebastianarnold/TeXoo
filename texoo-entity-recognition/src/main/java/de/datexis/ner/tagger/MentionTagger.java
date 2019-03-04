@@ -5,7 +5,6 @@ import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.*;
 import de.datexis.model.tag.*;
-import static de.datexis.model.tag.Tag.GENERIC;
 import de.datexis.ner.MentionAnnotation;
 import de.datexis.ner.eval.MentionAnnotatorEval;
 import de.datexis.ner.eval.MentionTaggerEval;
@@ -13,7 +12,6 @@ import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.deeplearning4j.api.storage.StatsStorage;
@@ -188,7 +186,7 @@ public class MentionTagger extends Tagger {
   }
   
   public void trainModel(Collection<Sentence> sentences, Annotation.Source trainingTags, boolean randomize) {
-    trainModel(new MentionTaggerIterator(Lists.newArrayList(new Sample(sentences, randomize)), "training", getEncoderSet(), tagset, trainingTags, -1, batchSize, randomize));
+    trainModel(new MentionTaggerIterator(Lists.newArrayList(new Snippet(sentences, randomize)), "training", getEncoderSet(), tagset, trainingTags, -1, batchSize, randomize));
   }
   
   protected void trainModel(MentionTaggerIterator it) {
@@ -262,7 +260,7 @@ public class MentionTagger extends Tagger {
   }
   
   public void tagSentences(Collection<Sentence> sentences) {
-    tag(Lists.newArrayList(new Sample(sentences, false)));
+    tag(Lists.newArrayList(new Snippet(sentences, false)));
   }
     
   /**

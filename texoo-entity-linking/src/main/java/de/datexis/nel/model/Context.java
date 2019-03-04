@@ -1,5 +1,6 @@
-package de.datexis.model;
+package de.datexis.nel.model;
 
+import de.datexis.model.Span;
 import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
