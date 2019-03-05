@@ -1,5 +1,6 @@
 package de.datexis.reader;
 
+import de.datexis.common.InternalResource;
 import de.datexis.common.Resource;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
@@ -79,13 +80,13 @@ public class RawTextDatasetReader implements DatasetReader {
    */
   @Override
   public Dataset read(Resource path) throws IOException {
-    if(path.isDirectory()) {
-      return readDatasetFromDirectory(path, ".+");
-    } else if(path.isFile()) {
+    if(path instanceof InternalResource || path.isFile()) {
       Document doc = readDocumentFromFile(path);
       Dataset data = new Dataset(path.getFileName());
       data.addDocument(doc);
       return data;
+    } else if(path.isDirectory()) {
+      return readDatasetFromDirectory(path, ".+");
     } else throw new FileNotFoundException("cannot open path: " + path.toString());
   }
   
