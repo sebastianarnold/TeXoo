@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Extension of Document to include a dedicated Abstract section.
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonPropertyOrder({ "id", "type", "title", "abstract", "text", "annotations" })
@@ -18,17 +18,8 @@ public class WikiDocument extends Document {
 
   protected final static Logger log = LoggerFactory.getLogger(WikiDocument.class);
 
-  protected String title;  
   protected String abstr;
 
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-  
   public String getAbstract() {
     return abstr;
   }
