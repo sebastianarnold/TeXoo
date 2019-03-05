@@ -13,8 +13,9 @@ import java.util.stream.Stream;
 public interface DatasetReader {
   
   public Dataset read(Resource path) throws IOException;
-  
   // TODO: implement for next version
+  //public Dataset readDatasetFromDirectory(Resource path, String pattern) throws IOException;
+  //public Document readDocumentFromFile(Resource file) throws IOException;
   //public Stream<Document> stream(Resource path);
   
 }
