@@ -29,10 +29,6 @@ public class PassageAnnotation extends Annotation {
     super(source, "");
   }
   
-  public PassageAnnotation(Source source, String type, String sectionHeading) {
-    super(source, "");
-  }
-  
   public void setId(String id) {
     this.id = id;
   }

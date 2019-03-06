@@ -230,6 +230,13 @@ public class Dataset {
   }
   
   /**
+   * @return the number of Annotations from a given source in all Documents in this Dataset
+   */
+  public <A extends Annotation> long countAnnotations(Annotation.Source source, Class<A> type) {
+    return streamDocuments().mapToLong(d -> d.countAnnotations(source, type)).sum();
+  }
+  
+  /**
    * @return a random Sentence from the Dataset
    */
   @JsonIgnore

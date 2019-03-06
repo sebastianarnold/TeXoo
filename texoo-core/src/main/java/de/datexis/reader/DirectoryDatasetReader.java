@@ -90,7 +90,7 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
       paths = list.stream();
     }
     Stream<Document> docs = paths
-      .map(p -> tryReadDocumentFromFile(Resource.fromFile(p.toString())))
+      .flatMap(p -> tryReadDocumentsFromFile(Resource.fromFile(p.toString())))
       .filter(d -> !d.isEmpty());
     if(limit >= 0) {
       docs = docs.limit(limit);
@@ -108,11 +108,11 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
   }
   
   /**
-   * Read a single Document from file without IOException.
+   * Read a Document(s) from file without IOException. Default implementation for a single Document per file.
    */
-  protected Document tryReadDocumentFromFile(Resource path) {
+  protected Stream<Document> tryReadDocumentsFromFile(Resource path) {
     try {
-      return readDocumentFromFile(path);
+      return Stream.of(readDocumentFromFile(path));
     } catch(IOException ex) {
       // IOException is now allowed in Stream
       log.error(ex.toString());
