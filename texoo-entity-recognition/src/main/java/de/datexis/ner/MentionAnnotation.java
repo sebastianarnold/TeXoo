@@ -1,8 +1,5 @@
 package de.datexis.ner;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.datexis.common.WordHelpers;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -12,10 +9,12 @@ import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
 import de.datexis.model.tag.Tag;
 import de.datexis.tagger.AbstractIterator;
-import java.util.stream.Collectors;
-import org.apache.commons.math3.analysis.solvers.IllinoisSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Annotation of a named entity mention.
@@ -33,9 +32,13 @@ public class MentionAnnotation extends Annotation {
 	}
 
 	/**
-	 * Type of the annotation
+	 * Type of the annotation, e.g. PER, ORG, LOC
 	 */
 	protected String type;
+  
+  /**
+   * Referenced ID, e.g. Wikipedia Page name
+   */
   protected String refId;
   
 	/**
@@ -92,7 +95,7 @@ public class MentionAnnotation extends Annotation {
   }
   
 	/**
-	 * @return the type of the Annotation
+	 * @return the type of the Annotation e.g. PER, ORG, LOC
 	 */
 	public String getType() {
 		return type;
@@ -105,7 +108,10 @@ public class MentionAnnotation extends Annotation {
 	public void setType(String type) {
 		this.type = type;
 	}
-
+  
+  /**
+   * @return referenced ID, e.g. Wikipedia Page name
+   */
   public String getRefId() {
     return refId;
   }
