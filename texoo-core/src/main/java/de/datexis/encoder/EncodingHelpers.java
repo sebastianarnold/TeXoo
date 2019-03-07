@@ -18,20 +18,23 @@ public class EncodingHelpers {
    * @param input - the Documents that should be encoded
    * @param timeStepClass - the class of sub elements in the Document, e.g. Sentence.class
    */
-  public static INDArray encodeTimeStepMatrix(List<Document> input, IEncoder encoder, int maxTimeSteps, Class<? extends Span> timeStepClass) {
+  public static INDArray encodeTimeStepMatrix(List<? extends Span> input, IEncoder encoder, int maxTimeSteps, Class<? extends Span> timeStepClass) {
 
     INDArray encoding = Nd4j.zeros(input.size(), encoder.getEmbeddingVectorSize(), maxTimeSteps);
-    Document example;
+    Span example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
 
       example = input.get(batchIndex);
 
       List<? extends Span> spansToEncode = Collections.EMPTY_LIST;
-      if(timeStepClass == Token.class) spansToEncode = Lists.newArrayList(example.getTokens());
-      else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
+      if(example instanceof Document && timeStepClass == Token.class) spansToEncode = Lists.newArrayList(((Document)example).getTokens());
+      else if(example instanceof Document && timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(((Document)example).getSentences());
+      else if(example instanceof Sentence && timeStepClass == Token.class) spansToEncode = Lists.newArrayList(((Sentence)example));
+      else if(example instanceof Sentence && timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(((Sentence)example).getTokens());
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
+        // TODO: Encoder should encode a batch of sentences and return matrix with batchSize columns and vectorsize rows...?
         INDArray vec = encoder.encode(spansToEncode.get(t));
         encoding.getRow(batchIndex).getColumn(t).assign(vec);
       }

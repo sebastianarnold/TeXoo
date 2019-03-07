@@ -1,16 +1,20 @@
 package de.datexis.sector.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.model.impl.PassageAnnotation;
 import de.datexis.model.tag.BIO2Tag;
-import de.datexis.sector.encoder.ClassTag;
 import de.datexis.model.tag.TFTag;
-import java.util.stream.Collectors;
+import de.datexis.sector.encoder.ClassTag;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.stream.Collectors;
 
 /**
  * An Annotation used to attach a phrase (e.g. sentences) to documents, e.g. questions, summarizations, etc.
@@ -18,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 @JsonPropertyOrder({"class", "source", "begin", "length", "sectionHeading", "sectionLabel" })
 @JsonIgnoreProperties({"confidence", "text"})
-public class SectionAnnotation extends Annotation {
+public class SectionAnnotation extends PassageAnnotation {
 
   protected final static Logger log = LoggerFactory.getLogger(SectionAnnotation.class);
 
@@ -33,11 +37,11 @@ public class SectionAnnotation extends Annotation {
   protected SectionAnnotation() {}
   
   public SectionAnnotation(Annotation.Source source) {
-    super(source, "");
+    super(source);
   }
   
   public SectionAnnotation(Annotation.Source source, String type, String sectionHeading) {
-    super(source, "");
+    super(source);
     this.type = type;
     this.sectionHeading = sectionHeading;
   }

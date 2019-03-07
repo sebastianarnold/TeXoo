@@ -3,33 +3,50 @@ package de.datexis.sector.tagger;
 import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
-import de.datexis.encoder.EncoderSet;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.evaluation.ModelEvaluation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.sector.eval.ClassificationScoreCalculator;
-import de.datexis.sector.tagger.DocumentSentenceIterator.Stage;
+import de.datexis.tagger.AbstractMultiDataSetIterator.Stage;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
+import org.deeplearning4j.earlystopping.EarlyStoppingResult;
+import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
+import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.*;
-import org.deeplearning4j.nn.conf.graph.*;
+import org.deeplearning4j.nn.conf.graph.MergeVertex;
+import org.deeplearning4j.nn.conf.graph.PreprocessorVertex;
+import org.deeplearning4j.nn.conf.graph.SubsetVertex;
 import org.deeplearning4j.nn.conf.inputs.InputType;
-import org.deeplearning4j.nn.conf.layers.*;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.LSTM;
+import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
+import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
 import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
+import org.deeplearning4j.optimize.api.TrainingListener;
+import org.deeplearning4j.optimize.listeners.PerformanceListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
-import org.nd4j.shade.jackson.annotation.JsonIgnore; // it is import to use the nd4j version in this class!
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.lossfunctions.ILossFunction;
+import org.nd4j.linalg.schedule.ExponentialSchedule;
+import org.nd4j.linalg.schedule.ScheduleType;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
+import org.nd4j.shade.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,20 +56,6 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
-import org.deeplearning4j.earlystopping.EarlyStoppingResult;
-import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
-import org.deeplearning4j.earlystopping.trainer.EarlyStoppingGraphTrainer;
-import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
-import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
-import org.deeplearning4j.optimize.api.TrainingListener;
-import org.deeplearning4j.optimize.listeners.PerformanceListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.lossfunctions.ILossFunction;
-import org.nd4j.linalg.schedule.ExponentialSchedule;
-import org.nd4j.linalg.schedule.ScheduleType;
-import org.nd4j.shade.jackson.databind.JsonNode;
 
 /**
  * SECTOR Recurrent Network with separated FW/BW layers. Implementation of:
@@ -283,9 +286,9 @@ public class SectorTagger extends Tagger {
   public EarlyStoppingResult<ComputationGraph> trainModel(Dataset train, Dataset validation, EarlyStoppingConfiguration conf) {
     SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
     SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, -1, maxTimeSeriesLength, batchSize, false, requireSubsampling);
-    int batches = trainIt.numExamples / batchSize;
+    int batches = trainIt.getNumExamples() / batchSize;
     timer.start();
-    appendTrainLog("Training " + getName() + " with " + trainIt.numExamples + " examples in " + batches + " batches using early stopping.");
+    appendTrainLog("Training " + getName() + " with " + trainIt.getNumExamples() + " examples in " + batches + " batches using early stopping.");
     conf.setScoreCalculator(new ClassificationScoreCalculator(this, (LookupCacheEncoder) targetEncoder, validationIt));
     EarlyStoppingListener<ComputationGraph> listener = new EarlyStoppingListener<ComputationGraph>() {
       @Override

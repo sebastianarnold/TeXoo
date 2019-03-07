@@ -3,20 +3,13 @@ package de.datexis.sector.tagger;
 import com.google.common.collect.Lists;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
-import de.datexis.model.Annotation;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Span;
-import de.datexis.model.Token;
+import de.datexis.model.*;
 import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.HeadingEncoder;
-
 import de.datexis.sector.model.SectionAnnotation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +41,6 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   
   public SectorTaggerIterator(Stage stage, Collection<Document> docs, SectorTagger tagger, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize, boolean requireSubsampling) {
     super(stage, docs, numExamples, maxTimeSeriesLength, batchSize, randomize);
-    log = LoggerFactory.getLogger(SectorTaggerIterator.class);
     this.tagger = tagger;
     this.inputEncoders = new EncoderSet(tagger.bagEncoder, tagger.embEncoder, tagger.flagEncoder);
     this.targetEncoders = new EncoderSet(tagger.targetEncoder);
