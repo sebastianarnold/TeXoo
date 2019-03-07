@@ -2,20 +2,18 @@ package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.encoder.IEncoder;
 import de.datexis.model.tag.Tag;
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Span of Characters in the Document.
@@ -25,6 +23,7 @@ import org.slf4j.LoggerFactory;
 // If this needs to be enabled - please check why exactly! DocumentModelTest will fail
 //@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "class")
 //@JsonSubTypes({@JsonSubTypes.Type(value = Token.class), @JsonSubTypes.Type(value = Sentence.class)})
+@JsonPropertyOrder({ "class", "uid", "begin", "length", "text" })
 public abstract class Span implements Comparable<Span> {
   
   protected static final org.slf4j.Logger log = LoggerFactory.getLogger(Span.class);
