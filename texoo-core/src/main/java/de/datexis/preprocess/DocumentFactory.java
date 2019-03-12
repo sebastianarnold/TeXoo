@@ -12,23 +12,21 @@ import com.optimaize.langdetect.text.TextObject;
 import com.optimaize.langdetect.text.TextObjectFactory;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
-import java.util.ArrayList;
-import java.util.List;
-import static de.datexis.common.WordHelpers.skipSpaceAfter;
-import static de.datexis.common.WordHelpers.skipSpaceBefore;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Token;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.TreeMap;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+
+import static de.datexis.common.WordHelpers.skipSpaceAfter;
+import static de.datexis.common.WordHelpers.skipSpaceBefore;
 
 /**
  * Creates a fully tokenized Document from raw text or Stanford Tokens.
@@ -124,6 +122,10 @@ public class DocumentFactory {
 		return instance.createFromText(text, newlines);
 	}
   
+  public static Document fromText(String text, Newlines newlines, WordHelpers.Language lang) {
+    return instance.createFromText(text, newlines, lang);
+  }
+  
   public static Document fromTokenizedText(String text) {
     final List<Token> tokens = instance.tokenizeFast(text);
     return instance.createFromTokens(tokens);
@@ -167,6 +169,12 @@ public class DocumentFactory {
     return doc;
   }
   
+  public Document createFromText(String text, Newlines newlines, WordHelpers.Language lang) {
+    Document doc = new Document();
+    addToDocumentFromText(text, doc, newlines, lang.toString().toLowerCase());
+    return doc;
+  }
+  
   public void addToDocumentFromText(String text, Document doc, Newlines newlines) {
     String lang = doc.getLanguage();
     if(lang == null) {
@@ -174,13 +182,17 @@ public class DocumentFactory {
       //lang = WordHelpers.getLanguage(language);
       if(!lang.isEmpty()) doc.setLanguage(lang);
     }
+    addToDocumentFromText(text, doc, newlines, lang);
+  }
+  
+  public void addToDocumentFromText(String text, Document doc, Newlines newlines, String language) {
     
     int docOffset = doc.getEnd();
     if(docOffset > 0) docOffset++;
     
     // find best Tokenizer and Splitter for text
-    TokenizerME tokenizer = newlineTokenizer.getOrDefault(lang, newlineTokenizer.get(LANG_EN));
-    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(lang, sentenceSplitter.get(LANG_EN));
+    TokenizerME tokenizer = newlineTokenizer.getOrDefault(language, newlineTokenizer.get(LANG_EN));
+    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(language, sentenceSplitter.get(LANG_EN));
     
     opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
     
