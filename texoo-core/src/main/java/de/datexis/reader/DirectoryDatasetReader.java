@@ -60,6 +60,15 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
     } else throw new FileNotFoundException("cannot open path: " + path.toString());
   }
   
+  public Stream<Document> stream(Resource path) throws IOException {
+    if(path instanceof InternalResource || path.isFile()) {
+      Document doc = readDocumentFromFile(path);
+      return Stream.of(doc);
+    } else if(path.isDirectory()) {
+      return streamDocumentsFromDirectory(path, ".+");
+    } else throw new FileNotFoundException("cannot open path: " + path.toString());
+  }
+  
   /**
    * Read Dataset from a given directory or file.
    */
@@ -72,14 +81,8 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
     return readDatasetFromDirectory(path, ".+");
   }
   
-  /**
-   * Read Dataset from a given directory of files.
-   * @param pattern REGEX pattern to match only selected file names
-   */
-  public Dataset readDatasetFromDirectory(Resource path, String pattern) throws IOException {
-    log.info("Reading Documents from {}", path.toString());
-    Dataset data = new Dataset(path.getPath().getFileName().toString());
-    AtomicInteger progress = new AtomicInteger();
+  public Stream<Document> streamDocumentsFromDirectory(Resource path, String pattern) throws IOException {
+    log.info("Streaming Documents from {}", path.toString());
     Stream<Path> paths = Files.walk(path.getPath())
       .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
       .filter(p -> p.getFileName().toString().matches(pattern))
@@ -90,11 +93,23 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
       paths = list.stream();
     }
     Stream<Document> docs = paths
+      .parallel()
       .flatMap(p -> tryReadDocumentsFromFile(Resource.fromFile(p.toString())))
       .filter(d -> !d.isEmpty());
     if(limit >= 0) {
       docs = docs.limit(limit);
     }
+    return docs;
+  }
+  
+  /**
+   * Read Dataset from a given directory of files.
+   * @param pattern REGEX pattern to match only selected file names
+   */
+  public Dataset readDatasetFromDirectory(Resource path, String pattern) throws IOException {
+    Dataset data = new Dataset(path.getPath().getFileName().toString());
+    AtomicInteger progress = new AtomicInteger();
+    Stream<Document> docs = streamDocumentsFromDirectory(path, pattern);
     docs.forEach(d -> {
       long n = progress.incrementAndGet();
       data.addDocument(d);
