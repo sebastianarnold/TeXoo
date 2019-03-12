@@ -17,14 +17,6 @@
 
 package de.datexis.preprocess;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import de.datexis.common.WordHelpers;
 import opennlp.tools.ml.model.MaxentModel;
 import opennlp.tools.tokenize.TokenContextGenerator;
@@ -32,6 +24,14 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 import opennlp.tools.util.StringUtil;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * A Tokenizer for converting raw text into separated tokens (with newlines).
@@ -129,9 +129,10 @@ public class TokenizerMENL extends TokenizerME {
   }
   
   public Span[] tokenizePosWithNewline(String d) {
+    // make local lists to be thread-safe!
+    List<Double> tokProbs = new LinkedList<>();
+    List<Span> newTokens = new LinkedList<>();
     Span[] tokens = tokenizePosWhitespaceWithNewline(d);
-    newTokens.clear();
-    tokProbs.clear();
     for (Span s : tokens) {
       String tok = d.substring(s.getStart(), s.getEnd());
       // Can't tokenize single characters

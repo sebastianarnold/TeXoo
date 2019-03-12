@@ -1,21 +1,16 @@
 package de.datexis.preprocess;
 
+import de.datexis.common.WordHelpers;
+import opennlp.tools.ml.model.MaxentModel;
+import opennlp.tools.sentdetect.*;
+import opennlp.tools.util.Span;
+import opennlp.tools.util.StringUtil;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import de.datexis.common.WordHelpers;
-import opennlp.tools.ml.model.MaxentModel;
-import opennlp.tools.sentdetect.DefaultEndOfSentenceScanner;
-import opennlp.tools.sentdetect.EndOfSentenceScanner;
-import opennlp.tools.sentdetect.SDContextGenerator;
-import opennlp.tools.sentdetect.SentenceDetectorME;
-import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.TokenizerME;
-import opennlp.tools.util.Span;
-import opennlp.tools.util.StringUtil;
 
 /**
  * A sentence detector for splitting up raw text into sentences.
@@ -68,7 +63,8 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
    */
   @Override
   public Span[] sentPosDetect(String s) {
-    sentProbs.clear();
+    // create list to be thread-safe!
+    List<Double> sentProbs = new ArrayList<>();
     StringBuffer sb = new StringBuffer(s);
     List<Integer> enders = scanner.getPositions(s);
     List<Integer> positions = new ArrayList<>(enders.size());
