@@ -41,5 +41,29 @@ public class AnnotationHelpers {
 
     return result;
   }
-
+  
+  /**
+   * Merge all Annotations that overlap or touch.
+   * @param anns sorted list of Annotations
+   * @return merged Annotations, keeping the attributes of first matched Annotation in group
+   */
+  public static <A extends Annotation> List<A> mergeAnnotations(List<A> anns) {
+    List<A> merged = new ArrayList<>();
+    if(anns.size() == 0) return merged;
+    A current = anns.get(0);
+    for(A ann : anns) {
+      // Annotations need to be sorted by begin
+      if(ann.intersects(current) || ann.getBegin() == current.getEnd()) {
+        current.setBegin(Math.min(ann.getBegin(), current.getBegin()));
+        current.setEnd(Math.max(ann.getEnd(), current.getEnd()));
+        // TODO: current.setConfidence();
+      } else {
+        merged.add(current);
+        current = ann;
+      }
+    }
+    merged.add(current);
+    return merged;
+  }
+  
 }

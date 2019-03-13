@@ -17,10 +17,11 @@ public class PassageAnnotation extends Annotation {
 
   protected final static Logger log = LoggerFactory.getLogger(PassageAnnotation.class);
   
-  /**
-   * The ID of this Annotation
-   */
+  /** The ID of this Annotation */
   private String id = null;
+  
+  /** A label assigned to this passage */
+  protected String label;
   
   /**  Used for JSON Deserialization */
   protected PassageAnnotation() {}
@@ -36,6 +37,15 @@ public class PassageAnnotation extends Annotation {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public String getId() {
     return this.id;
+  }
+  
+  public void setLabel(String label) {
+    this.label = label;
+  }
+  
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public String getLabel() {
+    return label;
   }
   
   /**
@@ -55,6 +65,9 @@ public class PassageAnnotation extends Annotation {
     if(id == null) {
 			if(other.getId() != null) return false;
 		} else if(!id.equals(other.getId())) return false;
+    if(label == null) {
+      if(other.getLabel() != null) return false;
+    } else if(!label.equals(other.getLabel())) return false;
     return true;
   }
 
