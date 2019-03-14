@@ -4,22 +4,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.util.ArrayList;
-import java.util.List;
+import de.datexis.common.AnnotationHelpers;
 import de.datexis.common.WordHelpers;
-import static de.datexis.model.Dataset.random;
 import de.datexis.model.tag.Tag;
 import de.datexis.preprocess.DocumentFactory;
 import de.datexis.preprocess.DocumentFactory.Newlines;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeSet;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static de.datexis.model.Dataset.random;
 
 /**
  * A Document is a piece of text that mayu contain Sentences, Tokens and Annotations.
@@ -296,7 +293,7 @@ public class Document extends Span {
   }
   
   /**
-   * @return ALL Annotations attached to this Document.
+   * @return All Annotations attached to this Document.
    */
   @JsonIgnore
   protected Stream<? extends Annotation> streamAnnotations() {
@@ -304,27 +301,56 @@ public class Document extends Span {
     else return annotations.stream().map(ann -> ann.getClass().cast(ann));
   }
   
-  public <A extends Annotation> Stream<A> streamAnnotations(Annotation.Source source, Class<A> type) {
-    return streamAnnotations()
-            .filter(ann -> ann.getClass().equals(type) && ann.source.equals(source))
-            .map(ann -> (A) ann);
-  }
-  
-  public <A extends Annotation> Stream<A> streamAnnotations(Class<A> type) {
-    return streamAnnotations()
-            .filter(ann -> ann.getClass().equals(type))
-            .map(ann -> (A) ann);
-  }
-  
+  /**
+   * @return All Annotations of Source <source> attached to this Document.
+   */
+  @JsonIgnore
   public Stream<? extends Annotation>  streamAnnotations(Annotation.Source source) {
     return streamAnnotations()
-            .filter(ann -> ann.source.equals(source));
+      .filter(ann -> ann.source.equals(source));
   }
-
-  public <A extends Annotation> Stream<A> streamAnnotationsIncludingSubtypes(Class<A> type) {
+  
+  /**
+   * @return All Annotations of Class Type <type> attached to this Document (no subclasses).
+   */
+  @JsonIgnore
+  public <A extends Annotation> Stream<A> streamAnnotations(Class<A> type) {
+    return streamAnnotations(type, false);
+  }
+  
+  /**
+   * @return All Annotations of Class Type <type> attached to this Document.
+   * @param includingSubtypes set to TRUE to match subtypes of <type> as well
+   */
+  @JsonIgnore
+  public <A extends Annotation> Stream<A> streamAnnotations(Class<A> type, boolean includingSubtypes) {
     return streamAnnotations()
-      .filter(ann -> type.isAssignableFrom(ann.getClass()))
+      .filter(ann -> includingSubtypes ? type.isAssignableFrom(ann.getClass()) : type.equals(ann.getClass()))
       .map(ann -> (A) ann);
+  }
+  
+  /**
+   * @return All Annotations of Source <source> and Class Type <type> attached to this Document.
+   */
+  public <A extends Annotation> Stream<A> streamAnnotations(Annotation.Source source, Class<A> type) {
+    return streamAnnotations(source, type, false);
+  }
+  
+  /**
+   * @return All Annotations of Source <source> and Class Type <type> attached to this Document.
+   * @param includingSubtypes set to TRUE to match subtypes of <type> as well
+   */
+  public <A extends Annotation> Stream<A> streamAnnotations(Annotation.Source source, Class<A> type, boolean includingSubtypes) {
+    return streamAnnotations(type, includingSubtypes)
+      .filter(ann -> ann.source.equals(source));
+  }
+  
+  /**
+   * Please use streamAnnotations(..., true)
+   */
+  @Deprecated
+  public <A extends Annotation> Stream<A> streamAnnotationsIncludingSubtypes(Class<A> type) {
+    return streamAnnotations(type, true);
   }
 
   /**
@@ -334,40 +360,28 @@ public class Document extends Span {
     return streamAnnotations().collect(Collectors.toList());
   }
   
-  /**
-   * Returns all matching Annotations in a given range
-   * @param source Origin of the Annotation
-   * @param type return only Annotations of the requested Class
-   * @param begin return only Annotations in the given range
-   * @param end return only Annotations in the given range
-   * @param enclosed TRUE to return only completely enclosed Annotations, FALSE to return all Annotations that intersect
-   * @return
-   */
+  /** Please use AnnotationHelpers.* */
+  @Deprecated
   public <A extends Annotation> Stream<A> streamAnnotationsInRange(Annotation.Source source, Class<A> type, int begin, int end, boolean enclosed) {
-    if(enclosed) return streamAnnotations(source, type)
-            .filter(a -> a.getBegin() >= begin && a.getEnd() <= end);
-    else return streamAnnotations(source, type)
-            .filter(a -> (begin <= a.getBegin() && end > a.getBegin()) ||
-                         (begin >= a.getBegin() && end <= a.getEnd() && begin != end) || 
-                         (begin < a.getEnd() && end >= a.getEnd()));
+    return AnnotationHelpers.streamAnnotationsInRange(this, source,type, begin, end, enclosed, false);
   };
   
+  /** Please use AnnotationHelpers.* */
+  @Deprecated
   public <A extends Annotation> Stream<A> streamAnnotationsForSpan(Annotation.Source source, Class<A> type, Span s) {
     return streamAnnotationsInRange(source, type, s.getBegin(), s.getEnd(), false);
   }
   
+  /** Please use AnnotationHelpers.* */
+  @Deprecated
   public <A extends Annotation> Collection<A> getAnnotationsForSpan(Annotation.Source source, Class<A> type, Span s) {
     return streamAnnotationsForSpan(source, type, s).collect(Collectors.toList());
   }
   
-  /**
-   * Returns the annotation that has the largest overlapping range
-   */
+  /** Please use AnnotationHelpers.* */
+  @Deprecated
   public <A extends Annotation> Optional<A> getAnnotationMaxOverlap(Annotation.Source source, Class<A> type, Span s) {
-    Stream<A> anns = streamAnnotationsInRange(source, type, s.getBegin(), s.getEnd(), false); // all intersecting annotations
-    return anns.reduce((first,second) -> // find maximum overlapping range
-      WordHelpers.getSpanOverlapLength(s,second) > WordHelpers.getSpanOverlapLength(s,first) ? second : first
-    );
+   return AnnotationHelpers.getAnnotationMaxOverlap(this, source, type, s);
   }
   
   public <A extends Annotation> Collection<A> getAnnotations(Class<A> type) {
