@@ -95,7 +95,7 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
     Stream<Document> docs = paths
       .parallel()
       .flatMap(p -> tryReadDocumentsFromFile(Resource.fromFile(p.toString())))
-      .filter(d -> !d.isEmpty());
+      .filter(d -> d != null & !d.isEmpty());
     if(limit >= 0) {
       docs = docs.limit(limit);
     }
