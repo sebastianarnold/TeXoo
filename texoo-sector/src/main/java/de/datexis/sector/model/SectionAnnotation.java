@@ -28,8 +28,6 @@ public class SectionAnnotation extends PassageAnnotation {
 
   protected String type;
   protected String sectionHeading;
-  protected String sectionLabel;
-  
   
   public static enum Field { HEADING, LABEL };
   
@@ -47,11 +45,11 @@ public class SectionAnnotation extends PassageAnnotation {
   }
 
   public String getSectionLabel() {
-    return sectionLabel;
+    return label;
   }
   
   public void setSectionLabel(String label) {
-    this.sectionLabel = label;
+    this.label = label;
   }
   
   public String getSectionHeading() {
@@ -64,14 +62,14 @@ public class SectionAnnotation extends PassageAnnotation {
   
   @JsonIgnore
   public String getSectionLabelOrHeading() {
-    if(sectionLabel != null && !sectionLabel.isEmpty()) return sectionLabel;
+    if(label != null && !label.isEmpty()) return label;
     if(sectionHeading != null && !sectionHeading.isEmpty()) return sectionHeading;
     else return "";
   }
   
   public String getAnnotation(Field field) {
     if(field.equals(Field.HEADING)) return sectionHeading;
-    else return sectionLabel;
+    else return label;
   }
   
   @JsonIgnore
@@ -108,9 +106,9 @@ public class SectionAnnotation extends PassageAnnotation {
     if(this.begin != other.getBegin()) return false;
     if(this.end != other.getEnd()) return false;
     // if(this.source != other.source) return false; // DON'T include source to compare GOLD and PRED
-    if(sectionLabel == null) {
+    if(label == null) {
 			if(other.getSectionLabel() != null) return false;
-		} else if(!sectionLabel.equals(other.getSectionLabel())) return false;
+		} else if(!label.equals(other.getSectionLabel())) return false;
     return true;
   }
   
@@ -127,12 +125,6 @@ public class SectionAnnotation extends PassageAnnotation {
       }
       flip = !flip;
     }
-  }
-  
-  public static void createFromClassTags(Document doc, Source source) {
-    for(Sentence s : doc.getSentences()) {
-    }
-    throw new UnsupportedOperationException("not implemented yet");
   }
 
 }
