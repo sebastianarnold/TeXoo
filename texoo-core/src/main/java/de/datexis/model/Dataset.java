@@ -40,11 +40,11 @@ public class Dataset {
   }
   
   public Dataset(String name) {
-    this(name, new ArrayList<>());
+    this(name, Collections.synchronizedList(new ArrayList<>()));
   }
   
   public Dataset(String name, List<Document> docs) {
-    this.documents = docs;
+    this.documents = Collections.synchronizedList(docs);
     this.name = name;
   }
   

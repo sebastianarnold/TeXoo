@@ -112,6 +112,7 @@ public abstract class DirectoryDatasetReader<A extends DatasetReader> implements
     Stream<Document> docs = streamDocumentsFromDirectory(path, pattern);
     docs.forEach(d -> {
       long n = progress.incrementAndGet();
+      // watch out, document list needs to be thread safe
       data.addDocument(d);
       if(n % 1000 == 0) {
         double free = Runtime.getRuntime().freeMemory() / (1024. * 1024. * 1024.);
