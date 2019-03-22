@@ -4,9 +4,10 @@ import de.datexis.common.Resource;
 import de.datexis.encoder.impl.Word2VecEncoder;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -56,8 +57,6 @@ public class Word2VecEncoderTest {
     assertTrue(bin.isUnknown("#-minuten-takt"));
     assertTrue(bin.isUnknown("Berlin Berlin"));
     assertTrue(bin.isUnknown("Berlin Küstenstraße"));
-    System.out.println(vec.encode("berlin"));
-    System.out.println(bin.encode("berlin"));
     assertEquals(vec.encode("berlin"), bin.encode("berlin"));
     assertEquals(Nd4j.zeros(150), vec.encode("DATEXIS")); // unknown word should give nullvector
     assertNotEquals(Nd4j.zeros(150), vec.encode("berlin"));

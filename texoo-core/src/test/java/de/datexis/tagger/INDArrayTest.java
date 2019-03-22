@@ -2,17 +2,15 @@ package de.datexis.tagger;
 
 import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
+
+import java.io.*;
+
+import static org.junit.Assert.*;
 import static org.nd4j.linalg.indexing.NDArrayIndex.all;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
@@ -84,8 +82,8 @@ public class INDArrayTest {
       INDArray ret = Nd4j.read(dis);
       dis.close();
       
-      System.out.println(arr);
-      System.out.println(ret);
+      System.out.println(arr.transpose());
+      System.out.println(ret.transpose());
       
       assertEquals(arr, ret);
       

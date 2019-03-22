@@ -1,17 +1,15 @@
 package de.datexis.encoder;
 
-import org.junit.Test;
 import de.datexis.encoder.impl.LetterNGramEncoder;
-import de.datexis.model.Annotation;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Token;
+import de.datexis.model.*;
 import de.datexis.model.tag.BIO2Tag;
+import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.junit.Assert.*;
-import org.nd4j.linalg.api.ndarray.INDArray;
 
 /**
  *
@@ -156,8 +154,8 @@ public class NGramEncoderTest {
     
     INDArray vec1 = ngram.encode(new Token("Minister"));
     INDArray vec2 = ngram.encode(new Token("Mistister"));
-    System.out.println(vec1.toString());
-    System.out.println(vec2.toString());
+    System.out.println(vec1.transpose().toString());
+    System.out.println(vec2.transpose().toString());
     assertEquals(23, vec1.length());
     assertEquals(23, vec2.length());
     assertEquals(1.0, vec1.maxNumber().doubleValue(), 0.);
