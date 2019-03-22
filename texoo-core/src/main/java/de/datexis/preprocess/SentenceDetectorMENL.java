@@ -72,31 +72,33 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
     for (int i = 0, end = enders.size(), index = 0; i < end; i++) {
       int cint = enders.get(i);
       // skip over the leading parts of non-token final delimiters
-      int fws = getFirstWS(s,cint + 1);
-      if (i + 1 < end && enders.get(i + 1) < fws) {
+      int fws = getFirstWS(s, cint + 1);
+      if(i + 1 < end && enders.get(i + 1) < fws) {
         continue;
       }
-      if (positions.size() > 0 && cint < positions.get(positions.size() - 1)) continue;
-
-      double[] probs = model.eval(cgen.getContext(sb, cint));
-      String bestOutcome = model.getBestOutcome(probs);
-      
-      // check if this or next char is a newline
-      int nint = getFirstNonWS(s, cint + 1);
-      if(nint < s.length() && s.charAt(nint) == '\n') bestOutcome = NO_SPLIT;
-      if(s.charAt(cint) == '\n') bestOutcome = SPLIT;
-
-      if (bestOutcome.equals(SPLIT) && isAcceptableBreak(s, index, cint)) {
-        if (index != cint) {
-          if (useTokenEnd && s.charAt(cint) != '\n') {
-            positions.add(getFirstNonWS(s, getFirstWS(s,cint + 1)));
-          } else {
-            positions.add(getFirstNonWS(s, cint + 1));
+      if(positions.size() > 0 && cint < positions.get(positions.size() - 1)) continue;
+  
+      synchronized(model) {
+        double[] probs = model.eval(cgen.getContext(sb, cint));
+        String bestOutcome = model.getBestOutcome(probs);
+    
+        // check if this or next char is a newline
+        int nint = getFirstNonWS(s, cint + 1);
+        if(nint < s.length() && s.charAt(nint) == '\n') bestOutcome = NO_SPLIT;
+        if(s.charAt(cint) == '\n') bestOutcome = SPLIT;
+    
+        if(bestOutcome.equals(SPLIT) && isAcceptableBreak(s, index, cint)) {
+          if(index != cint) {
+            if(useTokenEnd && s.charAt(cint) != '\n') {
+              positions.add(getFirstNonWS(s, getFirstWS(s, cint + 1)));
+            } else {
+              positions.add(getFirstNonWS(s, cint + 1));
+            }
+            sentProbs.add(probs[model.getIndex(bestOutcome)]);
           }
-          sentProbs.add(probs[model.getIndex(bestOutcome)]);
+      
+          index = cint + 1;
         }
-
-        index = cint + 1;
       }
     }
 

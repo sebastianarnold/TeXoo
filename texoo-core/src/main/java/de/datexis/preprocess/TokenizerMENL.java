@@ -155,15 +155,17 @@ public class TokenizerMENL extends TokenizerME {
         final int origStart = s.getStart();
         double tokenProb = 1.0;
         for (int j = origStart + 1; j < end; j++) {
-          double[] probs =
+          synchronized(model) {
+            double[] probs =
               model.eval(cg.getContext(tok, j - origStart));
-          String best = model.getBestOutcome(probs);
-          tokenProb *= probs[model.getIndex(best)];
-          if (best.equals(TokenizerME.SPLIT)) {
-            newTokens.add(new Span(start, j));
-            tokProbs.add(tokenProb);
-            start = j;
-            tokenProb = 1.0;
+            String best = model.getBestOutcome(probs);
+            tokenProb *= probs[model.getIndex(best)];
+            if (best.equals(TokenizerME.SPLIT)) {
+              newTokens.add(new Span(start, j));
+              tokProbs.add(tokenProb);
+              start = j;
+              tokenProb = 1.0;
+            }
           }
         }
         newTokens.add(new Span(start, end));
