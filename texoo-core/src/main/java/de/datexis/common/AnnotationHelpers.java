@@ -27,6 +27,30 @@ public class AnnotationHelpers {
   };
   
   /**
+   * @return all Spans of class <S> in a given range
+   * @param doc the source Document
+   * @param spanClass the class of Spans to return, e.g. Token or Sentence
+   * @param begin return only Spans in the given range
+   * @param end return only Spans in the given range
+   * @param enclosed TRUE to return only completely enclosed Spans, FALSE to return also Spans that intersect at the boundaries
+   */
+  public static <S extends Span> Stream<S> streamSpansInRange(Document doc, Class<S> spanClass , int begin, int end, boolean enclosed) {
+    Stream<? extends Span> spans;
+    if(spanClass == Token.class) spans = doc.streamTokens();
+    else if(spanClass == Sentence.class) spans = doc.streamSentences();
+    else throw new IllegalArgumentException("Span class " + spanClass + " not supported by this method");
+    
+    if(enclosed) return spans
+      .filter(a -> a.getBegin() >= begin && a.getEnd() <= end)
+      .map(s -> (S) s);
+    else return spans
+      .filter(a -> (begin <= a.getBegin() && end > a.getBegin()) ||
+                   (begin >= a.getBegin() && end <= a.getEnd() && begin != end) ||
+                   (begin < a.getEnd() && end >= a.getEnd()))
+      .map(s -> (S) s);
+  }
+  
+  /**
    * Returns the annotation that has the largest overlapping range
    */
   public static <A extends Annotation> Optional<A> getAnnotationMaxOverlap(Document doc, Annotation.Source source, Class<A> type, Span s, boolean includingSubtypes) {
