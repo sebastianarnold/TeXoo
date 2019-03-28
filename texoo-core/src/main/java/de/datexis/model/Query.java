@@ -6,8 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,7 +20,7 @@ public class Query extends Document {
   
   protected final static Logger log = LoggerFactory.getLogger(Query.class);
   
-  public SortedSet<Result> results;
+  public PriorityQueue<Result> results;
   
   /**
    * Create a new Document from plain text
@@ -33,7 +32,7 @@ public class Query extends Document {
   }
   
   public Query() {
-    results = new TreeSet<>();
+    results = new PriorityQueue<>();
   }
   
   /**
@@ -48,80 +47,35 @@ public class Query extends Document {
   /**
    * Add a result to this query
    */
-  public void addResult(Document doc, Annotation ann) {
-    ann.setDocumentRef(doc);
-    results.add(new Result(doc, ann));
+  public <A extends Result> void addResult(A ann) {
+    results.add(ann);
   }
   
-  public Stream<Result> streamResults() {
-    return results.stream();
+  public Stream<? extends Result> streamResults() {
+    return results.stream().sorted();
   }
   
-  public Stream<Result> streamResults(Annotation.Source source) {
+  public Stream<? extends Result> streamResults(Annotation.Source source) {
     return streamResults()
-      .filter(result -> result.annotation.getSource().equals(source));
+      .filter(result -> result.getSource().equals(source));
   }
   
-  public Collection<Result> getResults() {
+  public <A extends Result> Stream<A> streamResults(Annotation.Source source, Class<A> type) {
+    return streamResults(source)
+      .filter(ann -> type.isAssignableFrom(ann.getClass()))
+      .map(ann -> (A) ann);
+  }
+  
+  public Collection<? extends Result> getResults() {
     return streamResults().collect(Collectors.toList());
   }
   
-  public Collection<Result> getResults(Annotation.Source source) {
+  public Collection<? extends Result> getResults(Annotation.Source source) {
     return streamResults(source).collect(Collectors.toList());
   }
   
-  /**
-   * A Result contains the retrieved Document and an Annotation that points to the
-   * Span of the Result (e.g. a Paragraph)
-   */
-  public class Result implements Comparable<Result> {
-    
-    /** The Document that contains the result */
-    private Document document;
-    
-    /** The Annotation on the Document that contains the result */
-    private Annotation annotation;
-    
-    public Result(Document doc, Annotation ann) {
-      this.document = doc;
-      this.annotation = ann;
-    }
-  
-    /**
-     * @return the Document that this result refers to
-     */
-    public Document getDocument() {
-      return document;
-    }
-  
-    /**
-     * @return the Annotation that this result refers to
-     */
-    public Annotation getAnnotation() {
-      return annotation;
-    }
-  
-    /**
-     * @return the Annotation that this result refers to, cast to the specified type
-     */
-    public <A extends Annotation> A getAnnotation(Class<A> type) {
-      return (A) annotation;
-    }
-    
-    public double getRelevance() {
-      return annotation.getConfidence();
-    }
-    
-    public boolean matches(Result other) {
-      return this.getDocument().equals(other.getDocument()) &&
-        this.getAnnotation().matches(other.getAnnotation());
-    }
-    
-    @Override
-    public int compareTo(Result other) {
-      return Double.compare(other.getRelevance(), this.getRelevance());
-    }
-  
+  public <A extends Result> Collection<A> getResults(Annotation.Source source, Class<A> type) {
+    return streamResults(source, type).collect(Collectors.toList());
   }
   
 }

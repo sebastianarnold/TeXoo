@@ -13,7 +13,7 @@ import java.util.Objects;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "class")
-public class Annotation extends Span {
+public abstract class Annotation extends Span {
 
   protected final static Logger log = LoggerFactory.getLogger(Annotation.class);
 

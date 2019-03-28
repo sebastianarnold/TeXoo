@@ -1,14 +1,15 @@
 package de.datexis.model;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertTrue;
-
+import de.datexis.model.impl.PassageAnnotation;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class DocumentAnnotationTest {
@@ -34,7 +35,7 @@ public class DocumentAnnotationTest {
   }
 
   private void prepareTestAnnotations() {
-    testAnnotation = new Annotation();
+    testAnnotation = new PassageAnnotation(Annotation.Source.GOLD);
     testAnnotation.setBegin(0);
     testAnnotation.setEnd(10);
     subtypeAnnotation = new SubtypeAnnotation();
