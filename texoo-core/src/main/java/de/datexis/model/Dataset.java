@@ -30,7 +30,7 @@ public class Dataset {
   private List<Document> documents;
   
   /** A list of Queries and their Results on this dataset */
-  List<Query> queries = new ArrayList<>();
+  List<Query> queries = Collections.synchronizedList(new ArrayList<>());
   
   /** Random seed */
   protected static Random random = new Random();
