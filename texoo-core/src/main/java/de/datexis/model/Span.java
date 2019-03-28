@@ -202,6 +202,14 @@ public abstract class Span implements Comparable<Span> {
     }
   }
   
+  /**
+   * @return All keys of the attached vectors.
+   */
+  @JsonIgnore
+  public Set<String> getVectorKeys() {
+    return vectors.keySet();
+  }
+  
   public boolean hasVector(Class<? extends Encoder> type) {
     return hasVector(type.getCanonicalName());
   }
