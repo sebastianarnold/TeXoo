@@ -4,7 +4,7 @@ import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
@@ -66,15 +66,15 @@ public class Query extends Document {
       .map(ann -> (A) ann);
   }
   
-  public Collection<? extends Result> getResults() {
+  public List<? extends Result> getResults() {
     return streamResults().collect(Collectors.toList());
   }
   
-  public Collection<? extends Result> getResults(Annotation.Source source) {
+  public List<? extends Result> getResults(Annotation.Source source) {
     return streamResults(source).collect(Collectors.toList());
   }
   
-  public <A extends Result> Collection<A> getResults(Annotation.Source source, Class<A> type) {
+  public <A extends Result> List<A> getResults(Annotation.Source source, Class<A> type) {
     return streamResults(source, type).collect(Collectors.toList());
   }
   

@@ -3,10 +3,11 @@ package de.datexis.annotator;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
-import java.util.Collection;
-import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Locale;
 
 /**
  * Superclass for Evaluation (will replace ModelAnnotation)
@@ -110,6 +111,12 @@ public abstract class AnnotatorEvaluation {
   }
   
   public String printEvaluationStats() { return ""; };
+  
+  /** safe division, where n/0 = 0 */
+  protected double div(double n, double d) {
+    if(d == 0.0) return 0.0;
+    else return n / d;
+  }
   
   /**
    * @return format Double for Table with 2 decimals
