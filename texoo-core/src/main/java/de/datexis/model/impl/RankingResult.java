@@ -25,6 +25,22 @@ public class RankingResult extends Result/*<Integer>*/ {
   }
   
   /**
+   * @return 1, because a ranked result is always assumed to be relevant
+   */
+  @Override
+  public Integer getRelevance() {
+    return 1;
+  }
+  
+  /**
+   * @return true, because a ranked result is always assumed to be relevant
+   */
+  @Override
+  public boolean isRelevant() {
+    return true;
+  }
+  
+  /**
    * Set the ranking position 1..N
    */
   public void setRank(Integer rank) {

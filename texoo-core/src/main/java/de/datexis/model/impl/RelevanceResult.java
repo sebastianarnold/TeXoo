@@ -22,6 +22,14 @@ public class RelevanceResult extends Result/*<Integer>*/ {
   
   public RelevanceResult(Source source, Document doc, int begin, int end) {
     super(source, doc, begin, end);
+    this.setSortDescending(true);
+  }
+  
+  public RelevanceResult(Source source, Document doc, int relevance) {
+    super(source);
+    this.setSortDescending(true);
+    this.setDocumentRef(doc);
+    this.setRelevance(relevance);
   }
   
   /**
@@ -40,6 +48,9 @@ public class RelevanceResult extends Result/*<Integer>*/ {
     return relevance;
   }
   
+  /**
+   * @return True, if the result was labeled as relevant (e.g. relevance > 0
+   */
   public boolean isRelevant() {
     return getRelevance() > 0;
   }

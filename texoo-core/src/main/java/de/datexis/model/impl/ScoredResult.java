@@ -15,11 +15,35 @@ public class ScoredResult extends Result {
   
   public ScoredResult(Source source) {
     super(source);
-    this.setSortDescending(false);
+    this.setSortDescending(true);
   }
   
   public ScoredResult(Source source, Document doc, int begin, int end) {
     super(source, doc, begin, end);
+    this.setSortDescending(true);
+  }
+  
+  public ScoredResult(Source source, Document doc, double score) {
+    super(source);
+    this.setDocumentRef(doc);
+    this.setScore(score);
+    this.setSortDescending(true);
+  }
+  
+  /**
+   * @return 1, because a scored result is always assumed to be relevant
+   */
+  @Override
+  public Integer getRelevance() {
+    return 1;
+  }
+  
+  /**
+   * @return true, because a scored result is always assumed to be relevant
+   */
+  @Override
+  public boolean isRelevant() {
+    return true;
   }
   
 }

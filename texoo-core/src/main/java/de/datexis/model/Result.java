@@ -44,6 +44,16 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   }
   
   /**
+   * @return a relevence Value, which is assumed to be >0 if the result is relevant, 0 otherwise
+   */
+  public abstract Integer getRelevance();
+  
+  /**
+   * @return True, if the result is relevant
+   */
+  public abstract boolean isRelevant();
+  
+  /**
    * Set to TRUE if high scores mean better ranking, FALSE otherwise.
    */
   protected void setSortDescending(boolean sortDescending) {
