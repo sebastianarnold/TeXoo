@@ -13,7 +13,8 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
 //  Comparator.nullsFirst(Double::compare);
   
   protected static Comparator<Result> resultComparator =
-    Comparator.comparing(Result::getScore, Comparator.nullsFirst(Double::compare));
+    Comparator.comparing(Result::getScore, Comparator.nullsLast(Double::compare))
+      .thenComparing(Result::getRelevance, Comparator.nullsLast(Integer::compare));
   
   protected /*S*/ Double score = null;
   protected boolean sortDescending = true;
