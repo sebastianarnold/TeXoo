@@ -1,29 +1,26 @@
 package de.datexis.sector;
 
-import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.annotator.Annotator;
 import de.datexis.annotator.AnnotatorComponent;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.LookupCacheEncoder;
-import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Annotation.Source;
-import de.datexis.tagger.Tagger;
-import de.datexis.model.Document;
 import de.datexis.model.Dataset;
+import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.ClassTag;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
 import de.datexis.sector.eval.SectorEvaluation;
+import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.sector.tagger.DocumentSentenceIterator;
 import de.datexis.sector.tagger.ScoreImprovementMinEpochsTerminationCondition;
 import de.datexis.sector.tagger.SectorEncoder;
 import de.datexis.sector.tagger.SectorTagger;
-import java.util.Collection;
-import java.util.Map;
-import java.util.stream.Collectors;
+import de.datexis.tagger.Tagger;
 import org.apache.commons.lang3.StringUtils;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
@@ -41,6 +38,9 @@ import org.nd4j.linalg.memory.abstracts.DummyWorkspace;
 import org.nd4j.linalg.ops.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * An Annotator that detects sections in a Document and assigns labels. Implementation of:
@@ -86,10 +86,11 @@ public class SectorAnnotator extends Annotator {
 
   /**
    * Annotate given Documents using SECTOR, i.e. attach SectorAnnotator vectors to sentences.
+   * This function also attaches SectionAnnotations to each Document by using the BEMD strategy.
    */
   @Override
   public void annotate(Collection<Document> docs) {
-    annotate(docs, SegmentationMethod.NONE);
+    annotate(docs, SegmentationMethod.BEMD);
   }
 
   /**
