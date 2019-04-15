@@ -1,24 +1,32 @@
 package de.datexis.sector.exec;
 
-import de.datexis.common.*;
 import de.datexis.common.CommandLineParser;
-import de.datexis.encoder.impl.*;
-import de.datexis.model.*;
-import de.datexis.rnn.loss.MultiClassDosSantosPairwiseRankingLoss;
+import de.datexis.common.Resource;
+import de.datexis.common.WordHelpers;
+import de.datexis.encoder.impl.BloomEncoder;
+import de.datexis.encoder.impl.DummyEncoder;
+import de.datexis.encoder.impl.StructureEncoder;
+import de.datexis.encoder.impl.Word2VecEncoder;
+import de.datexis.model.Dataset;
+import de.datexis.model.Document;
 import de.datexis.sector.SectorAnnotator;
-import de.datexis.sector.encoder.*;
+import de.datexis.sector.encoder.ClassEncoder;
+import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.sector.reader.WikiSectionReader;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.deeplearning4j.ui.api.UIServer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.lossfunctions.impl.LossMCXENT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Main Controller for training of SECTOR models.
@@ -228,7 +236,7 @@ public class TrainSectorAnnotator {
       .withTargetEncoder(targetEncoder)
       // for ranking loss, use:
       //.withLossFunction(new MultiClassDosSantosPairwiseRankingLoss(), Activation.SIGMOID, false)
-      .withLossFunction(new LossBinaryXENT(), Activation.SOFTMAX, false);
+      .withLossFunction(new LossBinaryXENT(), Activation.SIGMOID, false);
     
   }
   
