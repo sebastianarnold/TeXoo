@@ -90,9 +90,7 @@ public class ObjectSerializer {
   }
   
   public static <T extends Object> T readFromJSON(Resource res, Class<T> type) throws IOException {
-    String json = IOUtils.toString(res.getInputStream(), "UTF-8");
-    //return getInstance().readerFor(type).readValue(res.getInputStream()); // does not work for multi-line JSON
-    return getInstance().readerFor(type).readValue(json);
+    return getInstance().readerFor(type).readValue(res.getInputStream());
   }
  
   public static String getArrayAsBase64String(INDArray arr) {
