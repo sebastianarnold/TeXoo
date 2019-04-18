@@ -7,13 +7,18 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Token;
 import de.datexis.model.tag.Tag;
 import de.datexis.tagger.CachedSentenceIterator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Iterates through a Document, one Sentence per Example. Used for Named Entity Mentions.
@@ -82,9 +87,11 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
         featuresMask.put(batchNum, t, 1); // mark this word as used
         labelsMask.put(batchNum, t, 1); // mark this word as labeled
         INDArray inputEncoding = example.getToken(t).getVector(encoders);
-        result.getFeatures().getRow(batchNum).getColumn(t).assign(inputEncoding);
+        result.getFeatures().get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(inputEncoding);
+        //result.getFeatures().getRow(batchNum).getColumn(t).assign(inputEncoding); // deprecated call from Dl4j-beta3
         Tag goldLabel = example.getToken(t).getTag(source, tagset);
-        result.getLabels().getRow(batchNum).getColumn(t).assign(goldLabel.getVector());
+        result.getLabels().get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(goldLabel.getVector());
+        //result.getLabels().getRow(batchNum).getColumn(t).assign(goldLabel.getVector()); // deprecated call from Dl4j-beta3
         //System.out.println(batchNum + ": " + example.getToken(t).getText() + "\t" + inputEncoding.sumNumber().toString() + "\t" + goldLabel.getVector().toString());
 			}
 		}

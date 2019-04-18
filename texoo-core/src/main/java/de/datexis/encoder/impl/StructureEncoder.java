@@ -1,17 +1,22 @@
 package de.datexis.encoder.impl;
 
+import de.datexis.encoder.StaticEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.model.Token;
-import de.datexis.encoder.StaticEncoder;
 import de.datexis.model.Span;
+import de.datexis.model.Token;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.shade.jackson.annotation.JsonIgnore;
-import org.slf4j.LoggerFactory;
+
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Encodes structural features, such as BOD (Begin of Document), BOS (Begin of Sentence), NL (Newline) etc.
@@ -57,12 +62,12 @@ public class StructureEncoder extends StaticEncoder {
       if(timeStepClass.equals(Token.class)) {
         List<INDArray> vecs = encodeTokens(example);
         for(int t = 0; t < example.countTokens() && t < maxTimeSteps; t++) {
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vecs.get(t));
         }
       } else if(timeStepClass.equals(Sentence.class)) {
         List<INDArray> vecs = encodeSentences(example);
         for(int t = 0; t < example.countSentences() && t < maxTimeSteps; t++) {
-          encoding.getRow(batchIndex).getColumn(t).assign(vecs.get(t));
+          encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vecs.get(t));
         }
       } else throw new IllegalArgumentException("Cannot encode class " + timeStepClass.toString() + " from Document");
       

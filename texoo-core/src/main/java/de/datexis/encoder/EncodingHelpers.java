@@ -7,9 +7,13 @@ import de.datexis.model.Span;
 import de.datexis.model.Token;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 public class EncodingHelpers {
 
@@ -36,7 +40,7 @@ public class EncodingHelpers {
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: Encoder should encode a batch of sentences and return matrix with batchSize columns and vectorsize rows...?
         INDArray vec = encoder.encode(spansToEncode.get(t));
-        encoding.getRow(batchIndex).getColumn(t).assign(vec);
+        encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
       }
 
     }

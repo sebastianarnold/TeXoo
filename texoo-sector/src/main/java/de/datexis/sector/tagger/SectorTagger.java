@@ -41,6 +41,7 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
 import org.nd4j.linalg.schedule.ExponentialSchedule;
@@ -56,6 +57,9 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * SECTOR Recurrent Network with separated FW/BW layers. Implementation of:
@@ -457,15 +461,15 @@ public class SectorTagger extends Tagger {
       int batchIndex = 0; for(Document doc : batch.docs) {
         int t = 0;
         for(Sentence s : doc.getSentences()) {
-          INDArray targetVec = target.getRow(batchIndex).getColumn(t); //target.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+          INDArray targetVec = target.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
           s.putVector(targetEncoder.getClass(), targetVec);
           if(embedding != null) {
-            INDArray embeddingVec = embedding.getRow(batchIndex).getColumn(t); //embedding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray embeddingVec = embedding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
             s.putVector(SectorEncoder.class, embeddingVec);
           }
           if(embeddingFW != null) {
-            INDArray fw = embeddingFW.getRow(batchIndex).getColumn(t); //embeddingFW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
-            INDArray bw = embeddingBW.getRow(batchIndex).getColumn(t); //embeddingBW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray fw = embeddingFW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray bw = embeddingBW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
             s.putVector("embeddingFW", fw);
             s.putVector("embeddingBW", bw);
           }
