@@ -226,11 +226,16 @@ public class DocumentFactory {
     }
   }
   
-  // FIXME: do we still need this function after CoreNLP replacement?
+  /** please use createTokensFromText() */
+  @Deprecated
   public List<Token> tokenizeFast(String text) {
     return createTokensFromText(text, 0);
   }
   
+  /**
+   * Detects the language of a text
+   * @return language code, e.g. "en" or "de"
+   */
   public static String getLanguage(String text) {
     return instance.detectLanguage(text);
   }
@@ -245,25 +250,43 @@ public class DocumentFactory {
   }
   
   public Document createFromTokens(List<Token> tokens) {
+    String text = WordHelpers.tokensToText(tokens, 0);
+    String lang = detectLanguage(text);
     Document doc = new Document();
-    createSentencesFromTokens(tokens).forEach(sentence -> {
+    doc.setLanguage(lang);
+    createSentencesFromTokens(tokens, lang).forEach(sentence -> {
       doc.addSentence(sentence, false);
     });
-    doc.setLanguage(detectLanguage(doc.getText()));
     return doc;
   }
-
+  
+  /**
+   * Create a single Sentence from given Tokens, omitting Sentence splitting.
+   */
   public static Sentence createSentenceFromTokens(List<Token> sentence) {
     return instance.createSentenceFromTokens(sentence, "", 0);
   }
   
+  public static Sentence createSentenceFromString(String text, String language) {
+    return createSentenceFromTokens(instance.createTokensFromText(text, 0, language));
+  }
+  
+  public static Sentence createSentenceFromTokenizedString(String text) {
+    return createSentenceFromTokens(instance.createTokensFromTokenizedText(text, 0));
+  }
+  
   public List<Sentence> createSentencesFromTokens(List<Token> tokens) {
-    List<Sentence> result = new ArrayList<>();
     String text = WordHelpers.tokensToText(tokens, 0);
     String lang = detectLanguage(text);
+    return createSentencesFromTokens(tokens, lang);
+  }
+  
+  public List<Sentence> createSentencesFromTokens(List<Token> tokens, String language) {
+    List<Sentence> result = new ArrayList<>();
+    String text = WordHelpers.tokensToText(tokens, 0);
     
     // find best Tokenizer and Splitter for text
-    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(lang, sentenceSplitter.get(LANG_EN));
+    SentenceDetectorME ssplit = sentenceSplitter.getOrDefault(language, sentenceSplitter.get(LANG_EN));
     
     opennlp.tools.util.Span sentences[] = ssplit.sentPosDetect(text); 
     
@@ -308,6 +331,13 @@ public class DocumentFactory {
    */
   public List<Token> createTokensFromText(String text, int offset) {
     String language = detectLanguage(text);
+    return createTokensFromText(text, offset, language);
+  }
+  
+  /**
+   * Creates a list of Tokens from raw text (ignores sentences)
+   */
+  public List<Token> createTokensFromText(String text, int offset, String language) {
     TokenizerME tokenizer = plainTokenizer.getOrDefault(language, plainTokenizer.get(LANG_EN));
     opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(text);
     List<Token> tokenList = new LinkedList<>();

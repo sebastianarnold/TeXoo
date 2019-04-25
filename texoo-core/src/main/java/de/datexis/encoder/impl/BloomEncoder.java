@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -55,6 +56,15 @@ public class BloomEncoder extends BagOfWordsEncoder {
   }
   
   @Override
+  public void trainModel(List<String> sentences, int minWordFrequency, WordHelpers.Language language) {
+    super.trainModel(sentences, minWordFrequency, language);
+    for(String word : getWords()) {
+      bloom.put(word);
+    }
+    appendTrainLog("trained Bloom filter over " + vocab.numWords() + " words into " + bloom.bitSize() + " bits (ratio: " + ((double) bloom.bitSize() / vocab.numWords()));
+  }
+  
+  @Override
   public void trainModel(Collection<Document> documents, int minWordFrequency, WordHelpers.Language language) {
     super.trainModel(documents, minWordFrequency, language);
     for(String word : getWords()) {
@@ -75,6 +85,9 @@ public class BloomEncoder extends BagOfWordsEncoder {
       double[] bits = bloom.getBitArray(preprocessor.preProcess(s.getText()));
       INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1});
       vector.addi(x);
+    }
+    for(long i = 0; i < vector.length(); i++) {
+      if(vector.getDouble(i) > 0.) vector.putScalar(i, 1.); // maximum value 1
     }
     return vector;
   }

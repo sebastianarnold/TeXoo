@@ -74,6 +74,7 @@
   <modules>
     <module>texoo-core</module>
     <module>texoo-cuda-9.2</module>
+    <module>texoo-cuda-10.1</module>
     <module>texoo-entity-recognition</module>
     <module>texoo-entity-linking</module>
     <module>texoo-sector</module>
