@@ -180,7 +180,7 @@ Annotators for **SECTOR** models from WikiSection dataset.
 
 If you use this module for research, please cite:
 
-> Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser. "SECTOR: A Neural Model for Coherent Topic Segmentation and Classification." Transactions of the Association for Computational Linguistics (2019). <https://arxiv.org/abs/1902.04793>
+> Sebastian Arnold, Rudolf Schneider, Philippe Cudré-Mauroux, Felix A. Gers and Alexander Löser. [SECTOR: A Neural Model for Coherent Topic Segmentation and Classification](https://transacl.org/ojs/index.php/tacl/article/view/1540/359). Transactions of the Association for Computational Linguistics 2019 Vol. 7, 169-184
 
 
 ### Command Line Usage:
