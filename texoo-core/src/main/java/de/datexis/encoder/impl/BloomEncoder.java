@@ -1,28 +1,27 @@
 package de.datexis.encoder.impl;
 
-import de.datexis.hash.BitArrayBloomFilter;
-import de.datexis.hash.BitArrayBloomFilterStrategy;
 import com.google.common.hash.Funnels;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
+import de.datexis.hash.BitArrayBloomFilter;
+import de.datexis.hash.BitArrayBloomFilterStrategy;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.commons.io.output.CloseShieldOutputStream;
+import org.nd4j.linalg.api.buffer.DataType;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-import org.apache.commons.io.output.CloseShieldOutputStream;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Stub for Bloom Filter Encoder on top of Bag Of Words
@@ -57,6 +56,15 @@ public class BloomEncoder extends BagOfWordsEncoder {
   }
   
   @Override
+  public void trainModel(List<String> sentences, int minWordFrequency, WordHelpers.Language language) {
+    super.trainModel(sentences, minWordFrequency, language);
+    for(String word : getWords()) {
+      bloom.put(word);
+    }
+    appendTrainLog("trained Bloom filter over " + vocab.numWords() + " words into " + bloom.bitSize() + " bits (ratio: " + ((double) bloom.bitSize() / vocab.numWords()));
+  }
+  
+  @Override
   public void trainModel(Collection<Document> documents, int minWordFrequency, WordHelpers.Language language) {
     super.trainModel(documents, minWordFrequency, language);
     for(String word : getWords()) {
@@ -72,22 +80,25 @@ public class BloomEncoder extends BagOfWordsEncoder {
   
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
-    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(DataType.DOUBLE, getEmbeddingVectorSize(), 1);
     for(Span s : spans) {
       double[] bits = bloom.getBitArray(preprocessor.preProcess(s.getText()));
-      INDArray x = Nd4j.create(bits);
-      vector.addi(x.transposei());
+      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1});
+      vector.addi(x);
+    }
+    for(long i = 0; i < vector.length(); i++) {
+      if(vector.getDouble(i) > 0.) vector.putScalar(i, 1.); // maximum value 1
     }
     return vector;
   }
   
   @Override
   public INDArray encode(String[] words) {
-    INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(DataType.DOUBLE, getEmbeddingVectorSize(), 1);
     for(String s : words) {
       double[] bits = bloom.getBitArray(preprocessor.preProcess(s));
-      INDArray x = Nd4j.create(bits);
-      vector.addi(x.transposei());
+      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1});
+      vector.addi(x);
     }
     return vector;
   }

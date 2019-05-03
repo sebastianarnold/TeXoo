@@ -1,10 +1,6 @@
 package de.datexis.sector.tagger;
 
-import de.datexis.sector.tagger.SectorTaggerIterator;
-import de.datexis.sector.tagger.SectorTagger;
-import de.datexis.sector.tagger.DocumentSentenceIterator;
 import com.google.common.collect.Lists;
-
 import de.datexis.common.Resource;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.encoder.impl.DummyEncoder;
@@ -16,20 +12,23 @@ import de.datexis.model.Sentence;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
 import de.datexis.sector.reader.WikiSectionReader;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 
 public class SectorTaggerIteratorTest {
@@ -154,9 +153,13 @@ public class SectorTaggerIteratorTest {
         labelMask.put(batchNum, t, 1); // mark this sentence as used
 
         // set inputs ==========================================================
-        bag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.bagEncoder.getClass()));
-        emb.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.embEncoder.getClass()));
-        flag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.flagEncoder.getClass()));
+        bag.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.bagEncoder.getClass()));
+        emb.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.embEncoder.getClass()));
+        flag.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.flagEncoder.getClass()));
+        // deprecated calls from Dl4j-beta3:
+        //bag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.bagEncoder.getClass()));
+        //emb.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.embEncoder.getClass()));
+        //flag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.flagEncoder.getClass()));
 
         // remove attached encodings
         s.clearVectors(tagger.bagEncoder.getClass());

@@ -2,10 +2,11 @@ package de.datexis.encoder;
 
 import de.datexis.encoder.impl.ExampleEncoder;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
+
+import static org.junit.Assert.*;
 import static org.nd4j.linalg.indexing.NDArrayIndex.all;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
@@ -52,8 +53,9 @@ public class EncoderInterfaceTest {
         INDArray vec = Nd4j.rand(new long[] {vectorSize, 1});
         // we want to make sure that both these access methods provide the same results
         indexEncoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
-        // this one is faster, but produced a wrong result in a previous Dl4j alpha
-        rowcolEncoding.getRow(batchIndex).getColumn(t).assign(vec);
+        // this one is faster, but produced an IllegalArumentException in in Dl4j-beta4-SNAPSHOT
+        //rowcolEncoding.getRow(batchIndex).getColumn(t).assign(vec);
+        rowcolEncoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
       }
     }
     

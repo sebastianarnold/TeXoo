@@ -4,19 +4,21 @@ import com.google.common.collect.Lists;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
 import de.datexis.model.*;
-import de.datexis.model.tag.*;
+import de.datexis.model.tag.BIO2Tag;
+import de.datexis.model.tag.BIOESTag;
+import de.datexis.model.tag.Tag;
 import de.datexis.ner.MentionAnnotation;
 import de.datexis.ner.eval.MentionAnnotatorEval;
 import de.datexis.ner.eval.MentionTaggerEval;
 import de.datexis.tagger.AbstractIterator;
 import de.datexis.tagger.Tagger;
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.*;
+import org.deeplearning4j.nn.conf.BackpropType;
+import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.LSTM;
@@ -34,11 +36,18 @@ import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.nd4j.linalg.indexing.NDArrayIndex.all;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Assigns BIO2 or BIOES Labels to every Token in a Document.
@@ -356,7 +365,8 @@ public class MentionTagger extends Tagger {
     int batchNum = 0, t = 0;
     for(Sentence s : sents) {
       for(Token token : s.getTokens()) {
-        INDArray vec = predicted.getRow(batchNum).getColumn(t++);
+        INDArray vec = predicted.get(new INDArrayIndex[] {point(batchNum), all(), point(t++)});
+        //INDArray vec = predicted.getRow(batchNum).getColumn(t++); // deprecated call from Dl4j-beta3
         // FIXME: we cannot simply assign GENERIC here!
         if(tagset.equals(BIO2Tag.class)) token.putTag(source, new BIO2Tag(vec, type, true));
         if(tagset.equals(BIOESTag.class)) token.putTag(source, new BIOESTag(vec, type, true));
