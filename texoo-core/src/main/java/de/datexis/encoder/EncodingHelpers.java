@@ -34,17 +34,18 @@ public class EncodingHelpers {
       List<? extends Span> spansToEncode = Collections.EMPTY_LIST;
       if(example instanceof Document && timeStepClass == Token.class) spansToEncode = Lists.newArrayList(((Document)example).getTokens());
       else if(example instanceof Document && timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(((Document)example).getSentences());
-      else if(example instanceof Sentence && timeStepClass == Token.class) spansToEncode = Lists.newArrayList(((Sentence)example));
-      else if(example instanceof Sentence && timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(((Sentence)example).getTokens());
+      else if(example instanceof Sentence && timeStepClass == Token.class) spansToEncode = Lists.newArrayList(((Sentence)example).getTokens());
+      else if(example instanceof Sentence && timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(((Sentence)example));
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: Encoder should encode a batch of sentences and return matrix with batchSize columns and vectorsize rows...?
         INDArray vec = encoder.encode(spansToEncode.get(t));
-        encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
+        encoding.get(point(batchIndex), all(), point(t)).assign(vec);
       }
 
     }
     return encoding;
   }
+  
 
 }
