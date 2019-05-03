@@ -56,25 +56,11 @@
     <lucene.version>6.1.0</lucene.version>
     <doclint>none</doclint>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>snapshots-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
   
   <modules>
     <module>texoo-core</module>
-<!--    <module>texoo-cuda-9.2</module>-->
-<!--    <module>texoo-cuda-10.1</module>-->
+    <module>texoo-cuda-9.2</module>
+    <module>texoo-cuda-10.1</module>
     <module>texoo-entity-recognition</module>
     <module>texoo-entity-linking</module>
     <module>texoo-sector</module>
