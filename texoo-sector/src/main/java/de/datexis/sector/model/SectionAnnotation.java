@@ -27,7 +27,7 @@ public class SectionAnnotation extends PassageAnnotation {
   protected final static Logger log = LoggerFactory.getLogger(SectionAnnotation.class);
 
   protected String type;
-  protected String sectionHeading;
+  protected String normalizedLabel;
   
   public static enum Field { HEADING, LABEL };
   
@@ -41,34 +41,40 @@ public class SectionAnnotation extends PassageAnnotation {
   public SectionAnnotation(Annotation.Source source, String type, String sectionHeading) {
     super(source);
     this.type = type;
-    this.sectionHeading = sectionHeading;
+    this.label = sectionHeading;
   }
-
+  
+  /**
+   * @return the normalized section label
+   */
   public String getSectionLabel() {
-    return label;
+    return normalizedLabel;
   }
   
-  public void setSectionLabel(String label) {
-    this.label = label;
+  public void setSectionLabel(String normalizedLabel) {
+    this.normalizedLabel = normalizedLabel;
   }
   
+  /**
+   * @return the section heading
+   */
   public String getSectionHeading() {
-    return sectionHeading;
+    return label;
   }
 
   public void setSectionHeading(String sectionHeading) {
-    this.sectionHeading = sectionHeading;
+    this.label = sectionHeading;
   }
   
   @JsonIgnore
   public String getSectionLabelOrHeading() {
+    if(normalizedLabel != null && !normalizedLabel.isEmpty()) return normalizedLabel;
     if(label != null && !label.isEmpty()) return label;
-    if(sectionHeading != null && !sectionHeading.isEmpty()) return sectionHeading;
     else return "";
   }
   
   public String getAnnotation(Field field) {
-    if(field.equals(Field.HEADING)) return sectionHeading;
+    if(field.equals(Field.LABEL))  return normalizedLabel;
     else return label;
   }
   
@@ -106,9 +112,9 @@ public class SectionAnnotation extends PassageAnnotation {
     if(this.begin != other.getBegin()) return false;
     if(this.end != other.getEnd()) return false;
     // if(this.source != other.source) return false; // DON'T include source to compare GOLD and PRED
-    if(label == null) {
+    if(getSectionLabel() == null) {
 			if(other.getSectionLabel() != null) return false;
-		} else if(!label.equals(other.getSectionLabel())) return false;
+		} else if(!getSectionLabel().equals(other.getSectionLabel())) return false;
     return true;
   }
   
