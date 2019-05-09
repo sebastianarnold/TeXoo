@@ -7,6 +7,7 @@ import de.datexis.model.*;
 import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.model.SectionAnnotation;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -83,7 +84,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
   
   public INDArray createMask(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
 
-    INDArray mask = Nd4j.zeros(input.size(), maxTimeSteps, 'f');
+    INDArray mask = Nd4j.zeros(DataType.FLOAT, input.size(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
