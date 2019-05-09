@@ -8,6 +8,8 @@ import de.datexis.ner.MentionAnnotation;
 import de.datexis.model.tag.BIOESTag;
 import de.datexis.ner.eval.MentionAnnotatorEvaluation;
 import de.datexis.preprocess.DocumentFactory;
+
+import java.io.IOException;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,7 @@ public class TrainEntityRecognition {
 
   protected final static Logger log = LoggerFactory.getLogger(TrainEntityRecognition.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     
     // --- preprocessing -------------------------------------------------------
     // parse texts into Documents
