@@ -1,16 +1,11 @@
 package de.datexis.tagger;
 
-import de.datexis.model.Document;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.dataset.api.MultiDataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,10 +18,7 @@ public abstract class AbstractMultiDataSetIterator implements MultiDataSetIterat
   
   public static enum Stage { TRAIN, TEST, ENCODE };
   
-  protected List<Document> documents;
-  protected Iterator<Document> docIt;
-  
-  protected int numExamples;
+  protected long numExamples;
   protected int batchSize = -1;
   protected int maxTimeSeriesLength = -1;
   protected int cursor;
@@ -35,9 +27,8 @@ public abstract class AbstractMultiDataSetIterator implements MultiDataSetIterat
   
   protected Stage stage;
   
-  public AbstractMultiDataSetIterator(Stage stage, Collection<Document> docs, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize) {
-    this.documents = new ArrayList<>(docs);
-    this.numExamples = numExamples > 0 && numExamples <= documents.size() ? numExamples : documents.size();
+  public AbstractMultiDataSetIterator(Stage stage, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize) {
+    this.numExamples = numExamples;
     this.maxTimeSeriesLength = maxTimeSeriesLength;
     this.batchSize = batchSize;
     this.randomize = randomize;
@@ -54,8 +45,14 @@ public abstract class AbstractMultiDataSetIterator implements MultiDataSetIterat
     return true;
   }
   
-  public int getNumExamples() {
+  public long getNumExamples() {
     return numExamples;
+  }
+  
+  @Override
+  public void reset() {
+    cursor = 0;
+    startTime = System.currentTimeMillis();
   }
   
   protected boolean reachedEnd() {

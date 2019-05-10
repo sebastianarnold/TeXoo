@@ -41,7 +41,6 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
 import org.nd4j.linalg.schedule.ExponentialSchedule;
@@ -163,7 +162,6 @@ public class SectorTagger extends Tagger {
         .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.85)))
         .weightInit(WeightInit.XAVIER)
         .l2(0.00001)
-        .dropOut(dropout)
         .gradientNormalization(GradientNormalization.ClipL2PerLayer)
         .trainingWorkspaceMode(WorkspaceMode.ENABLED)
         .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
@@ -197,7 +195,7 @@ public class SectorTagger extends Tagger {
           .nIn(sentenceVectorSize).nOut(lstmLayerSize)
           .activation(Activation.TANH)
           .gateActivationFunction(Activation.SIGMOID)
-          //.dropOut(dropout) // not working in beta2 https://github.com/deeplearning4j/deeplearning4j/issues/6326
+          .dropOut(dropout)
           .build()), "sentence");
       gb.addVertex("FW", new SubsetVertex(0, lstmLayerSize - 1), "BLSTM");
       gb.addVertex("BW", new SubsetVertex(lstmLayerSize, (2 * lstmLayerSize) - 1), "BLSTM");
@@ -290,24 +288,15 @@ public class SectorTagger extends Tagger {
   public EarlyStoppingResult<ComputationGraph> trainModel(Dataset train, Dataset validation, EarlyStoppingConfiguration conf) {
     SectorTaggerIterator trainIt = new SectorTaggerIterator(Stage.TRAIN, train.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
     SectorTaggerIterator validationIt = new SectorTaggerIterator(Stage.TEST, validation.getDocuments(), this, -1, maxTimeSeriesLength, batchSize, false, requireSubsampling);
-    int batches = trainIt.getNumExamples() / batchSize;
+    int batches = (int) (trainIt.getNumExamples() / batchSize);
     timer.start();
     appendTrainLog("Training " + getName() + " with " + trainIt.getNumExamples() + " examples in " + batches + " batches using early stopping.");
     conf.setScoreCalculator(new ClassificationScoreCalculator(this, (LookupCacheEncoder) targetEncoder, validationIt));
     EarlyStoppingListener<ComputationGraph> listener = new EarlyStoppingListener<ComputationGraph>() {
       @Override
-      public void onStart(EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
-        //Nd4j.getWorkspaceManager().destroyAllWorkspacesForCurrentThread();
-        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
-      }
+      public void onStart(EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) { }
       @Override
       public void onEpoch(int epochNum, double score, EarlyStoppingConfiguration<ComputationGraph> conf, ComputationGraph net) {
-        //log.info("Finished epoch {} with score {}", epochNum, score);
-        //Nd4j.getWorkspaceManager().printAllocationStatisticsForCurrentThread();
-        //Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread().destroyWorkspace();
-        /*try(MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace("SECTOR_TRAINING")) {
-          ws.destroyWorkspace();
-        }*/
         Nd4j.getMemoryManager().invokeGc();
       }
       @Override
@@ -330,7 +319,6 @@ public class SectorTagger extends Tagger {
   
   @Override
   public void testModel(Dataset dataset) {
-    //appendTestLog("Testing " + getName() + " with " + n + " examples in " + batches + " batches.");
     timer.start();
     attachVectors(dataset.getDocuments(), Stage.TEST, targetEncoder.getClass());
     timer.stop();
@@ -367,27 +355,12 @@ public class SectorTagger extends Tagger {
   
   public static Map<String,INDArray> feedForward(ComputationGraph net, MultiDataSet next) {
     
-    /*WorkspaceMode cMode = net.getConfiguration().getTrainingWorkspaceMode();
-    net.getConfiguration().setTrainingWorkspaceMode(net.getConfiguration().getInferenceWorkspaceMode());
-    MemoryWorkspace workspace =
-            net.getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
-                    : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();
-    */
-    //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
-    
       INDArray[] features = next.getFeatures();
       INDArray[] featuresMasks = next.getFeaturesMaskArrays();
       INDArray[] labelMasks = next.getLabelsMaskArrays();
 
-      //net.clear();
-      //net.clearLayerMaskArrays();
-      //net.rnnClearPreviousState();
       net.setLayerMaskArrays(featuresMasks, labelMasks);
       Map<String,INDArray> weights = net.feedForward(features, false, true);
-      // migrate weights back into workspace to make sure they are deleted after the batch
-      /*for(INDArray weight : weights.values()) {
-        weight.migrate();
-      }*/
 
       if(weights.containsKey("target")) {
         //predicted = result.get("target");
@@ -398,11 +371,7 @@ public class SectorTagger extends Tagger {
         weights.put("target", fw.add(bw).divi(2)); // average
       }
       
-    
-    //} finally {
-      //clearLayerStates(net);
       return weights;
-    //}
     
   }
   
@@ -425,22 +394,10 @@ public class SectorTagger extends Tagger {
     
     SectorTaggerIterator it = new SectorTaggerIterator(stage, docs, this, batchSize, false, requireSubsampling);
     
-    /*WorkspaceMode cMode = getNN().getConfiguration().getTrainingWorkspaceMode();
-    getNN().getConfiguration().setTrainingWorkspaceMode(getNN().getConfiguration().getInferenceWorkspaceMode());
-    MemoryWorkspace workspace =
-            getNN().getConfiguration().getTrainingWorkspaceMode() == WorkspaceMode.NONE ? new DummyWorkspace()
-                    : Nd4j.getWorkspaceManager().getWorkspaceForCurrentThread();*/
-    
     // label batches of documents
     while(it.hasNext()) {
-      //try (MemoryWorkspace wsE = workspace.notifyScopeEntered()) {
         attachVectors(it.nextDocumentBatch(), targetClass);
-      //} finally {
-       // clearLayerStates(getNN());
-      //}
     }
-    
-    //getNN().getConfiguration().setTrainingWorkspaceMode(cMode);
     
   }
   
@@ -461,15 +418,15 @@ public class SectorTagger extends Tagger {
       int batchIndex = 0; for(Document doc : batch.docs) {
         int t = 0;
         for(Sentence s : doc.getSentences()) {
-          INDArray targetVec = target.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+          INDArray targetVec = target.get(point(batchIndex), all(), point(t));
           s.putVector(targetEncoder.getClass(), targetVec);
           if(embedding != null) {
-            INDArray embeddingVec = embedding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray embeddingVec = embedding.get(point(batchIndex), all(), point(t));
             s.putVector(SectorEncoder.class, embeddingVec);
           }
           if(embeddingFW != null) {
-            INDArray fw = embeddingFW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
-            INDArray bw = embeddingBW.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)});
+            INDArray fw = embeddingFW.get(point(batchIndex), all(), point(t));
+            INDArray bw = embeddingBW.get(point(batchIndex), all(), point(t));
             s.putVector("embeddingFW", fw);
             s.putVector("embeddingBW", bw);
           }
@@ -521,10 +478,6 @@ public class SectorTagger extends Tagger {
   public void loadModel(Resource modelFile) {
     try(InputStream is = modelFile.getInputStream()) {
       net = ModelSerializer.restoreComputationGraph(is, false); // do not load updater to save memory
-    //try(DataInputStream dis = new DataInputStream(modelFile.getInputStream())) {
-      // Load parameters from disk:
-    //  INDArray newParams = Nd4j.read(dis);
-    //  ((MultiLayerNetwork)net).setParameters(newParams);
       setModel(modelFile);
       setModelAvailable(true);
       log.info("loaded Computation Graph from " + modelFile.getFileName());

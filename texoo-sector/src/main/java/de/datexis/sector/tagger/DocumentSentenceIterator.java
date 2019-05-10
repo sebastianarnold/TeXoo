@@ -12,7 +12,10 @@ import java.util.*;
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 public abstract class DocumentSentenceIterator extends AbstractMultiDataSetIterator {
-
+  
+  protected List<Document> documents;
+  protected Iterator<Document> docIt;
+  
   public DocumentSentenceIterator(Stage stage, Dataset dataset, int batchSize, boolean randomize) {
     this(stage, dataset.getDocuments(), batchSize, randomize);
   }
@@ -22,15 +25,16 @@ public abstract class DocumentSentenceIterator extends AbstractMultiDataSetItera
   }
   
   public DocumentSentenceIterator(Stage stage, Collection<Document> docs, int numExamples, int maxTimeSeriesLength, int batchSize, boolean randomize) {
-    super(stage, docs, numExamples, maxTimeSeriesLength, batchSize, randomize);
+    super(stage, numExamples, maxTimeSeriesLength, batchSize, randomize);
+    this.documents = new ArrayList<>(docs);
+    this.numExamples = numExamples > 0 && numExamples <= documents.size() ? numExamples : documents.size();
   }
   
   @Override
   public void reset() {
-    cursor = 0;
     if(randomize) Collections.shuffle(documents, new Random(System.nanoTime()));
+    super.reset();
     docIt = documents.iterator();
-    startTime = System.currentTimeMillis();
   }
   
   protected boolean hasNextDocument() {
