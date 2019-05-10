@@ -2,18 +2,12 @@ package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.datexis.common.WordHelpers;
-import de.datexis.model.Document;
-import de.datexis.model.Token;
 import de.datexis.encoder.LookupCacheEncoder;
+import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
+import de.datexis.model.Token;
 import de.datexis.preprocess.MinimalLowercaseNewlinePreprocessor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.apache.commons.math3.util.Pair;
 import org.deeplearning4j.models.word2vec.wordstore.VocabularyHolder;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
@@ -21,13 +15,15 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
+
 /**
  * A Bag-Of-Words N-Hot Encoder with stopword and minFreq training
  * @author sarnold
  */
 public class BagOfWordsEncoder extends LookupCacheEncoder {
   
-  protected static final TokenPreProcess preprocessor = new MinimalLowercaseNewlinePreprocessor();
+  protected TokenPreProcess preprocessor = new MinimalLowercaseNewlinePreprocessor();
   protected WordHelpers wordHelpers;
   protected WordHelpers.Language language;
   
@@ -77,7 +73,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     setModelAvailable(true);
   }
   
-  public void trainModel(List<String> sentences, int minWordFrequency, WordHelpers.Language language) {
+  public void trainModel(Iterable<String> sentences, int minWordFrequency, WordHelpers.Language language) {
     appendTrainLog("Training " + getName() + " model...");
     setModel(null);
     totalWords = 0;
@@ -151,8 +147,6 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
   
   /**
    * Encode a list of Strings into an n-hot vector
-   * @param spans
-   * @return 
    */
   protected INDArray encode(String[] words) {
     INDArray vector = Nd4j.zeros(getEmbeddingVectorSize(), 1);

@@ -18,7 +18,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -55,8 +54,12 @@ public class BloomEncoder extends BagOfWordsEncoder {
     trainModel(documents, 1, WordHelpers.Language.EN);
   }
   
+  public void trainModel(Resource wordList) throws IOException {
+    trainModel(Files.readAllLines(wordList.getPath()), 1, language);
+  }
+  
   @Override
-  public void trainModel(List<String> sentences, int minWordFrequency, WordHelpers.Language language) {
+  public void trainModel(Iterable<String> sentences, int minWordFrequency, WordHelpers.Language language) {
     super.trainModel(sentences, minWordFrequency, language);
     for(String word : getWords()) {
       bloom.put(word);
@@ -76,6 +79,11 @@ public class BloomEncoder extends BagOfWordsEncoder {
   @Override
   public long getEmbeddingVectorSize() {
     return bloom.bitSize();
+  }
+  
+  @Override
+  public INDArray encode(String phrase) {
+    return encode(WordHelpers.splitSpaces(phrase));
   }
   
   @Override
