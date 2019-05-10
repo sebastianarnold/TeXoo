@@ -3,12 +3,14 @@ package de.datexis.index;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.index.impl.LuceneWordIndex;
-import java.util.Arrays;
-import java.util.List;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -106,7 +108,7 @@ public class LuceneWordIndexTest {
   public void testEncoderIndex() {
     
     BagOfWordsEncoder bow = new BagOfWordsEncoder();
-    bow.trainModel(Arrays.asList(diseases), 0, WordHelpers.Language.EN);
+    bow.trainModel(Arrays.asList(diseases), 1, 1, WordHelpers.Language.EN);
     WordIndex index = new LuceneWordIndex(bow);
     
     List<String> result;

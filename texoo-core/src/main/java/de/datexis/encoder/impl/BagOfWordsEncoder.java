@@ -73,7 +73,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     setModelAvailable(true);
   }
   
-  public void trainModel(Iterable<String> sentences, int minWordFrequency, WordHelpers.Language language) {
+  public void trainModel(Iterable<String> sentences, int minWordFrequency, int minWordLength, WordHelpers.Language language) {
     appendTrainLog("Training " + getName() + " model...");
     setModel(null);
     totalWords = 0;
@@ -84,7 +84,7 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
         String w = preprocessor.preProcess(t);
         if(!w.isEmpty()) {
           totalWords++;
-          if(!wordHelpers.isStopWord(w)) {
+          if(!wordHelpers.isStopWord(w) && w.length() >= minWordLength) {
             if(!vocab.containsWord(w)) vocab.addWord(w);
             else vocab.incrementWordCounter(w);
           }

@@ -55,12 +55,12 @@ public class BloomEncoder extends BagOfWordsEncoder {
   }
   
   public void trainModel(Resource wordList) throws IOException {
-    trainModel(Files.readAllLines(wordList.getPath()), 1, language);
+    trainModel(Files.readAllLines(wordList.getPath()), 1, 1, language);
   }
   
   @Override
-  public void trainModel(Iterable<String> sentences, int minWordFrequency, WordHelpers.Language language) {
-    super.trainModel(sentences, minWordFrequency, language);
+  public void trainModel(Iterable<String> sentences, int minWordFrequency, int minWordLength, WordHelpers.Language language) {
+    super.trainModel(sentences, minWordFrequency, minWordLength, language);
     for(String word : getWords()) {
       bloom.put(word);
     }

@@ -20,8 +20,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.deeplearning4j.ui.api.UIServer;
 import org.nd4j.linalg.activations.Activation;
-import org.nd4j.linalg.lossfunctions.impl.LossBinaryXENT;
 import org.nd4j.linalg.lossfunctions.impl.LossMCXENT;
+import org.nd4j.linalg.lossfunctions.impl.LossMultiLabel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class TrainSectorAnnotator {
       HelpFormatter formatter = new HelpFormatter();
       formatter.printHelp("texoo-train-sector", "TeXoo: train SectorAnnotator from WikiSection dataset", params.setUpCliOptions(), "", true);
       System.exit(1);
-    } catch(Exception e) {
+    } catch(Throwable e) {
       e.printStackTrace();
       System.exit(1);
     }
@@ -229,14 +229,14 @@ public class TrainSectorAnnotator {
     
     // build Heading Encoder
     HeadingEncoder targetEncoder = new HeadingEncoder();
-    targetEncoder.trainModel(headings, 20, lang); // ignore words with less than 20 occurences
+    targetEncoder.trainModel(headings, 20, 3, lang); // ignore words with less than 20 occurences
 
     return builder
       .withId("SEC>H")
       .withTargetEncoder(targetEncoder)
       // for ranking loss, use:
       //.withLossFunction(new MultiClassDosSantosPairwiseRankingLoss(), Activation.SIGMOID, false)
-      .withLossFunction(new LossBinaryXENT(), Activation.SIGMOID, false);
+      .withLossFunction(new LossMultiLabel(), Activation.SIGMOID, false);
     
   }
   
