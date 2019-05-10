@@ -5,9 +5,9 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,5 +47,21 @@ public class EncodingHelpers {
     return encoding;
   }
   
-
+  public static INDArray encodeBatchMatrix(List<? extends Span> input, IEncoder encoder) {
+    
+    INDArray encoding = Nd4j.zeros(DataType.DOUBLE, input.size(), encoder.getEmbeddingVectorSize());
+    Span example;
+    
+    for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
+      example = input.get(batchIndex);
+      INDArray vec = encoder.encode(example);
+      encoding.get(point(batchIndex), all()).assign(vec);
+    }
+    
+    return encoding;
+    
+  }
+  
+  
+  
 }
