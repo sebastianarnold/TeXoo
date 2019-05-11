@@ -88,10 +88,10 @@ public class BloomEncoder extends BagOfWordsEncoder {
   
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
-    INDArray vector = Nd4j.zeros(DataType.DOUBLE, getEmbeddingVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(DataType.FLOAT, getEmbeddingVectorSize(), 1);
     for(Span s : spans) {
       double[] bits = bloom.getBitArray(preprocessor.preProcess(s.getText()));
-      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1});
+      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1}).castTo(DataType.FLOAT);
       vector.addi(x);
     }
     for(long i = 0; i < vector.length(); i++) {
@@ -102,10 +102,10 @@ public class BloomEncoder extends BagOfWordsEncoder {
   
   @Override
   public INDArray encode(String[] words) {
-    INDArray vector = Nd4j.zeros(DataType.DOUBLE, getEmbeddingVectorSize(), 1);
+    INDArray vector = Nd4j.zeros(DataType.FLOAT, getEmbeddingVectorSize(), 1);
     for(String s : words) {
       double[] bits = bloom.getBitArray(preprocessor.preProcess(s));
-      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1});
+      INDArray x = Nd4j.create(bits, new long[]{getEmbeddingVectorSize(), 1}).castTo(DataType.FLOAT);
       vector.addi(x);
     }
     return vector;

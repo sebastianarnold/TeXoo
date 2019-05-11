@@ -24,7 +24,7 @@ public class EncodingHelpers {
    */
   public static INDArray encodeTimeStepMatrix(List<? extends Span> input, IEncoder encoder, int maxTimeSteps, Class<? extends Span> timeStepClass) {
 
-    INDArray encoding = Nd4j.zeros(input.size(), encoder.getEmbeddingVectorSize(), maxTimeSteps);
+    INDArray encoding = Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize(), maxTimeSteps);
     Span example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
@@ -49,7 +49,7 @@ public class EncodingHelpers {
   
   public static INDArray encodeBatchMatrix(List<? extends Span> input, IEncoder encoder) {
     
-    INDArray encoding = Nd4j.zeros(DataType.DOUBLE, input.size(), encoder.getEmbeddingVectorSize());
+    INDArray encoding = Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize());
     Span example;
     
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
