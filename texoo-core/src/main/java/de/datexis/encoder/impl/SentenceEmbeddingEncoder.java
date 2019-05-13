@@ -1,22 +1,24 @@
 package de.datexis.encoder.impl;
 
 import de.datexis.common.Resource;
-import de.datexis.model.Document;
-import de.datexis.model.Token;
 import de.datexis.encoder.LookupCacheEncoder;
+import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
+import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dimensionalityreduction.PCA;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A "Simple but Tough-to-Beat Baseline for Sentence Embeddings" implemented after Arora et al. (2017)
@@ -47,7 +49,11 @@ public class SentenceEmbeddingEncoder extends LookupCacheEncoder {
   
   public static SentenceEmbeddingEncoder create(Resource word2vecPath) {
     SentenceEmbeddingEncoder sent = new SentenceEmbeddingEncoder();
-    sent.vec = Word2VecEncoder.load(word2vecPath);
+    try {
+      sent.vec = Word2VecEncoder.load(word2vecPath);
+    } catch(IOException e) {
+      e.printStackTrace();
+    }
     return sent;
   }
   

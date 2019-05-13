@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.io.IOException;
+
 import static org.junit.Assert.*;
 
 /**
@@ -21,7 +23,7 @@ public class Word2VecEncoderTest {
   }
   
   @Test
-  public void testLoadModel() {
+  public void testLoadModel() throws IOException {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
     vec.setPreprocessor(new MinimalLowercasePreprocessor());
     assertEquals(150, vec.getEmbeddingVectorSize());
@@ -38,7 +40,7 @@ public class Word2VecEncoderTest {
   }
   
   @Test
-  public void testSaveBinaryModel() {
+  public void testSaveBinaryModel() throws IOException {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
     vec.setPreprocessor(new MinimalLowercasePreprocessor());
     assertEquals(150, vec.getEmbeddingVectorSize());
@@ -67,7 +69,7 @@ public class Word2VecEncoderTest {
   }
   
   @Test
-  public void testEncodings() {
+  public void testEncodings() throws IOException {
     Word2VecEncoder vec = Word2VecEncoder.load(txt);
     vec.setPreprocessor(new MinimalLowercasePreprocessor());
     INDArray a = vec.encode("berlin");

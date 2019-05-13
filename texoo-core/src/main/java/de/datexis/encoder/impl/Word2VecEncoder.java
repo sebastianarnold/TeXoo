@@ -1,29 +1,17 @@
 package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import de.datexis.common.*;
+import de.datexis.common.ObjectSerializer;
+import de.datexis.common.Resource;
+import de.datexis.common.WordHelpers;
 import de.datexis.encoder.Encoder;
-import de.datexis.preprocess.MinimalLowercasePreprocessor;
-import de.datexis.model.*;
+import de.datexis.model.Document;
+import de.datexis.model.Sentence;
+import de.datexis.model.Span;
 import de.datexis.model.Token;
 import de.datexis.preprocess.LowercasePreprocessor;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.nd4j.linalg.primitives.Counter;
 import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
-import static org.deeplearning4j.models.embeddings.loader.WordVectorSerializer.fromPair;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.word2vec.VocabWord;
 import org.deeplearning4j.models.word2vec.Word2Vec;
@@ -37,9 +25,16 @@ import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
+import org.nd4j.linalg.primitives.Counter;
 import org.nd4j.linalg.primitives.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.deeplearning4j.models.embeddings.loader.WordVectorSerializer.fromPair;
 
 /**
  * A Word2Vec model from http://deeplearning4j.org/word2vec.html
@@ -61,6 +56,7 @@ public class Word2VecEncoder extends Encoder {
 	private WordVectors vec;
 	private long length;
   private String modelName;
+  private boolean saveModelReference = false;
   private TokenPreProcess preprocessor = new LowercasePreprocessor();
   
 	public Word2VecEncoder() {
@@ -71,7 +67,7 @@ public class Word2VecEncoder extends Encoder {
     super(id);
   }
 
-  public static Word2VecEncoder load(Resource path) {
+  public static Word2VecEncoder load(Resource path) throws IOException {
     Word2VecEncoder vec = new Word2VecEncoder();
     vec.loadModel(path);
     return vec;
@@ -83,66 +79,68 @@ public class Word2VecEncoder extends Encoder {
   public static Word2VecEncoder loadDummyEncoder() {
     Word2VecEncoder vec = new Word2VecEncoder();
     Resource txt = Resource.fromJAR("encoder/word2vec.txt");
-    vec.loadModel(txt);
+    try {
+      vec.loadModel(txt);
+    } catch(IOException e) {
+      log.error("could not load dummy encoder!");
+    }
     return vec;
   }
-
+  
+  public void loadModelAsReference(Resource modelFile) throws IOException {
+    loadModel(modelFile);
+    saveModelReference = true;
+  }
+  
   @Override
-  public void loadModel(Resource modelFile) {
+  public void loadModel(Resource modelFile) throws IOException {
     log.info("Loading Word2Vec model: {} with preprocessor {}", modelFile.getFileName(), getPreprocessorClass());
-		try {
-      switch(getModelType(modelFile.getFileName())) {
-        default:
-        case TEXT: vec = WordVectorSerializer.loadTxtVectors(modelFile.getInputStream(), false); break;
-        case BINARY: vec = Word2VecEncoder.loadBinaryModel(modelFile.getInputStream()); break;
-        case DL4J: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
-        case GOOGLE: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
-      }
-      int size = vec.vocab().numWords();
-			INDArray example = vec.getWordVectorMatrix(vec.vocab().wordAtIndex(0));
-			length = example.length();
-      setModel(modelFile);
-      setModelAvailable(true);
-      log.info("Loaded Word2Vec model '" +  modelFile.getFileName() + "' with " + size + " vectors of size " + length );
-		} catch (IOException ex) {
-			log.error("could not load model " + ex.toString());
-		}
+    switch(getModelType(modelFile.getFileName())) {
+      default:
+      case TEXT: vec = WordVectorSerializer.loadTxtVectors(modelFile.getInputStream(), false); break;
+      case BINARY: vec = Word2VecEncoder.loadBinaryModel(modelFile.getInputStream()); break;
+      case DL4J: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
+      case GOOGLE: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
+    }
+    int size = vec.vocab().numWords();
+    INDArray example = vec.getWordVectorMatrix(vec.vocab().wordAtIndex(0));
+    length = example.length();
+    setModel(modelFile);
+    setModelAvailable(true);
+    log.info("Loaded Word2Vec model '" +  modelFile.getFileName() + "' with " + size + " vectors of size " + length );
 	}
   
   @Override
-  public void saveModel(Resource modelPath, String name) {
+  public void saveModel(Resource modelPath, String name) throws IOException {
     saveModel(modelPath, name, ModelType.BINARY);
   }
   
-  public void saveModel(Resource modelPath, String name, ModelType type) {
-    try {
-      // TODO: we also need to save the input Token Preprocessor!
-      Resource modelFile;
-      ObjectSerializer.writeJSON(this, modelPath.resolve("config.json"));
-      switch(type) {
-        default:
-        case BINARY: {
-          modelFile = modelPath.resolve(name + ".bin");
-          Word2VecEncoder.writeBinaryModel(vec, modelFile.getOutputStream());
-        } break;
-        case TEXT: {
-          modelFile = modelPath.resolve(name + ".txt.gz");
-          WordVectorSerializer.writeWordVectors((Word2Vec) vec, modelFile.getGZIPOutputStream());
-        } break;
-        case DL4J: {
-          modelFile = modelPath.resolve(name+".zip");
-          WordVectorSerializer.writeWord2VecModel((Word2Vec) vec, modelFile.getOutputStream());
-        } break;
-        case GOOGLE: {
-          modelFile = null;
-          log.error("Cannot write Google Model");
-        } break;
-      }
-      setModel(modelFile);
-    } catch (IOException ex) {
-      ex.printStackTrace();
-      log.error("Could not save model: " + ex.toString());
+  public void saveModel(Resource modelPath, String name, ModelType type) throws IOException {
+    // rely on AnnotatorFactory to find the model in the search path
+    if(saveModelReference) return;
+    // TODO: we also need to save the input Token Preprocessor!
+    Resource modelFile;
+    ObjectSerializer.writeJSON(this, modelPath.resolve("config.json"));
+    switch(type) {
+      default:
+      case BINARY: {
+        modelFile = modelPath.resolve(name + ".bin");
+        Word2VecEncoder.writeBinaryModel(vec, modelFile.getOutputStream());
+      } break;
+      case TEXT: {
+        modelFile = modelPath.resolve(name + ".txt.gz");
+        WordVectorSerializer.writeWordVectors((Word2Vec) vec, modelFile.getGZIPOutputStream());
+      } break;
+      case DL4J: {
+        modelFile = modelPath.resolve(name+".zip");
+        WordVectorSerializer.writeWord2VecModel((Word2Vec) vec, modelFile.getOutputStream());
+      } break;
+      case GOOGLE: {
+        modelFile = null;
+        log.error("Cannot write Google Model");
+      } break;
     }
+    setModel(modelFile);
   }
 
   public void setPreprocessor(TokenPreProcess preprocessor) {
