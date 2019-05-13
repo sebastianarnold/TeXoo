@@ -3,10 +3,6 @@ package de.datexis.common;
 import com.google.common.collect.Lists;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import java.io.IOException;
-import java.text.Normalizer;
-import java.util.*;
-import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -14,6 +10,11 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.text.Normalizer;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Utility class with static helpers for Strings
@@ -141,7 +142,7 @@ public class WordHelpers {
    */
   public static double cosineSim(INDArray arr1, INDArray arr2) {
     if(arr1 == null || arr2 == null ) return 0;
-    else if(arr1.sumNumber().doubleValue() == 0 || arr2.sumNumber().doubleValue() == 0 ) return 0;
+    else if(arr1.maxNumber().doubleValue() == 0 || arr2.maxNumber().doubleValue() == 0 ) return 0;
     else return Transforms.cosineSim(arr1, arr2);
   }
   

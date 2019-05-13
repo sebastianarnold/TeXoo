@@ -2,14 +2,12 @@ package de.datexis.index.encoder;
 
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
+import de.datexis.index.ArticleRef;
+import de.datexis.index.WikiDataArticle;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
-import de.datexis.index.ArticleRef;
-import de.datexis.index.WikiDataArticle;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
-import java.io.IOException;
-import java.util.Collection;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.paragraphvectors.ParagraphVectors;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
@@ -19,6 +17,9 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Collection;
 
 /**
  *
@@ -73,7 +74,7 @@ public class EntityEncoder extends Encoder {
       String context = title;
       if(description != null) context += " " + description;
       INDArray contextEmbedding = encode(context);
-      if(contextEmbedding.sumNumber().doubleValue() == 0) contextEmbedding = nameEmbedding;
+      if(contextEmbedding.maxNumber().doubleValue() == 0) contextEmbedding = nameEmbedding;
       return Nd4j.hstack(nameEmbedding, contextEmbedding);
     } else {
       throw new IllegalArgumentException("invalid strategy");

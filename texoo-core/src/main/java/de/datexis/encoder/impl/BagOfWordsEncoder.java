@@ -37,6 +37,14 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     vocab = new VocabularyHolder.Builder().build();
   }
   
+  public TokenPreProcess getPreprocessor() {
+    return preprocessor;
+  }
+  
+  public void setPreprocessor(TokenPreProcess preprocessor) {
+    this.preprocessor = preprocessor;
+  }
+  
   @Override
   public String getName() {
     return "Bag-of-words Encoder";

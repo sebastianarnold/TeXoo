@@ -7,17 +7,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import de.datexis.common.*;
+import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
-import de.datexis.model.*;
+import de.datexis.model.Document;
+import de.datexis.model.Sentence;
+import de.datexis.model.Span;
 import de.datexis.model.Token;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
-
 import de.datexis.preprocess.SentenceDetectorMENL;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
@@ -25,6 +20,13 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * Interface to FastText port from https://github.com/sszuev/fastText_java

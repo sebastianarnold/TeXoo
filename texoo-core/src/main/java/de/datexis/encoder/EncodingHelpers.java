@@ -40,7 +40,8 @@ public class EncodingHelpers {
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         // TODO: Encoder should encode a batch of sentences and return matrix with batchSize columns and vectorsize rows...?
         INDArray vec = encoder.encode(spansToEncode.get(t));
-        encoding.get(point(batchIndex), all(), point(t)).assign(vec);
+        //encoding.get(point(batchIndex), all(), point(t)).assign(vec);
+        encoding.slice(batchIndex, 0).slice(t, 1).assign(vec); // 25% faster
       }
 
     }
@@ -61,7 +62,5 @@ public class EncodingHelpers {
     return encoding;
     
   }
-  
-  
   
 }
