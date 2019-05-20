@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonPropertyOrder({"class", "source", "begin", "length", "sectionHeading", "sectionLabel" })
-@JsonIgnoreProperties({"confidence", "text"})
+@JsonIgnoreProperties({"confidence", "text", "label"})
 public class SectionAnnotation extends PassageAnnotation {
 
   protected final static Logger log = LoggerFactory.getLogger(SectionAnnotation.class);
