@@ -306,7 +306,7 @@ public class SectorAnnotator extends Annotator {
     // attach PRED vectors and labels from empty Annotations
     for(SectionAnnotation ann : doc.getAnnotations(Annotation.Source.PRED, SectionAnnotation.class)) {
       int count = 0;
-      INDArray pred = Nd4j.zeros(targetEncoder.getEmbeddingVectorSize(), 1);
+      INDArray pred = Nd4j.zeros(1,targetEncoder.getEmbeddingVectorSize());
       for(Sentence s : doc.streamSentencesInRange(ann.getBegin(), ann.getEnd(), false).collect(Collectors.toList())) {
         pred.addi(s.getVector(targetEncoder.getClass()));
         count++;

@@ -91,7 +91,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
         if(predicted.isPresent()) {
           matched.put(predicted.get(), true);
           INDArray r = expected.getVector(encoder.getClass()).transpose();
-          INDArray p = predicted.get().getVector(encoder.getClass()).transpose();
+          INDArray p = predicted.get().getVector(encoder.getClass()); //.transpose();
           evalExample(r, p);
         } else {
           log.warn("Could not match predicted Annotation for expected Annotation {}-{}", expected.getBegin(), expected.getEnd());
@@ -104,7 +104,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
           Optional<? extends Annotation> expected = doc.getAnnotationMaxOverlap(expectedSource, annotationClass, predicted);
           if(expected.isPresent()) {
             INDArray r = expected.get().getVector(encoder.getClass()).transpose();
-            INDArray p = predicted.getVector(encoder.getClass()).transpose();
+            INDArray p = predicted.getVector(encoder.getClass());//.transpose();
             evalExample(r, p);
           } 
         }
