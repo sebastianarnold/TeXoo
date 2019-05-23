@@ -2,6 +2,7 @@ package de.datexis.sector.tagger;
 
 import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.encoder.impl.BagOfWordsEncoder;
 import de.datexis.encoder.impl.DummyEncoder;
 import de.datexis.encoder.impl.StructureEncoder;
@@ -17,7 +18,6 @@ import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,9 +27,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
-
 
 public class SectorTaggerIteratorTest {
 
@@ -60,8 +57,7 @@ public class SectorTaggerIteratorTest {
 
   @Test
   public void bagOfWordsEncodingShouldBeEqualToOldImplementation() {
-    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger,
-                                                     documents.get(0).countSentences());
+    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger, documents.get(0).countSentences());
 
     DocumentSentenceIterator.DocumentBatch documentBatch = setUpDocumentBatchMock();
     MultiDataSet actual = generateActualEncoding(documentBatch);
@@ -74,8 +70,7 @@ public class SectorTaggerIteratorTest {
   
   @Test
   public void embeddingEncodingShouldBeEqualToOldImplementation() {
-    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger,
-                                                     documents.get(0).countSentences());
+    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger, documents.get(0).countSentences());
 
     DocumentSentenceIterator.DocumentBatch documentBatch = setUpDocumentBatchMock();
     MultiDataSet actual = generateActualEncoding(documentBatch);
@@ -88,8 +83,7 @@ public class SectorTaggerIteratorTest {
   
   @Test
   public void flagEncodingShouldBeEqualToOldImplementation() {
-    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger,
-                                                     documents.get(0).countSentences());
+    MultiDataSet expected = generateExpectedEncoding(documents, sectorTagger, documents.get(0).countSentences());
 
     DocumentSentenceIterator.DocumentBatch documentBatch = setUpDocumentBatchMock();
     MultiDataSet actual = generateActualEncoding(documentBatch);
@@ -118,9 +112,9 @@ public class SectorTaggerIteratorTest {
 
   private MultiDataSet generateExpectedEncoding(List<Document> batch, SectorTagger tagger, int maxDocLength) {
     // inputs
-    INDArray bag = Nd4j.zeros(batch.size(), tagger.bagEncoder.getEmbeddingVectorSize(), maxDocLength);
-    INDArray emb = Nd4j.zeros(batch.size(), tagger.embEncoder.getEmbeddingVectorSize(), maxDocLength);
-    INDArray flag = Nd4j.zeros(batch.size(), tagger.flagEncoder.getEmbeddingVectorSize(), maxDocLength);
+    INDArray bag = EncodingHelpers.createTimeStepMatrix(batch.size(), tagger.bagEncoder.getEmbeddingVectorSize(), maxDocLength);
+    INDArray emb = EncodingHelpers.createTimeStepMatrix(batch.size(), tagger.embEncoder.getEmbeddingVectorSize(), maxDocLength);
+    INDArray flag = EncodingHelpers.createTimeStepMatrix(batch.size(), tagger.flagEncoder.getEmbeddingVectorSize(), maxDocLength);
     INDArray inputMask = Nd4j.zeros(batch.size(), maxDocLength);
     // targets
     INDArray targets = Nd4j.zeros(batch.size(), tagger.targetEncoder.getEmbeddingVectorSize(), maxDocLength);
@@ -138,7 +132,6 @@ public class SectorTaggerIteratorTest {
     tagger.embEncoder.encodeEach((Collection<Document>) batch, Sentence.class);
     tagger.flagEncoder.encodeEach((Collection<Document>) batch, Sentence.class);
 
-
     Document example;
     for(int batchNum = 0; batchNum < batch.size(); batchNum++) {
 
@@ -153,13 +146,9 @@ public class SectorTaggerIteratorTest {
         labelMask.put(batchNum, t, 1); // mark this sentence as used
 
         // set inputs ==========================================================
-        bag.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.bagEncoder.getClass()));
-        emb.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.embEncoder.getClass()));
-        flag.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(s.getVector(tagger.flagEncoder.getClass()));
-        // deprecated calls from Dl4j-beta3:
-        //bag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.bagEncoder.getClass()));
-        //emb.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.embEncoder.getClass()));
-        //flag.getRow(batchNum).getColumn(t).assign(s.getVector(tagger.flagEncoder.getClass()));
+        EncodingHelpers.putTimeStep(bag, batchNum, t, s.getVector(tagger.bagEncoder.getClass()));
+        EncodingHelpers.putTimeStep(emb, batchNum, t, s.getVector(tagger.embEncoder.getClass()));
+        EncodingHelpers.putTimeStep(flag, batchNum, t, s.getVector(tagger.flagEncoder.getClass()));
 
         // remove attached encodings
         s.clearVectors(tagger.bagEncoder.getClass());

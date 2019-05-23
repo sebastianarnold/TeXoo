@@ -1,23 +1,24 @@
 package de.datexis.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import de.datexis.encoder.impl.PositionEncoder;
 import de.datexis.encoder.impl.SurfaceEncoder;
 import de.datexis.model.Annotation.Source;
 import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
 import de.datexis.preprocess.DocumentFactory;
+import org.junit.Test;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Test;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
 
 /**
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
@@ -186,7 +187,9 @@ public class DocumentModelTest {
     Token t = s.getToken(0);
     SurfaceEncoder encoder = new SurfaceEncoder();
     INDArray vec = encoder.encode(t);
-    INDArray vec2 = Nd4j.create(new double[]{1., 0., .5});
+    assertTrue(vec.isColumnVector());
+    INDArray vec2 = Nd4j.create(new float[][]{{1f},{0f},{.5f}});
+    assertTrue(vec2.isColumnVector());
     assertEquals(encoder.getEmbeddingVectorSize(), vec.length());
     INDArray test = t.getVector(SurfaceEncoder.class);
     assertNull(test);
@@ -195,12 +198,15 @@ public class DocumentModelTest {
     assertNotNull(test);
     assertEquals(encoder.getEmbeddingVectorSize(), test.length());
     assertEquals(vec, test);
+    assertTrue(test.isColumnVector());
     t.putVector(PositionEncoder.class, vec2);
     s.clearVectors();
     test = t.getVector(SurfaceEncoder.class);
     assertEquals(vec, test);
+    assertTrue(test.isColumnVector());
     test = t.getVector(PositionEncoder.class);
     assertEquals(vec2, test);
+    assertTrue(test.isColumnVector());
     t.clearVectors();
     test = t.getVector(SurfaceEncoder.class);
     assertNull(test);

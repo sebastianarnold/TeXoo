@@ -3,6 +3,7 @@ package de.datexis.sector.tagger;
 import com.google.common.collect.Lists;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.model.*;
 import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.HeadingEncoder;
@@ -11,16 +12,12 @@ import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Iterates through a Dataset with Document-Level Batches of Sentences
@@ -131,7 +128,7 @@ public class SectorTaggerIterator extends DocumentSentenceIterator {
           ann = it.next();
           vec = encodeAnnotation(tagger.targetEncoder, ann);
         }
-        encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec.dup());
+        EncodingHelpers.putTimeStep(encoding, batchIndex, t, vec.dup());
       }
       
     }

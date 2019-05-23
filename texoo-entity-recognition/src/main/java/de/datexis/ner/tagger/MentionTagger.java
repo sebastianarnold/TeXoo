@@ -3,6 +3,7 @@ package de.datexis.ner.tagger;
 import com.google.common.collect.Lists;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.EncoderSet;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.model.*;
 import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
@@ -36,7 +37,6 @@ import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
@@ -45,9 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Assigns BIO2 or BIOES Labels to every Token in a Document.
@@ -365,8 +362,7 @@ public class MentionTagger extends Tagger {
     int batchNum = 0, t = 0;
     for(Sentence s : sents) {
       for(Token token : s.getTokens()) {
-        INDArray vec = predicted.get(new INDArrayIndex[] {point(batchNum), all(), point(t++)});
-        //INDArray vec = predicted.getRow(batchNum).getColumn(t++); // deprecated call from Dl4j-beta3
+        INDArray vec = EncodingHelpers.getTimeStep(predicted, batchNum, t++);
         // FIXME: we cannot simply assign GENERIC here!
         if(tagset.equals(BIO2Tag.class)) token.putTag(source, new BIO2Tag(vec, type, true));
         if(tagset.equals(BIOESTag.class)) token.putTag(source, new BIOESTag(vec, type, true));

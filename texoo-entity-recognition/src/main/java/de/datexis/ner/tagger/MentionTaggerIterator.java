@@ -1,6 +1,7 @@
 package de.datexis.ner.tagger;
 
 import de.datexis.encoder.EncoderSet;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
@@ -10,15 +11,11 @@ import de.datexis.tagger.CachedSentenceIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Iterates through a Document, one Sentence per Example. Used for Named Entity Mentions.
@@ -74,10 +71,10 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
   @Override
   public DataSet generateDataSet(ArrayList<Sentence> examples, int num, int exampleSize) {
     Sentence example;
-    INDArray input = Nd4j.zeros(new long[]{num, inputSize, exampleSize});
-		INDArray label = Nd4j.zeros(new long[]{num, labelSize, exampleSize});
-    INDArray featuresMask =  Nd4j.zeros(new long[]{num, exampleSize});
-    INDArray labelsMask =  Nd4j.zeros(new long[]{num, exampleSize});
+    INDArray input = EncodingHelpers.createTimeStepMatrix(num, inputSize, exampleSize);
+		INDArray label = EncodingHelpers.createTimeStepMatrix(num, labelSize, exampleSize);
+    INDArray featuresMask =  Nd4j.zeros(num, exampleSize);
+    INDArray labelsMask =  Nd4j.zeros(num, exampleSize);
     DataSet result = new DataSet(input, label, featuresMask, labelsMask);
     for(int batchNum=0; batchNum<num; batchNum++ ) {
       //log.info("Training " + cursor + ": " + s.toString());
@@ -87,11 +84,9 @@ public class MentionTaggerIterator extends CachedSentenceIterator {
         featuresMask.put(batchNum, t, 1); // mark this word as used
         labelsMask.put(batchNum, t, 1); // mark this word as labeled
         INDArray inputEncoding = example.getToken(t).getVector(encoders);
-        result.getFeatures().get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(inputEncoding);
-        //result.getFeatures().getRow(batchNum).getColumn(t).assign(inputEncoding); // deprecated call from Dl4j-beta3
+        EncodingHelpers.putTimeStep(result.getFeatures(), batchNum, t, inputEncoding);
         Tag goldLabel = example.getToken(t).getTag(source, tagset);
-        result.getLabels().get(new INDArrayIndex[] {point(batchNum), all(), point(t)}).assign(goldLabel.getVector());
-        //result.getLabels().getRow(batchNum).getColumn(t).assign(goldLabel.getVector()); // deprecated call from Dl4j-beta3
+        EncodingHelpers.putTimeStep(result.getLabels(), batchNum, t, goldLabel.getVector());
         //System.out.println(batchNum + ": " + example.getToken(t).getText() + "\t" + inputEncoding.sumNumber().toString() + "\t" + goldLabel.getVector().toString());
 			}
 		}

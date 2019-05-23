@@ -9,16 +9,12 @@ import de.datexis.model.Span;
 import de.datexis.model.Token;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * An Encoder converts text (Span) to embedding vectors (INDArray).
@@ -75,7 +71,7 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder, IC
    */
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
 
-    INDArray encoding = Nd4j.zeros(input.size(), getEmbeddingVectorSize(), maxTimeSteps);
+    INDArray encoding = EncodingHelpers.createTimeStepMatrix(input.size(), getEmbeddingVectorSize(), maxTimeSteps);
     Document example;
 
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
@@ -88,9 +84,7 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder, IC
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         INDArray vec = encode(spansToEncode.get(t));
-        // encoding.getRow(batchIndex).getColumn(t).assign(vec); // deprecated call from Dl4j-beta3
-        // encoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec); // this is slower than getRow()
-        encoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
+        EncodingHelpers.putTimeStep(encoding, batchIndex, t, vec);
       }
       
     }
