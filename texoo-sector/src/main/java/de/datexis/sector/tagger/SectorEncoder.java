@@ -2,12 +2,12 @@ package de.datexis.sector.tagger;
 
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * An Encoder that capsules SectorTagger and returns the hidden layer embedding.
@@ -104,8 +101,8 @@ public class SectorEncoder extends Encoder {
       int batchNum = 0; for(Document doc : batch.docs) {
         int t = 0; for(Sentence s : doc.getSentences()) {
           if(t >= maxTimeSteps) break;
-          if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), target.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}));
-          if(embedding != null) s.putVector(SectorEncoder.class, embedding.get(new INDArrayIndex[] {point(batchNum), all(), point(t)}));
+          if(target != null) s.putVector(tagger.getTargetEncoder().getClass(), EncodingHelpers.getTimeStep(target, batchNum, t));
+          if(embedding != null) s.putVector(SectorEncoder.class, EncodingHelpers.getTimeStep(embedding, batchNum, t));
           t++;
         }
         batchNum++;

@@ -3,6 +3,7 @@ package de.datexis.sector.tagger;
 import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
+import de.datexis.encoder.EncodingHelpers;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.evaluation.ModelEvaluation;
 import de.datexis.model.Dataset;
@@ -56,9 +57,6 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * SECTOR Recurrent Network with separated FW/BW layers. Implementation of:
@@ -418,15 +416,15 @@ public class SectorTagger extends Tagger {
       int batchIndex = 0; for(Document doc : batch.docs) {
         int t = 0;
         for(Sentence s : doc.getSentences()) {
-          INDArray targetVec = target.get(point(batchIndex), all(), point(t));
+          INDArray targetVec = EncodingHelpers.getTimeStep(target, batchIndex, t);
           s.putVector(targetEncoder.getClass(), targetVec);
           if(embedding != null) {
-            INDArray embeddingVec = embedding.get(point(batchIndex), all(), point(t));
+            INDArray embeddingVec = EncodingHelpers.getTimeStep(embedding, batchIndex, t);
             s.putVector(SectorEncoder.class, embeddingVec);
           }
           if(embeddingFW != null) {
-            INDArray fw = embeddingFW.get(point(batchIndex), all(), point(t));
-            INDArray bw = embeddingBW.get(point(batchIndex), all(), point(t));
+            INDArray fw = EncodingHelpers.getTimeStep(embeddingFW, batchIndex, t);
+            INDArray bw = EncodingHelpers.getTimeStep(embeddingBW, batchIndex, t);
             s.putVector("embeddingFW", fw);
             s.putVector("embeddingBW", bw);
           }

@@ -44,22 +44,30 @@ public class EncoderInterfaceTest {
     long batchSize = 3;
     long vectorSize = 17;
     long timeSteps = 5;
-    
+  
     INDArray indexEncoding = Nd4j.zeros(batchSize, vectorSize, timeSteps);
-    INDArray rowcolEncoding = Nd4j.zeros(batchSize, vectorSize, timeSteps);
+    INDArray putEncoding = Nd4j.zeros(batchSize, vectorSize, timeSteps);
+    INDArray sliceEncoding = Nd4j.zeros(batchSize, vectorSize, timeSteps);
+    INDArray helperEncoding = EncodingHelpers.createTimeStepMatrix(batchSize, vectorSize, timeSteps);
 
     for(int batchIndex = 0; batchIndex < batchSize; batchIndex++) {
       for(int t = 0; t < timeSteps; t++) {
         INDArray vec = Nd4j.rand(new long[] {vectorSize, 1});
-        // we want to make sure that both these access methods provide the same results
-        indexEncoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        // we want to make sure that these access methods provide the same results
+        putEncoding.put(new INDArrayIndex[] {point(batchIndex), all(), point(t)}, vec);
+        // this one was less error-prone before and seems 100% correct
+        indexEncoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
         // this one is faster, but produced an IllegalArumentException in in Dl4j-beta4-SNAPSHOT
         //rowcolEncoding.getRow(batchIndex).getColumn(t).assign(vec);
-        rowcolEncoding.get(new INDArrayIndex[] {point(batchIndex), all(), point(t)}).assign(vec);
+        // this one is also faster and works in beta4
+        sliceEncoding.slice(batchIndex, 0).slice(t, 1).assign(vec);
+        EncodingHelpers.putTimeStep(helperEncoding, batchIndex, t, vec);
       }
     }
     
-    assertEquals(indexEncoding, rowcolEncoding);
+    assertEquals(putEncoding, indexEncoding);
+    assertEquals(indexEncoding, sliceEncoding);
+    assertEquals(putEncoding, sliceEncoding);
     
   }
   
