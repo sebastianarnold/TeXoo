@@ -23,12 +23,7 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   }
 
   public FastTextRESTEncoder(FastTextRESTAdapter fastTextRestAdapter) {
-    this.fastTextRestAdapter = fastTextRestAdapter;
-  }
-
-  @Override
-  public long getEmbeddingVectorSize() {
-    return 300;
+    super(fastTextRestAdapter);
   }
 
   @Override
@@ -45,11 +40,7 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if(elementClass == Token.class){
       try {
-        String[] tokensOfSentenceAsStringArray = getTokensOfSentenceAsStringArray(input);
-
-        double[][] embedding = fastTextRestAdapter.encode(tokensOfSentenceAsStringArray);
-
-        putVectorInTokenOfSentence(input, embedding);
+        encodeEach1D(input.streamTokens());
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);
@@ -63,11 +54,7 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Document input, Class<? extends Span> elementClass) {
     if(elementClass==Token.class){
       try {
-        String[][] tokenOfDocumentAsStringArray2D = getTokensOfDocumentAsStringArray2D(input);
-
-        double[][][] embedding = fastTextRestAdapter.encode(tokenOfDocumentAsStringArray2D);
-
-        putVectorInTokenOfDocument2D(input, embedding);
+        encodeEach2D(getTokensOfSentencesOfDocument(input));
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input, e);
         throw new UncheckedIOException(e);

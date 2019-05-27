@@ -1,6 +1,9 @@
 package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.datexis.encoder.impl.serde.DeserializationProvider;
+import de.datexis.encoder.impl.serde.JacksonSerdeProvider;
+import de.datexis.encoder.impl.serde.SerializationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,33 +16,46 @@ import java.net.URL;
 
 public class SectorRESTAdapter extends AbstractRESTAdapter {
 
-  private static final Logger log = LoggerFactory.getLogger(AbstractRESTAdapter.class);
+  private static final Logger log = LoggerFactory.getLogger(SectorRESTAdapter.class);
+
+  public static final int DEFAULT_READ_TIMEOUT = 300000;
+  public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+  public static final long DEFAULT_EMBEDDING_VECTOR_SIZE = 128;
 
   public static final String URL_FORMAT = "http://%s:%d/v2/%s";
 
-  public static final String HTTP_REQUEST_METHOD = "POST";
+  public static final String SENTENCE_ENDPOINT = "encode/sentence";
+  public static final String DOCUMENT_ENDPOINT = "encode/document";
+
+  /*public static final String HTTP_REQUEST_METHOD = "POST";
   public static final String HTTP_CONTENT_TYPE_NAME = "Content-Type";
-  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";
+  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";*/
 
   private String domain;
   private int port;
-  private ObjectMapper objectMapper;
 
-  public SectorRESTAdapter(String domain, int port) {
+  private JacksonSerdeProvider jacksonSerdeProvider;
+
+  public SectorRESTAdapter(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    super(embeddingVectorSize, connectTimeout, readTimeout);
     this.domain = domain;
     this.port = port;
 
-    objectMapper = new ObjectMapper();
+    jacksonSerdeProvider = new JacksonSerdeProvider();
+  }
+
+  public SectorRESTAdapter(String domain, int port) {
+    this(domain, port, DEFAULT_EMBEDDING_VECTOR_SIZE, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT);
   }
 
   @Override
   public double[] encodeImpl(String data) throws IOException {
-    return request(data, "encode/sentence", double[].class);
+    return request(data, double[].class, getUrl(SENTENCE_ENDPOINT));
   }
 
   @Override
   public double[][] encodeImpl(String[] data) throws IOException {
-    return request(data, "encode/document", double[][].class);
+    return request(data, double[][].class, getUrl(DOCUMENT_ENDPOINT));
   }
 
   @Override
@@ -47,7 +63,17 @@ public class SectorRESTAdapter extends AbstractRESTAdapter {
     throw new UnsupportedOperationException();
   }
 
-  public<I,O> O request(I data, String path, Class<O> classOfO) throws IOException{
+  @Override
+  public SerializationProvider getSerializationProvider() {
+    return jacksonSerdeProvider;
+  }
+
+  @Override
+  public DeserializationProvider getDeserializationProvider() {
+    return jacksonSerdeProvider;
+  }
+
+  /*public<I,O> O request(I data, String path, Class<O> classOfO) throws IOException{
     HttpURLConnection httpConnection = null;
 
     try {
@@ -100,7 +126,7 @@ public class SectorRESTAdapter extends AbstractRESTAdapter {
   private HttpURLConnection getConnection(String path) throws IOException {
     URL url = getUrl(path);
     return (HttpURLConnection) url.openConnection();
-  }
+  }*/
 
   private URL getUrl(String path) throws MalformedURLException {
     return new URL(String.format(URL_FORMAT, domain, port, path));

@@ -13,23 +13,14 @@ import java.util.Collection;
 import java.util.List;
 
 public class SectorRESTEncoder extends AbstractRESTEncoder {
-
   private static final Logger log = LoggerFactory.getLogger(SectorRESTEncoder.class);
-
-
-  private SectorRESTAdapter sectorRestAdapter;
 
   public static SectorRESTEncoder create(String domain, int port) {
     return new SectorRESTEncoder(new SectorRESTAdapter(domain, port));
   }
 
   public SectorRESTEncoder(SectorRESTAdapter sectorRESTAdapter) {
-    this.sectorRestAdapter = sectorRESTAdapter;
-  }
-
-  @Override
-  public long getEmbeddingVectorSize() {
-    return 128;
+    super(sectorRESTAdapter);
   }
 
   @Override
@@ -51,9 +42,10 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if (elementClass == Sentence.class) {
       try {
-        double[] embedding = sectorRestAdapter.encode(input.toTokenizedString());
+        /*double[] embedding = sectorRestAdapter.encode(input.toTokenizedString());
 
-        putVectorInSentence(input, embedding);
+        putVectorInSentence(input, embedding);*/
+        encodeEach(input, Sentence::toTokenizedString);
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);
@@ -67,11 +59,12 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Document input, Class<? extends Span> elementClass) {
     if (elementClass == Sentence.class) {
       try {
-        String[] sentencesOfDocumentAsStringArray = getSentencesOfDocumentAsStringArray(input);
+        /*String[] sentencesOfDocumentAsStringArray = getSentencesOfDocumentAsStringArray(input);
 
         double[][] embedding = sectorRestAdapter.encode(sentencesOfDocumentAsStringArray);
 
-        putVectorInSentenceOfDocument(input, embedding);
+        putVectorInSentenceOfDocument(input, embedding);*/
+        encodeEach1D(input.streamSentences(), Sentence::toTokenizedString);
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input, e);
         throw new UncheckedIOException(e);

@@ -1,42 +1,49 @@
 package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.datexis.encoder.impl.serde.DeserializationProvider;
+import de.datexis.encoder.impl.serde.JacksonSerdeProvider;
+import de.datexis.encoder.impl.serde.SerializationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class ELMoRESTAdapter extends AbstractRESTAdapter {
-  private static final Logger log = LoggerFactory.getLogger(AbstractRESTAdapter.class);
-  public static final int THREE_MINUTE_TIMEOUT = 180000;
-  public static final int FIVE_MINUTE_TIMEOUT = 300000;
-  public static final int TEN_SECOND_TIMEOUT = 10000;
+  private static final Logger log = LoggerFactory.getLogger(ELMoRESTAdapter.class);
+
+  public static final int DEFAULT_READ_TIMEOUT = 300000;
+  public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+  public static final long DEFAULT_EMBEDDING_VECTOR_SIZE = 1024;
 
   public static final String URL_FORMAT = "http://%s:%d/v2/%s/%s";
 
   public static final String SENTENCE_ENDPOINT = "embed/sentence";
   public static final String SENTENCES_ENDPOINT = "embed/sentences";
 
-  public static final String HTTP_REQUEST_METHOD = "POST";
+  /*public static final String HTTP_REQUEST_METHOD = "POST";
   public static final String HTTP_CONTENT_TYPE_NAME = "Content-Type";
-  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";
+  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";*/
 
   private ELMoLayerOutput layerOutput;
   private String domain;
   private int port;
-  private ObjectMapper objectMapper;
 
-  public ELMoRESTAdapter(ELMoLayerOutput layerOutput, String domain, int port) {
+  private JacksonSerdeProvider serdeProvider;
+
+  public ELMoRESTAdapter(ELMoLayerOutput layerOutput, String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    super(embeddingVectorSize, connectTimeout, readTimeout);
     this.layerOutput = layerOutput;
     this.domain = domain;
     this.port = port;
 
-    objectMapper = new ObjectMapper();
+    serdeProvider = new JacksonSerdeProvider();
+  }
+
+  public ELMoRESTAdapter(ELMoLayerOutput layerOutput, String domain, int port) {
+    this(layerOutput, domain, port, DEFAULT_EMBEDDING_VECTOR_SIZE, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT);
   }
 
   @Override
@@ -46,15 +53,25 @@ public class ELMoRESTAdapter extends AbstractRESTAdapter {
 
   @Override
   public double[][] encodeImpl(String[] tokensOfSentence) throws IOException {
-    return request(tokensOfSentence, SENTENCES_ENDPOINT, double[][].class);
+    return request(tokensOfSentence, double[][].class, getUrl(SENTENCES_ENDPOINT));
   }
 
   @Override
   public double[][][] encodeImpl(String[][] tokensOfDocument2D) throws IOException {
-    return request(tokensOfDocument2D, SENTENCES_ENDPOINT, double[][][].class);
+    return request(tokensOfDocument2D, double[][][].class, getUrl(SENTENCES_ENDPOINT));
   }
 
-  public <I, O> O request(I data, String path, Class<O> classOfO) throws IOException {
+  @Override
+  public SerializationProvider getSerializationProvider() {
+    return serdeProvider;
+  }
+
+  @Override
+  public DeserializationProvider getDeserializationProvider() {
+    return serdeProvider;
+  }
+
+  /*public <I, O> O request(I data, String path, Class<O> classOfO) throws IOException {
     HttpURLConnection httpConnection = configureConnection(path);
 
     log.debug("connect to: {}", httpConnection.getURL());
@@ -101,7 +118,7 @@ public class ELMoRESTAdapter extends AbstractRESTAdapter {
   public HttpURLConnection getConnection(String path) throws IOException {
     URL url = getUrl(path);
     return (HttpURLConnection) url.openConnection();
-  }
+  }*/
 
   public URL getUrl(String path) throws MalformedURLException {
     return new URL(String.format(URL_FORMAT, domain, port, path, layerOutput.getPath()));

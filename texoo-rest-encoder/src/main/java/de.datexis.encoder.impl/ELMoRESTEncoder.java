@@ -19,19 +19,14 @@ import java.util.List;
 public class ELMoRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(ELMoRESTEncoder.class);
 
-  private ELMoRESTAdapter elMoRESTAdapter;
+
 
   public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port) {
     return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port));
   }
 
   public ELMoRESTEncoder(ELMoRESTAdapter elMoRESTAdapter) {
-    this.elMoRESTAdapter = elMoRESTAdapter;
-  }
-
-  @Override
-  public long getEmbeddingVectorSize() {
-    return 1024;
+    super(elMoRESTAdapter);
   }
 
   @Override
@@ -53,11 +48,7 @@ public class ELMoRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if(elementClass==Token.class){
       try {
-        String[] tokensOfSentenceAsStringArray = getTokensOfSentenceAsStringArray(input);
-
-        double[][] embedding = elMoRESTAdapter.encode(tokensOfSentenceAsStringArray);
-
-        putVectorInTokenOfSentence(input, embedding);
+        encodeEach1D(input.streamTokens());
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);
@@ -71,11 +62,7 @@ public class ELMoRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Document input, Class<? extends Span> elementClass) {
     if(elementClass==Token.class){
       try {
-        String[][]  tokenOfDocumentAsStringArray2D = getTokensOfDocumentAsStringArray2D(input);
-
-        double[][][] embedding = elMoRESTAdapter.encode(tokenOfDocumentAsStringArray2D);
-
-        putVectorInTokenOfDocument2D(input, embedding);
+        encodeEach2D(getTokensOfSentencesOfDocument(input));
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input.getTitle(), e);
         throw new UncheckedIOException(e);

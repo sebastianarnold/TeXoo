@@ -1,6 +1,9 @@
 package de.datexis.encoder.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.datexis.encoder.impl.serde.DeserializationProvider;
+import de.datexis.encoder.impl.serde.JacksonSerdeProvider;
+import de.datexis.encoder.impl.serde.SerializationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,35 +17,44 @@ import java.net.URL;
 public class SkipthoughtRESTAdapter extends AbstractRESTAdapter {
   private static final Logger log = LoggerFactory.getLogger(SkipthoughtRESTAdapter.class);
 
+  public static final int DEFAULT_READ_TIMEOUT = 300000;
+  public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+  public static final long DEFAULT_EMBEDDING_VECTOR_SIZE = 4800;
+
   public static final String URL_FORMAT = "http://%s:%d/v2/%s";
 
   public static final String SENTENCE_ENDPOINT = "embed/sentences";
   public static final String SENTENCES_ENDPOINT = "embed/sentences";
 
-  public static final String HTTP_REQUEST_METHOD = "POST";
+  /*public static final String HTTP_REQUEST_METHOD = "POST";
   public static final String HTTP_CONTENT_TYPE_NAME = "Content-Type";
-  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";
+  public static final String HTTP_CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";*/
 
   private String domain;
   private int port;
 
-  private ObjectMapper objectMapper;
+  private JacksonSerdeProvider serdeProvider;
 
-  public SkipthoughtRESTAdapter(String domain, int port) {
+  public SkipthoughtRESTAdapter(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    super(embeddingVectorSize, connectTimeout, readTimeout);
     this.domain = domain;
     this.port = port;
 
-    objectMapper = new ObjectMapper();
+    serdeProvider = new JacksonSerdeProvider();
+  }
+
+  public SkipthoughtRESTAdapter(String domain, int port) {
+    this(domain, port, DEFAULT_EMBEDDING_VECTOR_SIZE, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT);
   }
 
   @Override
   public double[] encodeImpl(String sentence) throws IOException{
-    return request(sentence, SENTENCE_ENDPOINT, double[].class);
+    return request(sentence, double[].class, getUrl(SENTENCE_ENDPOINT));
   }
 
   @Override
   public double[][] encodeImpl(String[] sentencesOfDocument) throws IOException{
-    return request(sentencesOfDocument, SENTENCES_ENDPOINT, double[][].class);
+    return request(sentencesOfDocument, double[][].class, getUrl(SENTENCES_ENDPOINT));
   }
 
   @Override
@@ -50,7 +62,17 @@ public class SkipthoughtRESTAdapter extends AbstractRESTAdapter {
     throw new UnsupportedOperationException();
   }
 
-  public<I,O> O request(I data, String path, Class<O> classOfO) throws IOException{
+  @Override
+  public SerializationProvider getSerializationProvider() {
+    return serdeProvider;
+  }
+
+  @Override
+  public DeserializationProvider getDeserializationProvider() {
+    return serdeProvider;
+  }
+
+  /*public<I,O> O request(I data, String path, Class<O> classOfO) throws IOException{
     HttpURLConnection httpConnection = configureConnection(path);
     httpConnection.connect();
 
@@ -94,7 +116,7 @@ public class SkipthoughtRESTAdapter extends AbstractRESTAdapter {
   public HttpURLConnection getConnection(String path) throws IOException {
     URL url = getUrl(path);
     return (HttpURLConnection) url.openConnection();
-  }
+  }*/
 
   public URL getUrl(String path) throws MalformedURLException {
       return new URL(String.format(URL_FORMAT, domain, port, path));

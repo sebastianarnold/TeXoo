@@ -23,13 +23,13 @@ public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
   }
 
   public SkipthoughtRESTEncoder(SkipthoughtRESTAdapter skipthoughtRESTAdapter) {
-    this.skipthoughtRESTAdapter = skipthoughtRESTAdapter;
+    super(skipthoughtRESTAdapter);
   }
 
-  @Override
+  /*@Override
   public long getEmbeddingVectorSize() {
     return 4800;
-  }
+  }*/
 
   @Override
   public INDArray encode(String word) {
@@ -55,9 +55,10 @@ public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if(elementClass == Sentence.class){
       try {
-        double[] embedding = skipthoughtRESTAdapter.encode(input.getText());
+        /*double[] embedding = skipthoughtRESTAdapter.encode(input.getText());
 
-        putVectorInSentence(input, embedding);
+        putVectorInSentence(input, embedding);*/
+        encodeEach(input);
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);
@@ -72,11 +73,12 @@ public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Document input, Class<? extends Span> elementClass) {
     if (elementClass == Sentence.class) {
       try {
-        String[] sentencesOfDocumentAsStringArray = getSentencesOfDocumentAsStringArray(input);
+        /*String[] sentencesOfDocumentAsStringArray = getSentencesOfDocumentAsStringArray(input);
 
         double[][] embedding = skipthoughtRESTAdapter.encode(sentencesOfDocumentAsStringArray);
 
-        putVectorInSentenceOfDocument(input, embedding);
+        putVectorInSentenceOfDocument(input, embedding);*/
+        encodeEach1D(input.streamSentences());
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input.getTitle(), e);
         throw new UncheckedIOException(e);
