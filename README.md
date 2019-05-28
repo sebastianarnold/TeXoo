@@ -61,13 +61,13 @@ To use TeXoo NER in your Java project, just add the following dependencies to yo
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-core</artifactId>
-  <version>1.1.2</version>
+  <version>1.2.0</version>
   <type>jar</type>
 </dependency>
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-entity-recognition</artifactId>
-  <version>1.1.2</version>
+  <version>1.2.0</version>
   <type>jar</type>
 </dependency>
 ```
@@ -78,7 +78,7 @@ And to enable CUDA support, add the following dependency:
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-cuda-9.2</artifactId>
-  <version>1.1.2</version>
+  <version>1.2.0</version>
   <type>pom</type>
 </dependency>
 ```
