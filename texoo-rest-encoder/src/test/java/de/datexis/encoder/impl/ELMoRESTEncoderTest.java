@@ -14,73 +14,67 @@ import org.mockito.invocation.InvocationOnMock;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class ELMoRESTEncoderTest {
-    private final String DUMMY_TEXT = "This is a sentence.";
+  public static final int EMBEDDING_VECTOR_SIZE = 100;
 
-    private List<Document> dummyDocuments;
-    private Document dummyDocument;
-    private Sentence dummySentence;
+  private final String DUMMY_TEXT = "This is a sentence.";
 
-    private int vectorSize;
+  private List<Document> dummyDocuments;
+  private Document dummyDocument;
+  private Sentence dummySentence;
 
-    private ELMoRESTAdapter elMoRESTAdapter;
-    private ELMoRESTEncoder elMoRESTEncoder;
+  private RESTAdapter restAdapter;
+  private ELMoRESTEncoder elMoRESTEncoder;
 
-    @Before
-    public void setup() throws IOException {
-        dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
-        dummySentence = dummyDocument.getSentence(0);
-        dummyDocuments = Lists.newArrayList(dummyDocument);
+  @Before
+  public void setup() throws IOException {
+    dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
+    dummySentence = dummyDocument.getSentence(0);
+    dummyDocuments = Lists.newArrayList(dummyDocument);
 
-        elMoRESTAdapter = mock(ELMoRESTAdapter.class);
-        elMoRESTEncoder = spy(new ELMoRESTEncoder(elMoRESTAdapter));
+    restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
+    elMoRESTEncoder = spy(new ELMoRESTEncoder(restAdapter));
 
-        vectorSize = (int) elMoRESTEncoder.getEmbeddingVectorSize();
+    // when(elMoRESTAdapter.encode(Mockito.any(String[].class))).then(this::encodeTokenOfSentenceMock);
+    // when(elMoRESTAdapter.encode(Mockito.any(String[][].class))).then(this::encodeTokenOfDocument2DMock);
+  }
 
-        when(elMoRESTAdapter.encode(Mockito.any(String[].class))).then(this::encodeTokenOfSentenceMock);
-        when(elMoRESTAdapter.encode(Mockito.any(String[][].class))).then(this::encodeTokenOfDocument2DMock);
-    }
+  /*private double[][] encodeTokenOfSentenceMock(InvocationOnMock invocationOnMock) {
+    String[] tokenOfSentence = invocationOnMock.getArgument(0);
+    return new double[tokenOfSentence.length][vectorSize];
+  }
 
-    private double[][] encodeTokenOfSentenceMock(InvocationOnMock invocationOnMock){
-        String[] tokenOfSentence = invocationOnMock.getArgument(0);
-        return new double[tokenOfSentence.length][vectorSize];
-    }
+  private double[][][] encodeTokenOfDocument2DMock(InvocationOnMock invocationOnMock) {
+    String[][] tokenOfDocument2D = invocationOnMock.getArgument(0);
+    return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
+  }*/
 
-    private double[][][] encodeTokenOfDocument2DMock(InvocationOnMock invocationOnMock){
-        String[][] tokenOfDocument2D = invocationOnMock.getArgument(0);
-        return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
-    }
+  @Test
+  public void encodeEachTokenOfSentenceTest() throws IOException {
+    elMoRESTEncoder.encodeEach(dummySentence, Token.class);
 
-    @Test
-    public void encodeEachTokenOfSentenceTest() throws IOException {
-        elMoRESTEncoder.encodeEach(dummySentence, Token.class);
+    verify(elMoRESTEncoder, times(1)).encodeEach1D(any());
+  }
 
-        verify(elMoRESTEncoder, times(1)).getTokensOfSentenceAsStringArray(eq(dummySentence));
+  @Test
+  public void encodeEachTokenOfDocumentTest() throws IOException {
+    elMoRESTEncoder.encodeEach(dummyDocument, Token.class);
 
-        verify(elMoRESTAdapter, times(1)).encode(Mockito.any(String[].class));
+    verify(elMoRESTEncoder, times(1)).getTokensOfSentencesOfDocument(eq(dummyDocument));
 
-        verify(elMoRESTEncoder, times(1)).putVectorInTokenOfSentence(eq(dummySentence), Mockito.any(double[][].class));
-    }
+    verify(elMoRESTEncoder, times(1)).encodeEach2D(any());
+  }
 
-    @Test
-    public void encodeEachTokenOfDocumentTest() throws IOException {
-        elMoRESTEncoder.encodeEach(dummyDocument, Token.class);
+  @Test
+  public void encodeEachTokenOfDocumentsTest() {
+    elMoRESTEncoder.encodeEach(dummyDocuments, Token.class);
 
-        verify(elMoRESTEncoder, times(1)).getTokensOfDocumentAsStringArray2D(eq(dummyDocument));
-
-        verify(elMoRESTAdapter, times(1)).encode(Mockito.any(String[][].class));
-
-        verify(elMoRESTEncoder, times(1)).putVectorInTokenOfDocument2D(eq(dummyDocument), Mockito.any(double[][][].class));
-    }
-
-    @Test
-    public void encodeEachTokenOfDocumentsTest(){
-        elMoRESTEncoder.encodeEach(dummyDocuments, Token.class);
-
-        verify(elMoRESTEncoder, times(dummyDocuments.size())).encodeEach(Mockito.any(Document.class), eq(Token.class));
-    }
+    verify(elMoRESTEncoder, times(dummyDocuments.size()))
+        .encodeEach(Mockito.any(Document.class), eq(Token.class));
+  }
 }

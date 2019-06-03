@@ -19,14 +19,20 @@ import java.util.List;
 public class ELMoRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(ELMoRESTEncoder.class);
 
-
-
   public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port) {
     return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port));
   }
 
-  public ELMoRESTEncoder(ELMoRESTAdapter elMoRESTAdapter) {
-    super(elMoRESTAdapter);
+  public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port, String vectorIdentifier) {
+    return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port), vectorIdentifier);
+  }
+
+  public ELMoRESTEncoder(RESTAdapter restAdapter) {
+    super(restAdapter);
+  }
+
+  public ELMoRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
+    super(restAdapter, vectorIdentifier);
   }
 
   @Override
@@ -48,7 +54,7 @@ public class ELMoRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if(elementClass==Token.class){
       try {
-        encodeEach1D(input.streamTokens());
+        encodeEach1D(input.getTokens());
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);

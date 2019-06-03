@@ -10,43 +10,21 @@ import java.util.Collection;
 import java.util.List;
 
 public class DummyAbstractRESTEncoder extends AbstractRESTEncoder {
-    @Override
-    public long getEmbeddingVectorSize() {
-        return 100;
-    }
+  public DummyAbstractRESTEncoder(RESTAdapter restAdapter) {
+    super(restAdapter);
+  }
 
-    @Override
-    public INDArray encode(String word) {
-        return null;
-    }
+  public DummyAbstractRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
+    super(restAdapter, vectorIdentifier);
+  }
 
-    @Override
-    public INDArray encode(Span span) {
-        return null;
-    }
+  @Override
+  public INDArray encode(String word) {
+    return null;
+  }
 
-    @Override
-    public INDArray encode(Iterable<? extends Span> spans) {
-        return null;
-    }
-
-    @Override
-    public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
-
-    }
-
-    @Override
-    public void encodeEach(Document input, Class<? extends Span> elementClass) {
-
-    }
-
-    @Override
-    public void encodeEach(Collection<Document> docs, Class<? extends Span> elementClass) {
-
-    }
-
-    @Override
-    public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
-        return null;
-    }
+  @Override
+  public INDArray encode(Span span) {
+    return null;
+  }
 }

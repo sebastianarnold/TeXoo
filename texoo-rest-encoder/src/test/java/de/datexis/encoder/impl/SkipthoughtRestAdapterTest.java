@@ -33,14 +33,14 @@ public class SkipthoughtRestAdapterTest {
         assertThat(url.toExternalForm(), equalTo(FINAL_URL));
     }
 
-    @Test
+    /*@Test
     public void getConnectionTest() throws IOException {
         HttpURLConnection httpURLConnection = skipthoughtRESTAdapter.getConnection(TEST_PATH);
 
         assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(FINAL_URL));
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void configureConnectionTest() throws IOException {
         HttpURLConnection httpURLConnection = skipthoughtRESTAdapter.configureConnection(TEST_PATH);
 
@@ -49,5 +49,5 @@ public class SkipthoughtRestAdapterTest {
         assertThat(httpURLConnection.getRequestProperty(SkipthoughtRESTAdapter.HTTP_CONTENT_TYPE_NAME), equalTo(SkipthoughtRESTAdapter.HTTP_CONTENT_TYPE_VALUE));
         assertThat(httpURLConnection.getDoInput(), equalTo(true));
         assertThat(httpURLConnection.getDoOutput(), equalTo(true));
-    }
+    }*/
 }

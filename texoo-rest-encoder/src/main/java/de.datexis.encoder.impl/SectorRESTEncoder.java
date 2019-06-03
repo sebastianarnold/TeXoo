@@ -19,8 +19,16 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
     return new SectorRESTEncoder(new SectorRESTAdapter(domain, port));
   }
 
-  public SectorRESTEncoder(SectorRESTAdapter sectorRESTAdapter) {
-    super(sectorRESTAdapter);
+  public static SectorRESTEncoder create(String domain, int port, String vectorIdentifier) {
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port), vectorIdentifier);
+  }
+
+  public SectorRESTEncoder(RESTAdapter restAdapter) {
+    super(restAdapter);
+  }
+
+  public SectorRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
+    super(restAdapter, vectorIdentifier);
   }
 
   @Override
@@ -64,7 +72,7 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
         double[][] embedding = sectorRestAdapter.encode(sentencesOfDocumentAsStringArray);
 
         putVectorInSentenceOfDocument(input, embedding);*/
-        encodeEach1D(input.streamSentences(), Sentence::toTokenizedString);
+        encodeEach1D(input.getSentences(), Sentence::toTokenizedString);
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input, e);
         throw new UncheckedIOException(e);

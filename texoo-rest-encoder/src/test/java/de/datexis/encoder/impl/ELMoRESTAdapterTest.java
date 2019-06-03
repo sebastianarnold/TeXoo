@@ -49,7 +49,7 @@ public class ELMoRESTAdapterTest {
         assertThat(urlAverage.toExternalForm(), equalTo(URL_AVERAGE));
     }
 
-    @Test
+    /*@Test
     public void getConnectionTopTest() throws IOException {
         HttpURLConnection connectionTop = elMoRESTAdapterTop.getConnection(TEST_PATH);
         HttpURLConnection connectionMiddle = elMoRESTAdapterMiddle.getConnection(TEST_PATH);
@@ -60,9 +60,9 @@ public class ELMoRESTAdapterTest {
         assertThat(connectionMiddle.getURL().toExternalForm(), equalTo(URL_MIDDLE));
         assertThat(connectionBottom.getURL().toExternalForm(), equalTo(URL_BOTTOM));
         assertThat(connectionAverage.getURL().toExternalForm(), equalTo(URL_AVERAGE));
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void configureConectionTest() throws IOException {
         HttpURLConnection connectionTop = elMoRESTAdapterTop.configureConnection(TEST_PATH);
         HttpURLConnection connectionMiddle = elMoRESTAdapterMiddle.configureConnection(TEST_PATH);
@@ -73,13 +73,13 @@ public class ELMoRESTAdapterTest {
         verifyConfiguredHttpURLConection(connectionMiddle, URL_MIDDLE);
         verifyConfiguredHttpURLConection(connectionBottom, URL_BOTTOM);
         verifyConfiguredHttpURLConection(connectionAverage, URL_AVERAGE);
-    }
+    }*/
 
-    private void verifyConfiguredHttpURLConection(HttpURLConnection httpURLConnection, String url){
+    /*private void verifyConfiguredHttpURLConection(HttpURLConnection httpURLConnection, String url){
         assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(url));
         assertThat(httpURLConnection.getRequestMethod(), equalTo(ELMoRESTAdapter.HTTP_REQUEST_METHOD));
         assertThat(httpURLConnection.getRequestProperty(ELMoRESTAdapter.HTTP_CONTENT_TYPE_NAME), equalTo(ELMoRESTAdapter.HTTP_CONTENT_TYPE_VALUE));
         assertThat(httpURLConnection.getDoInput(), equalTo(true));
         assertThat(httpURLConnection.getDoOutput(), equalTo(true));
-    }
+    }*/
 }

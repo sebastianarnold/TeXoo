@@ -33,14 +33,14 @@ public class FastTextRESTAdapterTest {
         assertThat(url.toExternalForm(), equalTo(FINAL_URL));
     }
 
-    @Test
+    /*@Test
     public void getConnectionTest() throws IOException {
         HttpURLConnection httpURLConnection = fastTextRESTAdapter.getConnection(TEST_PATH);
 
         assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(FINAL_URL));
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void configureConnectionTest() throws IOException {
         HttpURLConnection httpURLConnection = fastTextRESTAdapter.configureConnection(TEST_PATH);
 
@@ -49,5 +49,5 @@ public class FastTextRESTAdapterTest {
         assertThat(httpURLConnection.getRequestProperty(FastTextRESTAdapter.HTTP_CONTENT_TYPE_NAME), equalTo(FastTextRESTAdapter.HTTP_CONTENT_TYPE_VALUE));
         assertThat(httpURLConnection.getDoOutput(), equalTo(true));
         assertThat(httpURLConnection.getDoInput(), equalTo(true));
-    }
+    }*/
 }

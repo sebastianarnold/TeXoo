@@ -19,68 +19,63 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class FastTextRESTEncoderTest {
-    public static final String DUMMY_TEXT = "This is a sentence.";
+  public static final int EMBEDDING_VECTOR_SIZE = 100;
 
-    private List<Document> dummyDocuments;
-    private Document dummyDocument;
-    private Sentence dummySentence;
+  public static final String DUMMY_TEXT = "This is a sentence.";
 
-    private int vectorSize;
+  private List<Document> dummyDocuments;
+  private Document dummyDocument;
+  private Sentence dummySentence;
 
-    private FastTextRESTAdapter fastTextRESTAdapter;
-    private FastTextRESTEncoder fastTextRestEncoder;
+  private RESTAdapter restAdapter;
+  private FastTextRESTEncoder fastTextRestEncoder;
 
-    @Before
-    public void setup() throws IOException {
-        dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
-        dummySentence = dummyDocument.getSentence(0);
-        dummyDocuments = Lists.newArrayList(dummyDocument);
+  @Before
+  public void setup() throws IOException {
+    dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
+    dummySentence = dummyDocument.getSentence(0);
+    dummyDocuments = Lists.newArrayList(dummyDocument);
 
-        fastTextRESTAdapter = mock(FastTextRESTAdapter.class);
-        fastTextRestEncoder = spy(new FastTextRESTEncoder(fastTextRESTAdapter));
+    restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
+    fastTextRestEncoder = spy(new FastTextRESTEncoder(restAdapter));
 
-        vectorSize = (int) fastTextRestEncoder.getEmbeddingVectorSize();
+    /*when(fastTextRESTAdapter.encode(Mockito.any(String[].class)))
+        .then(this::encodeTokenOfSentenceMock);
+    when(fastTextRESTAdapter.encode(Mockito.any(String[][].class)))
+        .then(this::encodeTokenOfDocument2DMock);*/
+  }
 
-        when(fastTextRESTAdapter.encode(Mockito.any(String[].class))).then(this::encodeTokenOfSentenceMock);
-        when(fastTextRESTAdapter.encode(Mockito.any(String[][].class))).then(this::encodeTokenOfDocument2DMock);
-    }
+  /*private double[][] encodeTokenOfSentenceMock(InvocationOnMock invocationOnMock) {
+    String[] tokenOfSentence = invocationOnMock.getArgument(0);
+    return new double[tokenOfSentence.length][vectorSize];
+  }*/
 
-    private double[][] encodeTokenOfSentenceMock(InvocationOnMock invocationOnMock){
-        String[] tokenOfSentence = invocationOnMock.getArgument(0);
-        return new double[tokenOfSentence.length][vectorSize];
-    }
+  /*private double[][][] encodeTokenOfDocument2DMock(InvocationOnMock invocationOnMock) {
+    String[][] tokenOfDocument2D = invocationOnMock.getArgument(0);
+    return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
+  }*/
 
-    private double[][][] encodeTokenOfDocument2DMock(InvocationOnMock invocationOnMock){
-        String[][] tokenOfDocument2D = invocationOnMock.getArgument(0);
-        return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
-    }
+  @Test
+  public void encodeEachTokenOfSentenceTest() throws IOException {
+    fastTextRestEncoder.encodeEach(dummySentence, Token.class);
 
-    @Test
-    public void encodeEachTokenOfSentenceTest() throws IOException {
-        fastTextRestEncoder.encodeEach(dummySentence, Token.class);
+    verify(fastTextRestEncoder, times(1)).encodeEach1D(any());
+  }
 
-        verify(fastTextRestEncoder, times(1)).getTokensOfSentenceAsStringArray(eq(dummySentence));
+  @Test
+  public void encodeEachTokenOfDocumentTest() throws IOException {
+    fastTextRestEncoder.encodeEach(dummyDocument, Token.class);
 
-        verify(fastTextRESTAdapter, times(1)).encode(Mockito.any(String[].class));
+    verify(fastTextRestEncoder, times(1)).encodeEach2D(any());
 
-        verify(fastTextRestEncoder, times(1)).putVectorInTokenOfSentence(eq(dummySentence), Mockito.any(double[][].class));
-    }
+    verify(fastTextRestEncoder, times(1)).getTokensOfSentencesOfDocument(eq(dummyDocument));
+  }
 
-    @Test
-    public void encodeEachTokenOfDocumentTest() throws IOException {
-        fastTextRestEncoder.encodeEach(dummyDocument, Token.class);
+  @Test
+  public void encodeEachTokenOfDocumentsTest() {
+    fastTextRestEncoder.encodeEach(dummyDocuments, Token.class);
 
-        verify(fastTextRestEncoder, times(1)).getTokensOfDocumentAsStringArray2D(eq(dummyDocument));
-
-        verify(fastTextRESTAdapter, times(1)).encode(Mockito.any(String[][].class));
-
-        verify(fastTextRestEncoder, times(1)).putVectorInTokenOfDocument2D(eq(dummyDocument), Mockito.any(double[][][].class));
-    }
-
-    @Test
-    public void encodeEachTokenOfDocumentsTest(){
-        fastTextRestEncoder.encodeEach(dummyDocuments, Token.class);
-
-        verify(fastTextRestEncoder, times(dummyDocuments.size())).encodeEach(Mockito.any(Document.class), eq(Token.class));
-    }
+    verify(fastTextRestEncoder, times(dummyDocuments.size()))
+        .encodeEach(Mockito.any(Document.class), eq(Token.class));
+  }
 }

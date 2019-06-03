@@ -17,95 +17,86 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class SkipthoughtRESTEncoderTest {
-    public static final String DUMMY_TEXT = "This is a sentence.";
-    public static final String DUMMY_SENTENCE = "This is a sentence.";
+  public static final int EMBEDDING_VECTOR_SIZE = 100;
 
-    private List<Document> dummyDocuments;
-    private Document dummyDocument;
-    private Sentence dummySentence;
+  public static final String DUMMY_TEXT = "This is a sentence.";
+  public static final String DUMMY_SENTENCE = "This is a sentence.";
 
-    private long[] dummyShape;
+  private List<Document> dummyDocuments;
+  private Document dummyDocument;
+  private Sentence dummySentence;
 
-    private int vectorSize;
+  private long[] dummyShape;
 
-    private SkipthoughtRESTAdapter skipthoughtRESTAdapter;
-    private SkipthoughtRESTEncoder skipthoughtRESTEncoder;
+  private RESTAdapter restAdapter;
+  private SkipthoughtRESTEncoder skipthoughtRESTEncoder;
 
-    @Before
-    public void setup() throws IOException {
-        dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
-        dummySentence = dummyDocument.getSentence(0);
-        dummyDocuments = Lists.newArrayList(dummyDocument);
+  @Before
+  public void setup() {
+    dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
+    dummySentence = dummyDocument.getSentence(0);
+    dummyDocuments = Lists.newArrayList(dummyDocument);
 
-        skipthoughtRESTAdapter = mock(SkipthoughtRESTAdapter.class);
-        skipthoughtRESTEncoder = spy(new SkipthoughtRESTEncoder(skipthoughtRESTAdapter));
+    restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
+    skipthoughtRESTEncoder = spy(new SkipthoughtRESTEncoder(restAdapter));
 
-        vectorSize = (int)skipthoughtRESTEncoder.getEmbeddingVectorSize();
+    /*when(skipthoughtRESTAdapter.encode(anyString())).thenReturn(new double[vectorSize]);
+    when(skipthoughtRESTAdapter.encode(Mockito.any(String[].class)))
+        .then(this::encodeSentenceOfDocumentMock);*/
 
-        when(skipthoughtRESTAdapter.encode(anyString())).thenReturn(new double[vectorSize]);
-        when(skipthoughtRESTAdapter.encode(Mockito.any(String[].class))).then(this::encodeSentenceOfDocumentMock);
+    dummyShape = new long[] {EMBEDDING_VECTOR_SIZE, 1};
+  }
 
-        dummyShape = new long[]{vectorSize, 1};
-    }
+  /*private double[][] encodeSentenceOfDocumentMock(InvocationOnMock invocationOnMock) {
+    String[] sentencesOfDocument = invocationOnMock.getArgument(0);
+    return new double[sentencesOfDocument.length][vectorSize];
+  }*/
 
-    private double[][] encodeSentenceOfDocumentMock(InvocationOnMock invocationOnMock){
-        String[] sentencesOfDocument = invocationOnMock.getArgument(0);
-        return new double[sentencesOfDocument.length][vectorSize];
-    }
+  @Test
+  public void encodeSentenceTest() throws IOException {
+    INDArray array = skipthoughtRESTEncoder.encode(dummySentence);
 
-    @Test
-    public void encodeSentenceTest() throws IOException {
-        INDArray array = skipthoughtRESTEncoder.encode(dummySentence);
+    assertThat(array.shape(), equalTo(dummyShape));
 
-        long[] arrayShape = array.shape();
+    verify(skipthoughtRESTEncoder, times(1)).encode(eq(DUMMY_SENTENCE));
 
-        assertThat(Lists.newArrayList(arrayShape), contains(dummyShape));
+    verify(skipthoughtRESTEncoder, times(1)).encodeImpl(eq(DUMMY_SENTENCE));
+  }
 
-        verify(skipthoughtRESTEncoder, times(1)).encode(eq(DUMMY_SENTENCE));
+  @Test
+  public void encodeSentenceStringTest() throws IOException {
+    INDArray array = skipthoughtRESTEncoder.encode(dummySentence.getText());
 
-        verify(skipthoughtRESTAdapter, times(1)).encode(eq(DUMMY_SENTENCE));
-    }
+    assertThat(array.shape(), equalTo(dummyShape));
 
-    @Test
-    public void encodeSentenceStringTest() throws IOException {
-        INDArray array = skipthoughtRESTEncoder.encode(dummySentence.getText());
+    verify(skipthoughtRESTEncoder, times(1)).encodeImpl(eq(DUMMY_SENTENCE));
+  }
 
-        long[] arrayShape = array.shape();
+  @Test
+  public void encodeEachSentenceTest() throws IOException {
+    skipthoughtRESTEncoder.encodeEach(dummySentence, Sentence.class);
 
-        assertThat(Lists.newArrayList(arrayShape), contains(dummyShape));
+    verify(skipthoughtRESTEncoder, times(1)).encodeEach(eq(dummySentence));
+  }
 
-        verify(skipthoughtRESTAdapter, times(1)).encode(eq(DUMMY_SENTENCE));
-    }
+  @Test
+  public void encodeEachSentenceInDocumentTest() throws IOException {
+    skipthoughtRESTEncoder.encodeEach(dummyDocument, Sentence.class);
 
-    @Test
-    public void encodeEachSentenceTest() throws IOException {
-        skipthoughtRESTEncoder.encodeEach(dummySentence, Sentence.class);
+    verify(skipthoughtRESTEncoder, times(1)).encodeEach1D(any());
+  }
 
-        verify(skipthoughtRESTAdapter, times(1)).encode(eq(DUMMY_SENTENCE));
+  @Test
+  public void encodeEachSentenceInDocumentsTest() {
+    skipthoughtRESTEncoder.encodeEach(dummyDocuments, Sentence.class);
 
-        verify(skipthoughtRESTEncoder, times(1)).putVectorInSentence(eq(dummySentence), Mockito.any(double[].class));
-    }
-
-    @Test
-    public void encodeEachSentenceInDocumentTest() throws IOException {
-        skipthoughtRESTEncoder.encodeEach(dummyDocument, Sentence.class);
-
-        verify(skipthoughtRESTEncoder, times(1)).getSentencesOfDocumentAsStringArray(eq(dummyDocument));
-
-        verify(skipthoughtRESTAdapter, times(1)).encode(Mockito.any(String[].class));
-
-        verify(skipthoughtRESTEncoder, times(1)).putVectorInSentenceOfDocument(eq(dummyDocument), Mockito.any(double[][].class));
-    }
-
-    @Test
-    public void encodeEachSentenceInDocumentsTest(){
-        skipthoughtRESTEncoder.encodeEach(dummyDocuments, Sentence.class);
-
-        verify(skipthoughtRESTEncoder, times(dummyDocuments.size())).encodeEach(Mockito.any(Document.class), eq(Sentence.class));
-    }
+    verify(skipthoughtRESTEncoder, times(dummyDocuments.size()))
+        .encodeEach(Mockito.any(Document.class), eq(Sentence.class));
+  }
 }

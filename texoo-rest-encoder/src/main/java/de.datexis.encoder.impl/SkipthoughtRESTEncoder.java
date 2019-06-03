@@ -16,14 +16,20 @@ import java.util.List;
 public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(SkipthoughtRESTEncoder.class);
 
-  private SkipthoughtRESTAdapter skipthoughtRESTAdapter;
-
   public static SkipthoughtRESTEncoder create(String domain, int port) {
     return new SkipthoughtRESTEncoder(new SkipthoughtRESTAdapter(domain, port));
   }
 
-  public SkipthoughtRESTEncoder(SkipthoughtRESTAdapter skipthoughtRESTAdapter) {
-    super(skipthoughtRESTAdapter);
+  public static SkipthoughtRESTEncoder create(String domain, int port, String vectorIdentifier) {
+    return new SkipthoughtRESTEncoder(new SkipthoughtRESTAdapter(domain, port), vectorIdentifier);
+  }
+
+  public SkipthoughtRESTEncoder(RESTAdapter restAdapter) {
+    super(restAdapter);
+  }
+
+  public SkipthoughtRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
+    super(restAdapter, vectorIdentifier);
   }
 
   /*@Override
@@ -34,8 +40,7 @@ public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
   @Override
   public INDArray encode(String word) {
     try {
-      double[] embedding = skipthoughtRESTAdapter.encode(word);
-      return Nd4j.create(embedding,new long[]{getEmbeddingVectorSize(), 1});
+      return encodeImpl(word);
     } catch (IOException e) {
       log.error("IO Error while encoding word: {}", word, e);
       throw new UncheckedIOException(e);
@@ -78,7 +83,7 @@ public class SkipthoughtRESTEncoder extends AbstractRESTEncoder {
         double[][] embedding = skipthoughtRESTAdapter.encode(sentencesOfDocumentAsStringArray);
 
         putVectorInSentenceOfDocument(input, embedding);*/
-        encodeEach1D(input.streamSentences());
+        encodeEach1D(input.getSentences());
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input.getTitle(), e);
         throw new UncheckedIOException(e);

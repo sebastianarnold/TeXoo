@@ -100,7 +100,7 @@ public abstract class AbstractRESTAdapter implements RESTAdapter {
     return output;
   }
 
-  private HttpURLConnection configureConnection(URL url) throws IOException{
+  public HttpURLConnection configureConnection(URL url) throws IOException{
     HttpURLConnection httpConnection = getConnection(url);
     httpConnection.setRequestMethod(HTTP_REQUEST_METHOD);
     httpConnection.setRequestProperty(HTTP_CONTENT_TYPE_NAME, getSerializationProvider().getContentType());
@@ -117,7 +117,7 @@ public abstract class AbstractRESTAdapter implements RESTAdapter {
 
   public abstract DeserializationProvider getDeserializationProvider();
 
-  private HttpURLConnection getConnection(URL url) throws IOException {
+  public HttpURLConnection getConnection(URL url) throws IOException {
     return (HttpURLConnection) url.openConnection();
   }
 

@@ -16,14 +16,20 @@ import java.util.List;
 public class FastTextRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(FastTextRESTEncoder.class);
 
-  private FastTextRESTAdapter fastTextRestAdapter;
-
   public static FastTextRESTEncoder create(String domain, int port) {
     return new FastTextRESTEncoder(new FastTextRESTAdapter(domain, port));
   }
 
-  public FastTextRESTEncoder(FastTextRESTAdapter fastTextRestAdapter) {
-    super(fastTextRestAdapter);
+  public static FastTextRESTEncoder create(String domain, int port, String vectorIdentifier) {
+    return new FastTextRESTEncoder(new FastTextRESTAdapter(domain, port), vectorIdentifier);
+  }
+
+  public FastTextRESTEncoder(RESTAdapter restAdapter) {
+    super(restAdapter);
+  }
+
+  public FastTextRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
+    super(restAdapter, vectorIdentifier);
   }
 
   @Override
@@ -40,7 +46,7 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if(elementClass == Token.class){
       try {
-        encodeEach1D(input.streamTokens());
+        encodeEach1D(input.getTokens());
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
         throw new UncheckedIOException(e);
