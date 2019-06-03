@@ -55,16 +55,26 @@ public class FastTextRESTEncoderTest {
     return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
   }*/
 
+  @Test(expected = UnsupportedOperationException.class)
+  public void encodeImplTest(){
+    fastTextRestEncoder.encode(DUMMY_TEXT);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void encodeImplSentenceTest(){
+    fastTextRestEncoder.encode(dummySentence);
+  }
+
   @Test
-  public void encodeEachTokenOfSentenceTest() throws IOException {
-    fastTextRestEncoder.encodeEach(dummySentence, Token.class);
+  public void encodeEachImplTokenOfSentenceTest() throws IOException {
+    fastTextRestEncoder.encodeEachImpl(dummySentence);
 
     verify(fastTextRestEncoder, times(1)).encodeEach1D(any());
   }
 
   @Test
-  public void encodeEachTokenOfDocumentTest() throws IOException {
-    fastTextRestEncoder.encodeEach(dummyDocument, Token.class);
+  public void encodeEachImplTokenOfDocumentTest() throws IOException {
+    fastTextRestEncoder.encodeEachImpl(dummyDocument);
 
     verify(fastTextRestEncoder, times(1)).encodeEach2D(any());
 
@@ -72,10 +82,10 @@ public class FastTextRESTEncoderTest {
   }
 
   @Test
-  public void encodeEachTokenOfDocumentsTest() {
-    fastTextRestEncoder.encodeEach(dummyDocuments, Token.class);
+  public void encodeEachImplTokenOfDocumentsTest() throws IOException {
+    fastTextRestEncoder.encodeEachImpl(dummyDocuments);
 
     verify(fastTextRestEncoder, times(dummyDocuments.size()))
-        .encodeEach(Mockito.any(Document.class), eq(Token.class));
+        .encodeEachImpl(Mockito.any(Document.class));
   }
 }

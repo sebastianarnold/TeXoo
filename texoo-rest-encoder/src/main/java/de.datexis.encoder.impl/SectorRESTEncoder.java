@@ -12,7 +12,7 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
 
-public class SectorRESTEncoder extends AbstractRESTEncoder {
+public class SectorRESTEncoder extends SimpleRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(SectorRESTEncoder.class);
 
   public static SectorRESTEncoder create(String domain, int port) {
@@ -24,14 +24,41 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   }
 
   public SectorRESTEncoder(RESTAdapter restAdapter) {
-    super(restAdapter);
+    super(restAdapter, Sentence.class);
   }
 
   public SectorRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
-    super(restAdapter, vectorIdentifier);
+    super(restAdapter, vectorIdentifier, Sentence.class);
   }
 
   @Override
+  public INDArray encodeImpl(String word) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public INDArray encodeImpl(Span span) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void encodeEachImpl(Sentence input) throws IOException {
+    encodeEach(input, Sentence::toTokenizedString);
+  }
+
+  @Override
+  public void encodeEachImpl(Document input) throws IOException {
+    encodeEach1D(input.getSentences(), Sentence::toTokenizedString);
+  }
+
+  @Override
+  public void encodeEachImpl(Collection<Document> docs) throws IOException {
+    for (Document document : docs) {
+      encodeEachImpl(document);
+    }
+  }
+
+  /*@Override
   public INDArray encode(String word) {
     throw new UnsupportedOperationException();
   }
@@ -44,15 +71,12 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   @Override
   public INDArray encode(Iterable<? extends Span> spans) {
     throw new UnsupportedOperationException();
-  }
+  }*/
 
-  @Override
+  /*@Override
   public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
     if (elementClass == Sentence.class) {
       try {
-        /*double[] embedding = sectorRestAdapter.encode(input.toTokenizedString());
-
-        putVectorInSentence(input, embedding);*/
         encodeEach(input, Sentence::toTokenizedString);
       } catch (IOException e) {
         log.error("IO Error while encoding sentence: {}", input, e);
@@ -67,11 +91,6 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   public void encodeEach(Document input, Class<? extends Span> elementClass) {
     if (elementClass == Sentence.class) {
       try {
-        /*String[] sentencesOfDocumentAsStringArray = getSentencesOfDocumentAsStringArray(input);
-
-        double[][] embedding = sectorRestAdapter.encode(sentencesOfDocumentAsStringArray);
-
-        putVectorInSentenceOfDocument(input, embedding);*/
         encodeEach1D(input.getSentences(), Sentence::toTokenizedString);
       } catch (IOException e) {
         log.error("IO Error while encoding document: {}", input, e);
@@ -92,5 +111,5 @@ public class SectorRESTEncoder extends AbstractRESTEncoder {
   @Override
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     throw new UnsupportedOperationException();
-  }
+  }*/
 }

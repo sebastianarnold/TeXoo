@@ -13,7 +13,7 @@ import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
 
-public class FastTextRESTEncoder extends AbstractRESTEncoder {
+public class FastTextRESTEncoder extends SimpleRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(FastTextRESTEncoder.class);
 
   public static FastTextRESTEncoder create(String domain, int port) {
@@ -25,14 +25,41 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   }
 
   public FastTextRESTEncoder(RESTAdapter restAdapter) {
-    super(restAdapter);
+    super(restAdapter, Token.class);
   }
 
   public FastTextRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
-    super(restAdapter, vectorIdentifier);
+    super(restAdapter, vectorIdentifier, Token.class);
   }
 
   @Override
+  public INDArray encodeImpl(String word) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public INDArray encodeImpl(Span span) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void encodeEachImpl(Sentence input) throws IOException {
+    encodeEach1D(input.getTokens());
+  }
+
+  @Override
+  public void encodeEachImpl(Document input) throws IOException {
+    encodeEach2D(getTokensOfSentencesOfDocument(input));
+  }
+
+  @Override
+  public void encodeEachImpl(Collection<Document> docs) throws IOException {
+    for (Document document : docs) {
+      encodeEachImpl(document);
+    }
+  }
+
+  /*@Override
   public INDArray encode(String s) {
     throw new UnsupportedOperationException();
   }
@@ -80,5 +107,5 @@ public class FastTextRESTEncoder extends AbstractRESTEncoder {
   @Override
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     throw new UnsupportedOperationException();
-  }
+  }*/
 }

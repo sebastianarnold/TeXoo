@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by philipp on 02.10.18.
  */
-public class ELMoRESTEncoder extends AbstractRESTEncoder {
+public class ELMoRESTEncoder extends SimpleRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(ELMoRESTEncoder.class);
 
   public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port) {
@@ -28,14 +28,41 @@ public class ELMoRESTEncoder extends AbstractRESTEncoder {
   }
 
   public ELMoRESTEncoder(RESTAdapter restAdapter) {
-    super(restAdapter);
+    super(restAdapter, Token.class);
   }
 
   public ELMoRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
-    super(restAdapter, vectorIdentifier);
+    super(restAdapter, vectorIdentifier, Token.class);
   }
 
   @Override
+  public INDArray encodeImpl(String word) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public INDArray encodeImpl(Span span) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void encodeEachImpl(Sentence input) throws IOException {
+    encodeEach1D(input.getTokens());
+  }
+
+  @Override
+  public void encodeEachImpl(Document input) throws IOException {
+    encodeEach2D(getTokensOfSentencesOfDocument(input));
+  }
+
+  @Override
+  public void encodeEachImpl(Collection<Document> docs) throws IOException {
+    for(Document document: docs){
+      encodeEachImpl(document);
+    }
+  }
+
+  /*@Override
   public INDArray encode(String word) {
     throw new UnsupportedOperationException();
   }
@@ -88,5 +115,5 @@ public class ELMoRESTEncoder extends AbstractRESTEncoder {
   @Override
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
     throw new UnsupportedOperationException();
-  }
+  }*/
 }

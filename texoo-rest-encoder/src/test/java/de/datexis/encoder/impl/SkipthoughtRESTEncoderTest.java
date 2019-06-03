@@ -1,15 +1,12 @@
 package de.datexis.encoder.impl;
 
 import com.google.common.collect.Lists;
-import de.datexis.encoder.impl.SkipthoughtRESTAdapter;
-import de.datexis.encoder.impl.SkipthoughtRESTEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.preprocess.DocumentFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;
@@ -18,7 +15,6 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -59,44 +55,44 @@ public class SkipthoughtRESTEncoderTest {
   }*/
 
   @Test
-  public void encodeSentenceTest() throws IOException {
+  public void encodeImplSentenceTest() throws IOException {
     INDArray array = skipthoughtRESTEncoder.encode(dummySentence);
 
     assertThat(array.shape(), equalTo(dummyShape));
 
-    verify(skipthoughtRESTEncoder, times(1)).encode(eq(DUMMY_SENTENCE));
-
     verify(skipthoughtRESTEncoder, times(1)).encodeImpl(eq(DUMMY_SENTENCE));
+
+    verify(skipthoughtRESTEncoder, times(1)).encodeValue(eq(DUMMY_SENTENCE));
   }
 
   @Test
-  public void encodeSentenceStringTest() throws IOException {
-    INDArray array = skipthoughtRESTEncoder.encode(dummySentence.getText());
+  public void encodeImplSentenceStringTest() throws IOException {
+    INDArray array = skipthoughtRESTEncoder.encode(DUMMY_SENTENCE);
 
     assertThat(array.shape(), equalTo(dummyShape));
 
-    verify(skipthoughtRESTEncoder, times(1)).encodeImpl(eq(DUMMY_SENTENCE));
+    verify(skipthoughtRESTEncoder, times(1)).encodeValue(eq(DUMMY_SENTENCE));
   }
 
   @Test
-  public void encodeEachSentenceTest() throws IOException {
+  public void encodeEachImplSentenceTest() throws IOException {
     skipthoughtRESTEncoder.encodeEach(dummySentence, Sentence.class);
 
     verify(skipthoughtRESTEncoder, times(1)).encodeEach(eq(dummySentence));
   }
 
   @Test
-  public void encodeEachSentenceInDocumentTest() throws IOException {
+  public void encodeEachImplSentenceInDocumentTest() throws IOException {
     skipthoughtRESTEncoder.encodeEach(dummyDocument, Sentence.class);
 
     verify(skipthoughtRESTEncoder, times(1)).encodeEach1D(any());
   }
 
   @Test
-  public void encodeEachSentenceInDocumentsTest() {
+  public void encodeEachImplSentenceInDocumentsTest() throws IOException {
     skipthoughtRESTEncoder.encodeEach(dummyDocuments, Sentence.class);
 
     verify(skipthoughtRESTEncoder, times(dummyDocuments.size()))
-        .encodeEach(Mockito.any(Document.class), eq(Sentence.class));
+        .encodeEachImpl(Mockito.any(Document.class));
   }
 }

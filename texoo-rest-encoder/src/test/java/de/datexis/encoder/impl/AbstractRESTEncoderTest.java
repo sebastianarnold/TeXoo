@@ -6,24 +6,18 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.hamcrest.MockitoHamcrest.*;
 
 public class AbstractRESTEncoderTest {
   public static final int EMBEDDING_VECTOR_SIZE = 100;
@@ -109,7 +103,7 @@ public class AbstractRESTEncoderTest {
 
   @Test
   public void encodeImplTest() throws IOException {
-    INDArray embedding = abstractRESTEncoder.encodeImpl("text");
+    INDArray embedding = abstractRESTEncoder.encodeValue("text");
 
     assertThat(embedding.shape(), equalTo(dummyShape));
   }

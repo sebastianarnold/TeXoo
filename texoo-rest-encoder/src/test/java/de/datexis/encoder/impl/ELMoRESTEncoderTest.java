@@ -54,16 +54,26 @@ public class ELMoRESTEncoderTest {
     return new double[tokenOfDocument2D.length][tokenOfDocument2D[0].length][vectorSize];
   }*/
 
+  @Test(expected = UnsupportedOperationException.class)
+  public void encodeImplTest(){
+    elMoRESTEncoder.encode(DUMMY_TEXT);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void encodeImplSentenceTest(){
+    elMoRESTEncoder.encode(dummySentence);
+  }
+
   @Test
-  public void encodeEachTokenOfSentenceTest() throws IOException {
-    elMoRESTEncoder.encodeEach(dummySentence, Token.class);
+  public void encodeEachImplTokenOfSentenceTest() throws IOException {
+    elMoRESTEncoder.encodeEachImpl(dummySentence);
 
     verify(elMoRESTEncoder, times(1)).encodeEach1D(any());
   }
 
   @Test
-  public void encodeEachTokenOfDocumentTest() throws IOException {
-    elMoRESTEncoder.encodeEach(dummyDocument, Token.class);
+  public void encodeEachImplTokenOfDocumentTest() throws IOException {
+    elMoRESTEncoder.encodeEachImpl(dummyDocument);
 
     verify(elMoRESTEncoder, times(1)).getTokensOfSentencesOfDocument(eq(dummyDocument));
 
@@ -71,10 +81,10 @@ public class ELMoRESTEncoderTest {
   }
 
   @Test
-  public void encodeEachTokenOfDocumentsTest() {
-    elMoRESTEncoder.encodeEach(dummyDocuments, Token.class);
+  public void encodeEachImplTokenOfDocumentsTest() throws IOException {
+    elMoRESTEncoder.encodeEachImpl(dummyDocuments);
 
     verify(elMoRESTEncoder, times(dummyDocuments.size()))
-        .encodeEach(Mockito.any(Document.class), eq(Token.class));
+        .encodeEachImpl(Mockito.any(Document.class));
   }
 }

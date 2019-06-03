@@ -60,7 +60,7 @@ public abstract class AbstractRESTEncoder extends Encoder {
     throw new UnsupportedOperationException("REST Encoders cant save a model");
   }
 
-  public INDArray encodeImpl(String value) throws IOException{
+  public INDArray encodeValue(String value) throws IOException{
     return Nd4j.create(restAdapter.encode(value), new long[] {getEmbeddingVectorSize(), 1});
   }
 
