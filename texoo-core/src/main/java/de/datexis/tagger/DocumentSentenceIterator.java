@@ -1,8 +1,7 @@
-package de.datexis.sector.tagger;
+package de.datexis.tagger;
 
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
-import de.datexis.tagger.AbstractMultiDataSetIterator;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 
 import java.util.*;

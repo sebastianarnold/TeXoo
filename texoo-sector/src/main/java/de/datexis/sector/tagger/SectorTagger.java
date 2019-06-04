@@ -11,6 +11,7 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.sector.eval.ClassificationScoreCalculator;
 import de.datexis.tagger.AbstractMultiDataSetIterator.Stage;
+import de.datexis.tagger.DocumentSentenceIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;

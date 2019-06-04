@@ -59,6 +59,7 @@
   
   <modules>
     <module>texoo-core</module>
+    <module>texoo-retrieval</module>
     <module>texoo-cuda-9.2</module>
     <module>texoo-cuda-10.1</module>
     <module>texoo-entity-recognition</module>
@@ -126,6 +127,7 @@
         <module>texoo-core</module>
         <module>texoo-cuda-9.2</module>
         <module>texoo-cuda-10.1</module>
+        <module>texoo-retrieval</module>
         <module>texoo-entity-recognition</module>
         <module>texoo-entity-linking</module>
         <module>texoo-sector</module>
@@ -372,6 +374,11 @@
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-csv</artifactId>
+      <version>1.4</version>
+    </dependency>
     <!-- Test Dependencies -->
     <dependency>
       <groupId>junit</groupId>

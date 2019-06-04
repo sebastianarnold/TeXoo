@@ -8,6 +8,7 @@ import de.datexis.model.*;
 import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.model.SectionAnnotation;
+import de.datexis.tagger.DocumentSentenceIterator;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;

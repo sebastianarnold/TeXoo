@@ -13,6 +13,7 @@ import de.datexis.model.Sentence;
 import de.datexis.sector.encoder.HeadingEncoder;
 import de.datexis.sector.encoder.HeadingTag;
 import de.datexis.sector.reader.WikiSectionReader;
+import de.datexis.tagger.DocumentSentenceIterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
