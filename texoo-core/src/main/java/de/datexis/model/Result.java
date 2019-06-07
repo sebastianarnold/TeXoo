@@ -1,5 +1,8 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Comparator;
 
 /**
@@ -7,6 +10,7 @@ import java.util.Comparator;
  * Span of the Result (e.g. a Paragraph)
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
+@JsonIgnoreProperties({"text"})
 public abstract class Result/*<S extends Comparable> */extends Annotation {
   
 //  protected static Comparator<Double> nullsafeDoubleComparator =
@@ -18,6 +22,7 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   
   protected /*S*/ Double score = null;
   protected boolean sortDescending = true;
+  protected String id = null;
   
   public Result(Source source) {
     super(source, "");
@@ -28,6 +33,14 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
     this.setDocumentRef(doc);
     this.setBegin(begin);
     this.setEnd(end);
+  }
+  
+  public void setId(String id) {
+    this.id = id;
+  }
+  
+  public String getId() {
+    return this.id;
   }
   
   /**
@@ -61,6 +74,7 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
     this.sortDescending = sortDescending;
   }
   
+  @JsonIgnore
   public boolean isSortDescending() {
     return sortDescending;
   }

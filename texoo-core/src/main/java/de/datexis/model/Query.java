@@ -1,5 +1,6 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import de.datexis.preprocess.DocumentFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
  * result Document and GOLD and PRED Annotations that point to a Span in this Document.
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
+@JsonIgnoreProperties({"begin", "length"})
 public class Query extends Document {
   
   protected final static Logger log = LoggerFactory.getLogger(Query.class);
