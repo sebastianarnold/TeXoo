@@ -10,7 +10,7 @@ import java.util.Comparator;
  * Span of the Result (e.g. a Paragraph)
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-@JsonIgnoreProperties({"text"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Result/*<S extends Comparable> */extends Annotation {
   
 //  protected static Comparator<Double> nullsafeDoubleComparator =
@@ -23,6 +23,9 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   protected /*S*/ Double score = null;
   protected boolean sortDescending = true;
   protected String id = null;
+  
+  /** default constructor for JSON deserialization */
+  protected Result() {};
   
   public Result(Source source) {
     super(source, "");
@@ -41,6 +44,12 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   
   public String getId() {
     return this.id;
+  }
+  
+  @Override
+  @JsonIgnore
+  public String getText() {
+    return super.getText();
   }
   
   /**

@@ -13,6 +13,9 @@ public class ScoredResult extends Result {
   
   protected final Logger log = LoggerFactory.getLogger(getClass());
   
+  /** default constructor for JSON deserialization */
+  protected ScoredResult() {};
+  
   public ScoredResult(Source source) {
     super(source);
     this.setSortDescending(true);

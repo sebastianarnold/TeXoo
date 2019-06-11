@@ -15,6 +15,9 @@ public class RankingResult extends Result/*<Integer>*/ {
   
   protected Integer rank = null;
   
+  /** default constructor for JSON deserialization */
+  protected RankingResult() {};
+  
   public RankingResult(Source source) {
     super(source);
     this.setSortDescending(false);
