@@ -25,6 +25,14 @@ public class ELMoRESTEncoder extends SimpleRESTEncoder {
     return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port), vectorIdentifier);
   }
 
+  public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port, embeddingVectorSize, connectTimeout, readTimeout));
+  }
+
+  public static ELMoRESTEncoder create(ELMoLayerOutput elMoLayerOutput, String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout, String vectorIdentifier) {
+    return new ELMoRESTEncoder(new ELMoRESTAdapter(elMoLayerOutput, domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
+  }
+
   public ELMoRESTEncoder(RESTAdapter restAdapter) {
     super(restAdapter, Token.class);
   }

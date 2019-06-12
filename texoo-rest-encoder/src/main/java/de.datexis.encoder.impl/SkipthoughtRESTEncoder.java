@@ -21,6 +21,14 @@ public class SkipthoughtRESTEncoder extends SimpleRESTEncoder {
     return new SkipthoughtRESTEncoder(new SkipthoughtRESTAdapter(domain, port), vectorIdentifier);
   }
 
+  public static SkipthoughtRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    return new SkipthoughtRESTEncoder(new SkipthoughtRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout));
+  }
+
+  public static SkipthoughtRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout, String vectorIdentifier) {
+    return new SkipthoughtRESTEncoder(new SkipthoughtRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
+  }
+
   public SkipthoughtRESTEncoder(RESTAdapter restAdapter) {
     super(restAdapter, Sentence.class);
   }

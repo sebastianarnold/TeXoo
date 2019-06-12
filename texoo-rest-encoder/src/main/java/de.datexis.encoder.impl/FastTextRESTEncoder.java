@@ -22,6 +22,14 @@ public class FastTextRESTEncoder extends SimpleRESTEncoder {
     return new FastTextRESTEncoder(new FastTextRESTAdapter(domain, port), vectorIdentifier);
   }
 
+  public static FastTextRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    return new FastTextRESTEncoder(new FastTextRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout));
+  }
+
+  public static FastTextRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout, String vectorIdentifier) {
+    return new FastTextRESTEncoder(new FastTextRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
+  }
+
   public FastTextRESTEncoder(RESTAdapter restAdapter) {
     super(restAdapter, Token.class);
   }

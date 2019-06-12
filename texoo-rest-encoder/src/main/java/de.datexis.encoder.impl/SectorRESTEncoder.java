@@ -21,6 +21,14 @@ public class SectorRESTEncoder extends SimpleRESTEncoder {
     return new SectorRESTEncoder(new SectorRESTAdapter(domain, port), vectorIdentifier);
   }
 
+  public static SectorRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout));
+  }
+
+  public static SectorRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout, String vectorIdentifier) {
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
+  }
+
   public SectorRESTEncoder(RESTAdapter restAdapter) {
     super(restAdapter, Sentence.class);
   }
