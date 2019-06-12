@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.*;
 
 public class AbstractRESTEncoderTest {
@@ -24,32 +25,11 @@ public class AbstractRESTEncoderTest {
   public static final String VECTOR_IDENTIFIER = "AbstractRESTEncoder";
   public static final String DUMMY_TEXT = "This is a dummy text.";
 
-  /*public static final String[] TOKENS_OF_SENTENCE =
-      new String[] {"This", "is", "a", "dummy", "text", "."};
-
-  public static final String[][] TOKENS_OF_DOCUMENT_2D =
-      new String[][] {{"This", "is", "a", "dummy", "text", "."}};
-
-  public static final String[] TOKENS_OF_DOCUMENT_1D =
-      new String[] {"This", "is", "a", "dummy", "text", "."};
-
-  public static final String[] SENTENCES_OF_DOCUMENT = new String[] {"This is a dummy text."};*/
-
   private Document dummyDocument;
-  /*private Sentence dummySentence;
-  private Token dummyToken;*/
 
   private DummySpan dummySpan;
   private List<DummySpan> dummySpan1D;
   private List<List<DummySpan>> dummySpan2D;
-
-  /*private double[] dummyVectorToken;
-  private double[] dummyVectorSentence;
-  private double[] dummyVectorDocument;
-  private double[][] dummyVectorTokenOfSentence;
-  private double[][] dummyVectorSentenceOfDocument;
-  private double[][] dummyVectorTokenOfDocument1D;
-  private double[][][] dummyVectorTokenOfDocument2D;*/
 
   private double[] dummyVectorSpan;
   private double[][] dummyVectorSpan1D;

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
-import java.util.List;
 
 public abstract class SimpleRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(SimpleRESTEncoder.class);

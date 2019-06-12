@@ -68,18 +68,6 @@ public abstract class AbstractRESTAdapter implements RESTAdapter {
 
   public abstract double[][][] encodeImpl(String[][] data) throws IOException;
 
-  /*
-  log.debug("connect to: {}", httpConnection.getURL());
-    httpConnection.connect();
-
-    log.debug("writing to: {}", httpConnection.getURL());
-    writeRequestBody(data, httpConnection);
-
-    log.debug("reading from: {}", httpConnection.getURL());
-    O responseData = readResponseData(httpConnection, classOfO);
-    log.debug("response read from: {}", httpConnection.getURL());
-   */
-
   public <I,O> O request(I input, Class<O> classOfO, URL url) throws IOException{
     log.debug("building request");
     HttpURLConnection httpConnection = configureConnection(url);

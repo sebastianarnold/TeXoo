@@ -7,13 +7,10 @@ import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class SimpleRESTEncoderTest {

@@ -6,13 +6,11 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.mockito.hamcrest.MockitoHamcrest.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.spy;
 
 public class AbstractRESTAdapterTest {
   public static final String DUMMY_TEXT = "text";

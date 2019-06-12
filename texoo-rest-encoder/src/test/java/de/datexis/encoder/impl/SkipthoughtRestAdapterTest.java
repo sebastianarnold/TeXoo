@@ -1,11 +1,9 @@
 package de.datexis.encoder.impl;
 
-import de.datexis.encoder.impl.SkipthoughtRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,22 +30,4 @@ public class SkipthoughtRestAdapterTest {
 
         assertThat(url.toExternalForm(), equalTo(FINAL_URL));
     }
-
-    /*@Test
-    public void getConnectionTest() throws IOException {
-        HttpURLConnection httpURLConnection = skipthoughtRESTAdapter.getConnection(TEST_PATH);
-
-        assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(FINAL_URL));
-    }*/
-
-    /*@Test
-    public void configureConnectionTest() throws IOException {
-        HttpURLConnection httpURLConnection = skipthoughtRESTAdapter.configureConnection(TEST_PATH);
-
-        assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(FINAL_URL));
-        assertThat(httpURLConnection.getRequestMethod(), equalTo(SkipthoughtRESTAdapter.HTTP_REQUEST_METHOD));
-        assertThat(httpURLConnection.getRequestProperty(SkipthoughtRESTAdapter.HTTP_CONTENT_TYPE_NAME), equalTo(SkipthoughtRESTAdapter.HTTP_CONTENT_TYPE_VALUE));
-        assertThat(httpURLConnection.getDoInput(), equalTo(true));
-        assertThat(httpURLConnection.getDoOutput(), equalTo(true));
-    }*/
 }

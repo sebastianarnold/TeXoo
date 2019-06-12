@@ -1,13 +1,7 @@
 package de.datexis.encoder.impl;
 
-import de.datexis.encoder.impl.AbstractRESTEncoder;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
-
-import java.util.Collection;
-import java.util.List;
 
 public class DummyAbstractRESTEncoder extends AbstractRESTEncoder {
   public DummyAbstractRESTEncoder(RESTAdapter restAdapter) {

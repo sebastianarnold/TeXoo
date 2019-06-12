@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -42,17 +41,8 @@ public class SkipthoughtRESTEncoderTest {
     restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
     skipthoughtRESTEncoder = spy(new SkipthoughtRESTEncoder(restAdapter));
 
-    /*when(skipthoughtRESTAdapter.encode(anyString())).thenReturn(new double[vectorSize]);
-    when(skipthoughtRESTAdapter.encode(Mockito.any(String[].class)))
-        .then(this::encodeSentenceOfDocumentMock);*/
-
     dummyShape = new long[] {EMBEDDING_VECTOR_SIZE, 1};
   }
-
-  /*private double[][] encodeSentenceOfDocumentMock(InvocationOnMock invocationOnMock) {
-    String[] sentencesOfDocument = invocationOnMock.getArgument(0);
-    return new double[sentencesOfDocument.length][vectorSize];
-  }*/
 
   @Test
   public void encodeImplSentenceTest() throws IOException {

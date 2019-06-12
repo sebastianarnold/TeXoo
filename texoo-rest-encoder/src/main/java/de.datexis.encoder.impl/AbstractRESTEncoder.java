@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -149,50 +148,4 @@ public abstract class AbstractRESTEncoder extends Encoder {
     AtomicInteger i = new AtomicInteger();
     spans.forEach(span -> putVectorInSpans(span, data[i.getAndIncrement()]));
   }
-
-  /*public void putVectorInToken(Token token, double[] data) {
-    token.putVector(getClass(), Nd4j.create(data, new long[] {getEmbeddingVectorSize(), 1}));
-  }
-
-  public void putVectorInSentence(Sentence sentence, double[] data) {
-    sentence.putVector(getClass(), Nd4j.create(data, new long[] {getEmbeddingVectorSize(), 1}));
-  }
-
-  public void putVectorInTokenOfSentence(Sentence sentence, double[][] data) {
-    int i = 0;
-    for (Token token : sentence.getTokens()) {
-      token.putVector(getClass(), Nd4j.create(data[i++], new long[] {getEmbeddingVectorSize(), 1}));
-    }
-  }
-
-  public void putVectorInDocument(Document document, double[] data) {
-    document.putVector(getClass(), Nd4j.create(data, new long[] {getEmbeddingVectorSize(), 1}));
-  }
-
-  public void putVectorInSentenceOfDocument(Document document, double[][] data) {
-    int i = 0;
-    for (Sentence sentence : document.getSentences()) {
-      sentence.putVector(
-          getClass(), Nd4j.create(data[i++], new long[] {getEmbeddingVectorSize(), 1}));
-    }
-  }
-
-  public void putVectorInTokenOfDocument1D(Document document, double[][] data) {
-    int i = 0;
-    for (Token token : document.getTokens()) {
-      token.putVector(getClass(), Nd4j.create(data[i++], new long[] {getEmbeddingVectorSize(), 1}));
-    }
-  }
-
-  public void putVectorInTokenOfDocument2D(Document document, double[][][] data) {
-    int i = 0;
-    for (Sentence sentence : document.getSentences()) {
-      int n = 0;
-      for (Token token : sentence.getTokens()) {
-        token.putVector(
-            getClass(), Nd4j.create(data[i][n++], new long[] {getEmbeddingVectorSize(), 1}));
-      }
-      i++;
-    }
-  }*/
 }

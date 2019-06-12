@@ -1,12 +1,9 @@
 package de.datexis.encoder.impl;
 
-import de.datexis.encoder.impl.ELMoLayerOutput;
-import de.datexis.encoder.impl.ELMoRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -48,38 +45,4 @@ public class ELMoRESTAdapterTest {
         assertThat(urlBottom.toExternalForm(), equalTo(URL_BOTTOM));
         assertThat(urlAverage.toExternalForm(), equalTo(URL_AVERAGE));
     }
-
-    /*@Test
-    public void getConnectionTopTest() throws IOException {
-        HttpURLConnection connectionTop = elMoRESTAdapterTop.getConnection(TEST_PATH);
-        HttpURLConnection connectionMiddle = elMoRESTAdapterMiddle.getConnection(TEST_PATH);
-        HttpURLConnection connectionBottom = elMoRESTAdapterBottom.getConnection(TEST_PATH);
-        HttpURLConnection connectionAverage = elMoRESTAdapterAverage.getConnection(TEST_PATH);
-
-        assertThat(connectionTop.getURL().toExternalForm(), equalTo(URL_TOP));
-        assertThat(connectionMiddle.getURL().toExternalForm(), equalTo(URL_MIDDLE));
-        assertThat(connectionBottom.getURL().toExternalForm(), equalTo(URL_BOTTOM));
-        assertThat(connectionAverage.getURL().toExternalForm(), equalTo(URL_AVERAGE));
-    }*/
-
-    /*@Test
-    public void configureConectionTest() throws IOException {
-        HttpURLConnection connectionTop = elMoRESTAdapterTop.configureConnection(TEST_PATH);
-        HttpURLConnection connectionMiddle = elMoRESTAdapterMiddle.configureConnection(TEST_PATH);
-        HttpURLConnection connectionBottom = elMoRESTAdapterBottom.configureConnection(TEST_PATH);
-        HttpURLConnection connectionAverage = elMoRESTAdapterAverage.configureConnection(TEST_PATH);
-
-        verifyConfiguredHttpURLConection(connectionTop, URL_TOP);
-        verifyConfiguredHttpURLConection(connectionMiddle, URL_MIDDLE);
-        verifyConfiguredHttpURLConection(connectionBottom, URL_BOTTOM);
-        verifyConfiguredHttpURLConection(connectionAverage, URL_AVERAGE);
-    }*/
-
-    /*private void verifyConfiguredHttpURLConection(HttpURLConnection httpURLConnection, String url){
-        assertThat(httpURLConnection.getURL().toExternalForm(), equalTo(url));
-        assertThat(httpURLConnection.getRequestMethod(), equalTo(ELMoRESTAdapter.HTTP_REQUEST_METHOD));
-        assertThat(httpURLConnection.getRequestProperty(ELMoRESTAdapter.HTTP_CONTENT_TYPE_NAME), equalTo(ELMoRESTAdapter.HTTP_CONTENT_TYPE_VALUE));
-        assertThat(httpURLConnection.getDoInput(), equalTo(true));
-        assertThat(httpURLConnection.getDoOutput(), equalTo(true));
-    }*/
 }

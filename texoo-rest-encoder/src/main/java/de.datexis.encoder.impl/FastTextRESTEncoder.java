@@ -9,9 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collection;
-import java.util.List;
 
 public class FastTextRESTEncoder extends SimpleRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(FastTextRESTEncoder.class);
@@ -58,54 +56,4 @@ public class FastTextRESTEncoder extends SimpleRESTEncoder {
       encodeEachImpl(document);
     }
   }
-
-  /*@Override
-  public INDArray encode(String s) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public INDArray encode(Span span) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void encodeEach(Sentence input, Class<? extends Span> elementClass) {
-    if(elementClass == Token.class){
-      try {
-        encodeEach1D(input.getTokens());
-      } catch (IOException e) {
-        log.error("IO Error while encoding sentence: {}", input, e);
-        throw new UncheckedIOException(e);
-      }
-    } else {
-      throw new UnsupportedOperationException("FastText can not encode anything else then Tokens");
-    }
-  }
-
-  @Override
-  public void encodeEach(Document input, Class<? extends Span> elementClass) {
-    if(elementClass==Token.class){
-      try {
-        encodeEach2D(getTokensOfSentencesOfDocument(input));
-      } catch (IOException e) {
-        log.error("IO Error while encoding document: {}", input, e);
-        throw new UncheckedIOException(e);
-      }
-    }else{
-      throw new UnsupportedOperationException("FastText can not encode anything else then Tokens");
-    }
-  }
-
-  @Override
-  public void encodeEach(Collection<Document> docs, Class<? extends Span> elementClass) {
-    for (Document document : docs) {
-      encodeEach(document, elementClass);
-    }
-  }
-
-  @Override
-  public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
-    throw new UnsupportedOperationException();
-  }*/
 }

@@ -1,6 +1,5 @@
 package de.datexis.encoder.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.datexis.encoder.impl.serde.DeserializationProvider;
 import de.datexis.encoder.impl.serde.JacksonSerdeProvider;
 import de.datexis.encoder.impl.serde.SerializationProvider;
@@ -70,55 +69,6 @@ public class ELMoRESTAdapter extends AbstractRESTAdapter {
   public DeserializationProvider getDeserializationProvider() {
     return serdeProvider;
   }
-
-  /*public <I, O> O request(I data, String path, Class<O> classOfO) throws IOException {
-    HttpURLConnection httpConnection = configureConnection(path);
-
-    log.debug("connect to: {}", httpConnection.getURL());
-    httpConnection.connect();
-
-    log.debug("writing to: {}", httpConnection.getURL());
-    writeRequestBody(data, httpConnection);
-
-    log.debug("reading from: {}", httpConnection.getURL());
-    O responseData = readResponseData(httpConnection, classOfO);
-    log.debug("response read from: {}", httpConnection.getURL());
-
-    httpConnection.disconnect();
-
-    return responseData;
-  }
-
-  public <T> void writeRequestBody(T data, HttpURLConnection httpConnection) throws IOException {
-    OutputStream outputStream = httpConnection.getOutputStream();
-    objectMapper.writeValue(outputStream, data);
-    outputStream.close();
-  }
-
-  public <T> T readResponseData(HttpURLConnection httpURLConnection, Class<T> classOfT)
-      throws IOException {
-    InputStream inputStream = httpURLConnection.getInputStream();
-    T responseData = objectMapper.readValue(inputStream, classOfT);
-    inputStream.close();
-    return responseData;
-  }
-
-  public HttpURLConnection configureConnection(String path) throws IOException {
-    HttpURLConnection httpConnection = getConnection(path);
-    httpConnection.setRequestMethod(HTTP_REQUEST_METHOD);
-    httpConnection.setRequestProperty(HTTP_CONTENT_TYPE_NAME, HTTP_CONTENT_TYPE_VALUE);
-    httpConnection.setConnectTimeout(TEN_SECOND_TIMEOUT);
-    httpConnection.setReadTimeout(FIVE_MINUTE_TIMEOUT);
-    httpConnection.setDoOutput(true);
-    httpConnection.setDoInput(true);
-
-    return httpConnection;
-  }
-
-  public HttpURLConnection getConnection(String path) throws IOException {
-    URL url = getUrl(path);
-    return (HttpURLConnection) url.openConnection();
-  }*/
 
   public URL getUrl(String path) throws MalformedURLException {
     return new URL(String.format(URL_FORMAT, domain, port, path, layerOutput.getPath()));
