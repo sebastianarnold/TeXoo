@@ -5,6 +5,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +31,14 @@ public class WikipediaIndex {
   /** Map of all Wikipedia pages ID->Title (no redirects) */
   protected Map<Long,String> pageTitles = new ConcurrentHashMap<>(5000000);
   
-  /** Map of all Wikipedia pages Title->ID (including redirects) */
+  /** Map of all Wikipedia pages Title->pageID (including redirects) */
   protected Map<String,Long> pageIndex = new ConcurrentHashMap<>(15000000);
   
-  /** Map of all Redirects ID-Title (non-transitive) */
+  /** Map of all Redirects pageID-Title (non-transitive) */
   protected Map<Long,String> pageRedirects = new ConcurrentHashMap<>(15000000);
+  
+  /** Map of all Wikipedia pages Title->URI (including redirects) to map to a different UI scheme than Wikipedia */
+  Map<String, String> pageURIs = null;
   
   protected long matched = 0;
   protected long unmatched = 0;
@@ -72,7 +76,7 @@ public class WikipediaIndex {
                   if(id == 81447) title = "NULL"; // CSV reader seems to read 'NULL" (quoted null) as null
                   else log.warn("title is null: {}", row.toString());
                 }
-                if(!isRedirect && !title.endsWith("(disambiguation)"))
+                if(!isRedirect && !title.endsWith("(disambiguation)")) // we skip redirects in page index
                   pageTitles.putIfAbsent(id, title);
                 pageIndex.putIfAbsent(title, id);
                 long n = count.incrementAndGet();
@@ -89,6 +93,18 @@ public class WikipediaIndex {
         });
     }
     log.info("Read {} entities out of total {} pages", pageTitles.size(), pageIndex.size());
+  }
+  
+  /**
+   * Load a TSV file that contains mapping of Wiki page to Wikidata IDs. Please note that you have to run filterPages() for this to take effect
+   */
+  public void readIDMapping(Resource file) throws IOException {
+    List<String> mapping = FileUtils.readLines(file.toFile(), "UTF-8");
+    pageURIs = new ConcurrentHashMap<>(mapping.size());
+    mapping.stream()
+      .map(s -> s.split("\\t"))
+      .forEach(s -> pageURIs.put(WikipediaUrlPreprocessor.cleanWikiPageTitle(s[0]), s[1]));
+    // TODO: extend pageURIs with all redirects, like it is done in filterPages()
   }
   
   public void readRedirects(Resource redirectSql) throws IOException {
@@ -163,8 +179,11 @@ public class WikipediaIndex {
     int redirects = 0;
     do {
       Long id = pageIndex.get(redirectedPage);
-      // retry with first char uppercase
-      if(id == null) id = redirectedPage.length() > 0 ? pageIndex.get(redirectedPage.substring(0, 1).toUpperCase() + (redirectedPage.length() > 1 ? redirectedPage.substring(1) : "")) : null;
+      if(id == null) {
+        // retry with first char uppercase
+        id = redirectedPage.length() > 0 ?
+          pageIndex.get(redirectedPage.substring(0, 1).toUpperCase() + (redirectedPage.length() > 1 ? redirectedPage.substring(1) : "")) : null;
+      }
       if(id == null) {
         // not matched
         unmatched++;
@@ -188,8 +207,21 @@ public class WikipediaIndex {
     return null;
   }
   
+  /**
+   * @return URI from any Wikipedia pageTitle (including redirects)
+   */
+  public String getURIForTitle(String requestedPage) {
+    if(pageURIs == null) return getTitleFromRedirect(requestedPage);
+    else return pageURIs.get(requestedPage);
+  }
+  
   public String getStats() {
     return "WikipediaIndex: " + matched + " matched, " + unmatched + " unmatched.";
+  }
+  
+  public void filterPages(Resource file) throws IOException {
+    List<String> entities = FileUtils.readLines(file.toFile(), "UTF-8");
+    filterPages(entities);
   }
   
   // TODO: create an index here that contains the pages and all their redirects
@@ -206,6 +238,11 @@ public class WikipediaIndex {
         id = pageIndex.get(redirect);
         log.info("Page '{}' is a redirect to {}", page, redirect);
         prunedTitles.putIfAbsent(id, redirect);
+        if(pageURIs != null) {
+          // also put the redirects into pageURIs
+          String uri = pageURIs.get(page);
+          if(uri != null) pageURIs.putIfAbsent(redirect, uri);
+        }
       } else {
         prunedTitles.putIfAbsent(id, page);
       }
