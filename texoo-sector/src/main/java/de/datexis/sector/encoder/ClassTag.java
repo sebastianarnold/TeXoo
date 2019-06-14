@@ -8,12 +8,13 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.Tag;
 import de.datexis.sector.model.SectionAnnotation;
-import java.io.IOException;
-import java.util.Objects;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A Tag that is used to label a single Class.
@@ -25,12 +26,16 @@ public class ClassTag implements Tag {
 
   protected final String label;
   protected final int numClasses;
-  protected final double[] vector;
+  protected byte[] vector;
   protected double confidence = 0.;
   protected final int index;
   
   public ClassTag(String label, INDArray vector) {
-    this.vector = vector.transpose().toDoubleVector();
+    try {
+      this.vector = Nd4j.toByteArray(vector);
+    } catch(IOException ex) {
+      log.error("IOError in ClassTag(): {}", ex.toString());
+    }
     this.label = label;
     this.index = getMaxIndex(vector);
     this.confidence = vector.maxNumber().doubleValue();
@@ -84,7 +89,12 @@ public class ClassTag implements Tag {
    */
   @Override
   public INDArray getVector() {
-    return Nd4j.create(vector).transposei();
+    try {
+      return Nd4j.fromByteArray(vector);
+    } catch(IOException ex) {
+      log.error("IOError in getVector(): {}", ex.toString());
+      return null;
+    }
   }
   
   @Override

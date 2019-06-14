@@ -193,7 +193,7 @@ public abstract class Span implements Comparable<Span> {
         final byte[] vec = vectors.get(identifier);
         return Nd4j.fromByteArray(vec);
       } catch(IOException ex) {
-        log.error("IOError in putVector(): {}", ex.toString());
+        log.error("IOError in getVector(): {}", ex.toString());
         return null;
       }
     } else {
