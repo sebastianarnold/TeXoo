@@ -84,6 +84,28 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>cuda-9.2</id>
+      <dependencies>
+        <dependency>
+          <groupId>de.datexis</groupId>
+          <artifactId>texoo-cuda-9.2</artifactId>
+          <version>${texoo.version}</version>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>cuda-10.1</id>
+      <dependencies>
+        <dependency>
+          <groupId>de.datexis</groupId>
+          <artifactId>texoo-cuda-10.1</artifactId>
+          <version>${texoo.version}</version>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
   <build>

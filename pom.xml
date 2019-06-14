@@ -88,14 +88,6 @@
         </property>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>de.datexis</groupId>
-          <artifactId>texoo-cuda-9.2</artifactId>
-          <version>${texoo.version}</version>
-          <type>pom</type>
-        </dependency>
-      </dependencies>
     </profile>
     <profile>
       <id>cuda-10.1</id>
@@ -106,14 +98,6 @@
         </property>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>de.datexis</groupId>
-          <artifactId>texoo-cuda-10.1</artifactId>
-          <version>${texoo.version}</version>
-          <type>pom</type>
-        </dependency>
-      </dependencies>
     </profile>
     <profile>
       <!-- use this profile to package a clean JAR (e.g. for maven deployment) -->
