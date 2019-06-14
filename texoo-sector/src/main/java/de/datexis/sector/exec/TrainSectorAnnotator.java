@@ -3,10 +3,7 @@ package de.datexis.sector.exec;
 import de.datexis.common.CommandLineParser;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
-import de.datexis.encoder.impl.BloomEncoder;
-import de.datexis.encoder.impl.DummyEncoder;
-import de.datexis.encoder.impl.StructureEncoder;
-import de.datexis.encoder.impl.Word2VecEncoder;
+import de.datexis.encoder.impl.*;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.sector.SectorAnnotator;
@@ -181,13 +178,17 @@ public class TrainSectorAnnotator {
   }
 
   protected SectorAnnotator.Builder initializeInputEncodings_wemb(SectorAnnotator.Builder builder, Resource embeddingModel) throws IOException {
-
-    Word2VecEncoder wordEmb = new Word2VecEncoder();
-    wordEmb.loadModel(embeddingModel);
     StructureEncoder structure = new StructureEncoder();
-
-    return builder.withInputEncoders("emb", new DummyEncoder(), wordEmb, structure);
-
+    if(embeddingModel.getFileName().endsWith(".bin") ||
+      embeddingModel.getFileName().endsWith(".bin.gz")) {
+      FastTextEncoder fasttext = new FastTextEncoder();
+      fasttext.loadModel(embeddingModel);
+      return builder.withInputEncoders("ft", new DummyEncoder(), fasttext, structure);
+    } else {
+      Word2VecEncoder word2vec = new Word2VecEncoder();
+      word2vec.loadModel(embeddingModel);
+      return builder.withInputEncoders("w2v", new DummyEncoder(), word2vec, structure);
+    }
   }
 
   /**
