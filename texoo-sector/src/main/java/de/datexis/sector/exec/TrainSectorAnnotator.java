@@ -62,6 +62,7 @@ public class TrainSectorAnnotator {
     protected String embeddingsFile = null;
     protected String language = null;
     protected boolean trainingUI = false;
+    protected boolean testSegmentation = false;
     protected boolean isHeadingsModel = false;
 
     @Override
@@ -73,6 +74,7 @@ public class TrainSectorAnnotator {
       embeddingsFile = parse.getOptionValue("e");
       language = parse.getOptionValue("l", "en");
       trainingUI = parse.hasOption("u");
+      testSegmentation = parse.hasOption("s");
       isHeadingsModel = parse.hasOption("h");
     }
 
@@ -85,6 +87,7 @@ public class TrainSectorAnnotator {
       op.addRequiredOption("o", "output", true, "path to create and store the model");
       op.addOption("v", "validation", true, "file name of WikiSection validation dataset (will use early stopping if given)");
       op.addOption("t", "test", true, "file name of WikiSection test dataset (will test after training if given)");
+      op.addOption("s", "segment", false, "evaluate full segmentation model instead of faster sentence classification");
       op.addOption("e", "embedding", true, "path to word embedding model, will use bloom filters if not given");
       op.addOption("l", "language", true, "language to use for sentence splitting and stopwords (EN or DE)");
       op.addOption("u", "ui", false, "enable training UI (http://127.0.0.1:9000)");
@@ -148,8 +151,15 @@ public class TrainSectorAnnotator {
 
       // Test model
       if(test != null) {
-        sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.BEMD);
-        sector.evaluateModel(test, false, true, true);
+        if(params.testSegmentation) {
+          log.info("Testing full BEMD segmentation model (might take longer)");
+          sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.BEMD);
+          sector.evaluateModel(test, false, true, true);
+        } else {
+          log.info("Testing sentence classification (fast, but no segmentation)");
+          sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.NONE);
+          sector.evaluateModel(test, true, false, false);
+        }
       }
       sector.writeTestLog(output);
       success = true;
