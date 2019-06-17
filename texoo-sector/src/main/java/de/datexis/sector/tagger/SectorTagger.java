@@ -34,7 +34,6 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
@@ -240,8 +239,8 @@ public class SectorTagger extends Tagger {
 		lstm.init();
     net = lstm;
     net.setListeners(
-        new PerformanceListener(1, true, true),
-        new ScoreIterationListener(16)
+        new PerformanceListener(16, true)
+        //new ScoreIterationListener(16)
     );
 		return this;
     
