@@ -66,6 +66,7 @@
     <module>texoo-entity-linking</module>
     <module>texoo-sector</module>
     <module>texoo-examples</module>
+    <module>texoo-rest-encoder</module>
   </modules>
 
   <profiles>
