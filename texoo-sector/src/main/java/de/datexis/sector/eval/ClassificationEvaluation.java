@@ -122,9 +122,16 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     for(Document doc : documents) {
       for(Span s : doc.getStream(spanClass).collect(Collectors.toList())) {
         // use encoder to ensure unknown class
-        INDArray r = s.getTag(expectedSource, tagClass).getVector().transpose();
-        INDArray p = s.getTag(predictedSource, tagClass).getVector().transpose();
-        evalExample(r, p);
+        Tag rt = s.getTag(expectedSource, tagClass);
+        Tag pt = s.getTag(predictedSource, tagClass);
+        if(rt != null && pt != null) {
+          INDArray r = rt.getVector().transpose();
+          INDArray p = pt.getVector().transpose();
+          evalExample(r, p);
+        } else {
+          log.warn("Skipped sentence without label: docId={} {}-{}", doc.getId(), s.getBegin(), s.getEnd());
+        }
+        
       }
     }
   }
