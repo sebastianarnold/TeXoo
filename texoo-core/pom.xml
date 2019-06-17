@@ -86,6 +86,13 @@
     </profile>
     <profile>
       <id>cuda-9.2</id>
+      <activation>
+        <property>
+          <name>env.TEXOO_CUDA</name>
+          <value>9.2</value>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>de.datexis</groupId>
@@ -97,6 +104,13 @@
     </profile>
     <profile>
       <id>cuda-10.1</id>
+      <activation>
+        <property>
+          <name>env.TEXOO_CUDA</name>
+          <value>10.1</value>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
       <dependencies>
         <dependency>
           <groupId>de.datexis</groupId>

@@ -17,6 +17,45 @@
   <description>TeXoo module for Topic Segmentation and Classification (SECTOR).
     ${parent.description}</description>
 
+  <profiles>
+    <profile>
+      <id>cuda-9.2</id>
+      <activation>
+        <property>
+          <name>env.TEXOO_CUDA</name>
+          <value>9.2</value>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>de.datexis</groupId>
+          <artifactId>texoo-cuda-9.2</artifactId>
+          <version>${texoo.version}</version>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>cuda-10.1</id>
+      <activation>
+        <property>
+          <name>env.TEXOO_CUDA</name>
+          <value>10.1</value>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>de.datexis</groupId>
+          <artifactId>texoo-cuda-10.1</artifactId>
+          <version>${texoo.version}</version>
+          <type>pom</type>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>de.datexis</groupId>

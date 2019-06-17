@@ -13,4 +13,4 @@ CLASS=de.datexis.sector.exec.TrainSectorAnnotator
 
 # exec Maven:
 mvn -e -B -q -DskipTests=true \
-  -pl texoo-sector exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
+  -pl texoo-sector install exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
