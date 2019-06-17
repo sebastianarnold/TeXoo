@@ -105,7 +105,7 @@ public class FastTextEncoder extends Encoder {
   public void saveModel(Resource modelPath, String name) {
      if(modelSource != null) {
        try {
-         Resource modelFile = modelPath.resolve(name + ".bin");
+         Resource modelFile = modelPath.resolve(name + (modelSource.getFileName().endsWith(".gz") ? ".bin.gz" : ".bin"));
          FileUtils.copyFile(modelSource.toFile(), modelFile.toFile());
          setModel(modelPath);
        } catch(IOException ex) {
