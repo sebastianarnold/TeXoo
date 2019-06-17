@@ -159,9 +159,8 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
         embs = tagger.encodeBatchMatrix(sents);
       } else {
         List<? extends Span> sents = batch.stream().map(b -> b.getValue()).collect(Collectors.toList());
-        // FIXME: this is an optimization from Heatmap
-        embs = //lookup && encoder instanceof QueryIndex ?
-          //lookupBatchMatrix(sents, (QueryIndex) encoder) :
+        embs = lookup && encoder instanceof InMemoryIndex ?
+          lookupBatchMatrix(sents, (InMemoryIndex) encoder) :
           EncodingHelpers.encodeBatchMatrix(sents, encoder);
       }
       for(int batchNum = 0; batchNum < batch.size(); batchNum++) {

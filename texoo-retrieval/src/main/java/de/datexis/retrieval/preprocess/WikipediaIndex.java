@@ -236,7 +236,7 @@ public class WikipediaIndex {
       } else if(pageRedirects.containsKey(id)) {
         String redirect = getTitleFromRedirect(page);
         id = pageIndex.get(redirect);
-        log.info("Page '{}' is a redirect to {}", page, redirect);
+        log.trace("Page '{}' is a redirect to {}", page, redirect);
         prunedTitles.putIfAbsent(id, redirect);
         if(pageURIs != null) {
           // also put the redirects into pageURIs
@@ -248,6 +248,7 @@ public class WikipediaIndex {
       }
     }
     pageTitles = prunedTitles;
+    log.info("Filtered {} pages from given list of {} URLs", pageTitles.size(), pages.size());
   }
   
 }
