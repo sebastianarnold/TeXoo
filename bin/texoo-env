@@ -7,16 +7,16 @@
 export OMP_NUM_THREADS=4
 
 # CUDA device numbers visible to the process
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=0
 
 # device priorities, higher is preferred
 export BACKEND_PRIORITY_CPU=2
-export BACKEND_PRIORITY_GPU=1
-export TEXOO_CUDA=false
+export BACKEND_PRIORITY_GPU=3
+#export TEXOO_CUDA=9.2
 
 # use this to enable CUDA support
 #export BACKEND_PRIORITY_GPU=3
 #export TEXOO_CUDA=9.2
 
 # set memory limits to 8GB (Java) and 16GB (DL4j Host Memory)
-export MAVEN_OPTS="-XX:+UseG1GC -Xms2G -Xmx8G -Dorg.bytedeco.javacpp.maxbytes=16G -Dorg.bytedeco.javacpp.maxphysicalbytes=24G"
+export MAVEN_OPTS="-XX:+UseG1GC -Xms4G -Xmx16G -Dorg.bytedeco.javacpp.maxbytes=16G -Dorg.bytedeco.javacpp.maxphysicalbytes=32G"
