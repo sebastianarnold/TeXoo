@@ -62,11 +62,11 @@
     <module>texoo-retrieval</module>
     <module>texoo-cuda-9.2</module>
     <module>texoo-cuda-10.1</module>
+    <module>texoo-encoder-api</module>
     <module>texoo-entity-recognition</module>
     <module>texoo-entity-linking</module>
     <module>texoo-sector</module>
     <module>texoo-examples</module>
-    <module>texoo-rest-encoder</module>
   </modules>
 
   <profiles>
