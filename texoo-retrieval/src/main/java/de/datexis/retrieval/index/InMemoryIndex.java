@@ -530,10 +530,14 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
     return find(vec, 1).get(0);
   }
   
+  public void writeVectors(Resource path, String name) throws IOException {
+    writeVectors(path, name, null);
+  }
+  
   /**
    * Write out stored vectors and metadata for use in GloVe or Embedding Projector.
    */
-  public void writeVectors(Resource path, String name) throws IOException {
+  public void writeVectors(Resource path, String name, Map<String, String> metaMapping) throws IOException {
     
     Resource vecFile = path.resolve(name + ".vectors.tsv");
     Resource metaFile = path.resolve(name + ".meta.tsv");
@@ -560,8 +564,8 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
         gloveBuilder = new StringBuilder();
         vecBuilder = new StringBuilder();
         metaBuilder = new StringBuilder();
-        
-        metaBuilder.append(key).append("\t").append((int) word.getElementFrequency());
+        String mappedKey = metaMapping != null ? metaMapping.getOrDefault(key, key) : key;
+        metaBuilder.append(mappedKey).append("\t").append((int) word.getElementFrequency());
         gloveBuilder.append(key.replaceAll("\\s+", "_")).append(" ");
         
         for(int k = 0; k < vec.length(); k++) {
