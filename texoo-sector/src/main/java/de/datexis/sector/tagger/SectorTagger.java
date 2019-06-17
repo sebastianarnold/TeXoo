@@ -240,7 +240,7 @@ public class SectorTagger extends Tagger {
 		lstm.init();
     net = lstm;
     net.setListeners(
-        new PerformanceListener(128, true),
+        new PerformanceListener(1, true, true),
         new ScoreIterationListener(16)
     );
 		return this;
