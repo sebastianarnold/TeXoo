@@ -1,18 +1,19 @@
 package de.datexis.sector.exec;
 
 import de.datexis.annotator.AnnotatorFactory;
-import de.datexis.common.*;
-import de.datexis.model.*;
+import de.datexis.common.CommandLineParser;
+import de.datexis.common.Resource;
+import de.datexis.model.Dataset;
 import de.datexis.sector.SectorAnnotator;
 import de.datexis.sector.reader.WikiSectionReader;
-import java.io.IOException;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Run experiments on a pre-trained SECTOR model
@@ -47,12 +48,14 @@ public class EvaluateSectorAnnotator {
     protected String modelPath = null;
     protected String testFile = null;
     protected String embeddingsPath = null;
+    protected boolean testSegmentation = false;
     
     @Override
     public void setParams(CommandLine parse) {
       modelPath = parse.getOptionValue("m");
       testFile = parse.getOptionValue("t");
       embeddingsPath = parse.getOptionValue("e");
+      testSegmentation = parse.hasOption("s");
     }
     
     @Override
@@ -61,6 +64,7 @@ public class EvaluateSectorAnnotator {
       op.addRequiredOption("m", "model", true, "path to the pre-trained model");
       op.addRequiredOption("t", "test", true, "file name of WikiSection test dataset (will test after training if given)");
       op.addOption("e", "embedding", true, "search path to word embedding models (if not provided by the model itself)");
+      op.addOption("s", "segment", false, "evaluate full segmentation model instead of faster sentence classification");
       return op;
     }
     
@@ -84,10 +88,16 @@ public class EvaluateSectorAnnotator {
     // Annotate documents
     //sector.getTagger().setBatchSize(8); // if you need to save RAM on CUDA device
     // will attach SectorEncoder vectors to Sentences and create SectionAnnotations
-    sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.BEMD);
-    
     // Evaluate annotated documents for segmentation and segment classification
-    sector.evaluateModel(test, false, true, true);
+    if(params.testSegmentation) {
+      log.info("Testing full BEMD segmentation model (might take longer)");
+      sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.BEMD);
+      sector.evaluateModel(test, false, true, true);
+    } else {
+      log.info("Testing sentence classification (fast, but no segmentation)");
+      sector.annotate(test.getDocuments(), SectorAnnotator.SegmentationMethod.NONE);
+      sector.evaluateModel(test, true, false, false);
+    }
     
   }
   
