@@ -1,13 +1,14 @@
 package de.datexis.annotator;
 
 import de.datexis.common.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.annotation.XmlRootElement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlRootElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provenance information that can be used for result export
@@ -174,8 +175,8 @@ public class Provenance {
     StringBuilder out = new StringBuilder();
     if(getName() != null)     out.append("_").append(getName());
     if(getTask()!= null)      out.append("_").append(getTask());
-    if(getLanguage() != null) out.append("_").append(getLanguage());
-    if(getDataset()!= null)   out.append("_").append(getDataset());
+    //if(getLanguage() != null) out.append("_").append(getLanguage());
+    if(getDataset()!= null)   out.append("@").append(getDataset());
     if(getFeatures()!= null)  out.append(getFeatures()); // starts with +
     if(getDate()!= null)      out.append("_").append(getDate());
     return out.substring(1);

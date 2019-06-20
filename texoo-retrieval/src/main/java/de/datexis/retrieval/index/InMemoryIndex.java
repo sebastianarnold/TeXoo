@@ -375,6 +375,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
    */
   @Override
   public INDArray lookup(String key) {
+    if(key == null) return null;
     INDArray result = lookupVectors.vector(keyPreprocessor.preProcess(key));
     return result != null ? result.transpose() : null;
   }
@@ -384,6 +385,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
    */
   @Override
   public int index(String key) {
+    if(key == null) return -1;
     final int idx = keyVocabulary.indexOf(keyPreprocessor.preProcess(key));
     return idx >= 0 ? idx : -1; // AbstractCache returns -2 for unknown word
   }
