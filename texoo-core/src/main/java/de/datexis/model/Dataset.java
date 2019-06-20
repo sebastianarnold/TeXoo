@@ -2,6 +2,7 @@ package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,9 @@ public class Dataset {
     if(offset < 0) offset = countDocuments() + offset;
     if(count < 0) count = countDocuments() + count;
     List<Document> docs = streamDocuments(offset, count).collect(Collectors.toList());
-    return new Dataset(getName(), docs);
+    Dataset result = new Dataset(getName(), docs);
+    result.setQueries(Lists.newArrayList(getQueries()));
+    return result;
   }
   
   /**
@@ -257,6 +260,10 @@ public class Dataset {
     return queries.stream()
       .filter(q -> q.getId().equals(id))
       .findFirst();
+  }
+  
+  public void setQueries(List<Query> queries) {
+    this.queries = queries;
   }
   
   /**

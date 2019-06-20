@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * Result that is extended to hold Cranfield-style relevance judgements (0 - not relevant, 1 - relevant, or more ...)
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
-@JsonIgnoreProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RelevanceResult extends Result/*<Integer>*/ {
   
   protected final Logger log = LoggerFactory.getLogger(getClass());

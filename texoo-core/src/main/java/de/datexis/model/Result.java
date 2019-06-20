@@ -1,5 +1,6 @@
 package de.datexis.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -44,6 +45,13 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   
   public String getId() {
     return this.id;
+  }
+  
+  /** serialize this field as ID reference */
+  @JsonIgnore(false)
+  @JsonIdentityReference(alwaysAsId = true)
+  public Document getDocumentRef() {
+    return super.getDocumentRef();
   }
   
   @Override
