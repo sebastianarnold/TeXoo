@@ -178,7 +178,8 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
       INDArray sum = sums.get(key);
       int count = examples.get(key).size();
       if(sum != null) {
-        lookupVectors.putVector(key, count > 1 ? sum.divi(count) : sum);
+        INDArray avg = count > 1 ? sum.divi(count) : sum;
+        lookupVectors.putVector(keyPreprocessor.preProcess(key), avg);
         if(++num % 100000 == 0) log.info("inserted {} vectors into vector index", num);
       }
     }
@@ -562,7 +563,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
         
         VocabWord word = keyVocabulary.elementAtIndex(i);
         String key = word.getLabel();
-        INDArray vec = lookupVectors.vector(word.getLabel());
+        INDArray vec = lookupVectors.vector(key);
         gloveBuilder = new StringBuilder();
         vecBuilder = new StringBuilder();
         metaBuilder = new StringBuilder();
