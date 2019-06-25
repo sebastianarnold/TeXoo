@@ -14,6 +14,7 @@ import de.datexis.tagger.AbstractMultiDataSetIterator.Stage;
 import de.datexis.tagger.DocumentSentenceIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.api.storage.StatsStorage;
+import org.deeplearning4j.datasets.iterator.file.FileMultiDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.earlystopping.listener.EarlyStoppingListener;
@@ -51,6 +52,7 @@ import org.nd4j.shade.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -244,6 +246,21 @@ public class SectorTagger extends Tagger {
     );
 		return this;
     
+  }
+
+  public void trainModelPresaved(String path, int epochs) {
+    FileMultiDataSetIterator it = new FileMultiDataSetIterator(new File(path), batchSize);
+    timer.start();
+    for (int i = 0; i < epochs; ++i) {
+      getNN().fit(it, epochs);
+      it.reset();
+      appendTrainLog("Completed epoch " + i + " of " + numEpochs, timer.getLong("epoch"));
+      Nd4j.getMemoryManager().invokeGc();
+    }
+    timer.stop();
+    appendTrainLog("Training complete", timer.getLong());
+    Nd4j.getMemoryManager().togglePeriodicGc(true);
+    setModelAvailable(true);
   }
   
   @Override

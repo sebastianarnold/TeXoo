@@ -2,6 +2,7 @@ package de.datexis.sector;
 
 import de.datexis.annotator.Annotator;
 import de.datexis.annotator.AnnotatorComponent;
+import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.Encoder;
 import de.datexis.encoder.LookupCacheEncoder;
@@ -19,9 +20,12 @@ import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.sector.tagger.ScoreImprovementMinEpochsTerminationCondition;
 import de.datexis.sector.tagger.SectorEncoder;
 import de.datexis.sector.tagger.SectorTagger;
+import de.datexis.sector.tagger.SectorTaggerIterator;
+import de.datexis.tagger.AbstractMultiDataSetIterator;
 import de.datexis.tagger.DocumentSentenceIterator;
 import de.datexis.tagger.Tagger;
 import org.apache.commons.lang3.StringUtils;
+import org.deeplearning4j.datasets.iterator.AsyncMultiDataSetIterator;
 import org.deeplearning4j.earlystopping.EarlyStoppingConfiguration;
 import org.deeplearning4j.earlystopping.EarlyStoppingResult;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
@@ -39,6 +43,9 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -52,7 +59,13 @@ import java.util.stream.Collectors;
 public class SectorAnnotator extends Annotator {
 
   protected final static Logger log = LoggerFactory.getLogger(SectorAnnotator.class);
-  
+
+  protected String presavedDatasetDirectory = "";
+
+  public void setPresavedDatasetDirectory(Resource directory) {
+    this.presavedDatasetDirectory = directory.getPath().toAbsolutePath().toString();
+  }
+
   public static enum SegmentationMethod {
     NONE, // don't segment, only tag sentences
     GOLD, // use provided gold standard segmentation (perfect case)
@@ -211,6 +224,30 @@ public class SectorAnnotator extends Annotator {
     getTagger().appendTestLog(eval.printEvaluationStats());
     getTagger().appendTestLog(eval.printSingleClassStats());
     return eval.getScore();
+  }
+
+  public void exportBatchesToFiles(Resource directory, Dataset dataset, int batchsize, int queueSize) throws IOException {
+    SectorTagger tagger = getTagger();
+    if (queueSize == -1) {
+      queueSize = 256;
+    }
+    int maxTimeSeriesLength = tagger.getMaxTimeSeriesLength();
+    SectorTaggerIterator it = new SectorTaggerIterator(AbstractMultiDataSetIterator.Stage.TRAIN, dataset.getDocuments(), getTagger(), dataset.getDocuments().size(), maxTimeSeriesLength, batchsize, true, false);
+    AsyncMultiDataSetIterator ait = new AsyncMultiDataSetIterator(it, queueSize);
+    this.presavedDatasetDirectory = directory.getPath().toAbsolutePath().toString();
+
+    int batch = 0;
+    while (ait.hasNext()) {
+      BufferedOutputStream bo = new BufferedOutputStream(new FileOutputStream(presavedDatasetDirectory + "/train_" + batch + ".bin"));
+      ait.next().save(bo);
+      batch++;
+      log.info("Exported Batch: " + batch);
+      bo.close();
+    }
+  }
+
+  public void trainModelPresaved(int epochs) {
+    getTagger().trainModelPresaved(presavedDatasetDirectory, epochs);
   }
 
   /**
