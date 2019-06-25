@@ -1,4 +1,4 @@
-package de.datexis.model.impl;
+package de.datexis.retrieval.model;
 
 import de.datexis.model.Document;
 import org.slf4j.Logger;

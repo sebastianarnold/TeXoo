@@ -2,7 +2,7 @@ package de.datexis.retrieval.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
 import de.datexis.model.*;
-import de.datexis.model.impl.ScoredResult;
+import de.datexis.retrieval.model.ScoredResult;
 import org.nd4j.linalg.util.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

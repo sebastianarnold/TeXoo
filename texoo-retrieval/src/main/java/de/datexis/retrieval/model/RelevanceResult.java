@@ -1,4 +1,4 @@
-package de.datexis.model.impl;
+package de.datexis.retrieval.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
