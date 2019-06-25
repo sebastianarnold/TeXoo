@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,7 +22,8 @@ public class Query extends Document {
   
   protected final static Logger log = LoggerFactory.getLogger(Query.class);
   
-  public PriorityQueue<Result> results;
+  /** thread-safe list of results */
+  public PriorityBlockingQueue<Result> results;
   
   /**
    * Create a new Document from plain text
@@ -34,7 +35,7 @@ public class Query extends Document {
   }
   
   public Query() {
-    results = new PriorityQueue<>();
+    results = new PriorityBlockingQueue<>();
   }
   
   /**
