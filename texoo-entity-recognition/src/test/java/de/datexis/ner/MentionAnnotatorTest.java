@@ -3,19 +3,19 @@ package de.datexis.ner;
 import com.google.common.collect.Lists;
 import de.datexis.annotator.Annotator;
 import de.datexis.annotator.AnnotatorFactory;
-
 import de.datexis.common.Resource;
-import de.datexis.encoder.EncoderSet;
 import de.datexis.encoder.impl.LetterNGramEncoder;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.tag.BIO2Tag;
 import de.datexis.ner.tagger.MentionTagger;
 import de.datexis.preprocess.DocumentFactory;
-import java.io.IOException;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -99,7 +99,7 @@ public class MentionAnnotatorTest {
     ann.getProvenance()
         .setLanguage("en")
         .setTask("NER")
-        .setDataset("Test")
+        .setDataset("en_Test")
         .setFeatures("tri");
     
     // save model
@@ -107,7 +107,7 @@ public class MentionAnnotatorTest {
     ann.writeTestLog(path);
     ann.writeModel(path, "ner_test");
     
-    assertEquals("MentionAnnotator_NER_en_Test+tri_" + ann.getProvenance().getDate(), ann.getProvenance().toString());
+    assertEquals("MentionAnnotator_NER@en_Test+tri_" + ann.getProvenance().getDate(), ann.getProvenance().toString());
     
     // test model
     assertEquals(MentionAnnotator.class, ann.getClass());
