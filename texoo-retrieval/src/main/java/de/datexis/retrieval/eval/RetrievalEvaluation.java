@@ -2,6 +2,7 @@ package de.datexis.retrieval.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
 import de.datexis.model.*;
+import de.datexis.model.impl.ScoredResult;
 import org.nd4j.linalg.util.MathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
@@ -36,19 +36,19 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
   
   public void evaluateQueries(Collection<Query> queries) {
     for(Query q : queries) {
-    
+      
       // expected results (might be relevant or non-relevant) in relevance order
       Collection<Result> expected = q.getResults(Annotation.Source.GOLD, Result.class);
       // predicted results in score order
-      Collection<Result> predicted = q.getResults(Annotation.Source.PRED, Result.class);
+      List<ScoredResult> predicted = q.getResults(Annotation.Source.PRED, ScoredResult.class);
       double[] idcg = new double[] {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
   
+      // assign ranks to predictions and initialize them as not relevant
       AtomicInteger rank = new AtomicInteger(0);
-      // TODO: we're using this inner class only to provide a rank and relevance for this query
-      List<RankAtK> ranks = predicted.stream()
-        .map(p -> new RankAtK(p))
-        .peek(r -> r.rank = rank.incrementAndGet())
-        .collect(Collectors.toList());
+      predicted.stream().forEach(pred -> {
+        pred.setRank(rank.incrementAndGet());
+        pred.setRelevance(0);
+      });
       
       // match all expected results to assign IDCG, relevance and scores
       int p = 0;
@@ -61,10 +61,10 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
           idcg[p] = idcgSum;
           idcgKsum[p] += idcgSum;
         }
-        ranks.stream().forEach(r -> {
-          if(r.result.matches(exp)) {
-            r.relevant = exp.isRelevant();
-            r.relevance = exp.getRelevance();
+        predicted.stream().forEach(pred -> {
+          if(pred.matches(exp)) {
+            pred.setRelevant(exp.isRelevant());
+            pred.setRelevance(exp.getRelevance());
           }
         });
       }
@@ -76,75 +76,58 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
       }
       
       // MRR
-      Optional<RankAtK> first = ranks.stream()
-        .filter(r -> r.relevant)
+      Optional<? extends Result> first = predicted.stream()
+        .filter(pred -> pred.isRelevant())
         .findFirst();
-      if(first.isPresent()) mrrsum += (1. / first.get().rank);
+      if(first.isPresent()) mrrsum += (1. / first.get().getRank());
       
-      int relevant = 0; // number of relevant documents among the retrieved ones
+      int relevantPred = 0; // number of relevant documents among the retrieved ones
       double averagePrec = 0;
       double dcgSum = 0;
-      long allRetrieved = predicted.stream()
-        .filter(r -> r.isRelevant())
-        .count();
-      long allRelevant = expected.stream()
-        .filter(r -> r.isRelevant())
+      long relevantExp = expected.stream()
+        .filter(exp -> exp.isRelevant())
         .count();
       int k = 0;
-      for(RankAtK r : ranks) {
+      for(Result pred : predicted) {
         k++;
-        assert k == r.rank; // assumes that rs are sorted
-        if(r.relevant) relevant++;
+        assert k == pred.getRank(); // assumes that rs are sorted
+        if(pred.isRelevant()) relevantPred++;
         if(k <= 10) {
           // P@k / R@k
-          precisionKsum[k] += div(relevant, k);
-          recallKsum[k]  += div(relevant, allRelevant);
+          precisionKsum[k] += div(relevantPred, k);
+          recallKsum[k]  += div(relevantPred, relevantExp);
           // DCG
-          dcgSum += getDCGlog(r.relevance, k);
+          dcgSum += getDCGlog(pred.getRelevance(), k);
           dcgKsum[k] += dcgSum;
           // nDCG
           ndcgKsum[k] += dcgSum / idcg[k];
         }
-        if(r.relevant) averagePrec += div(relevant, k);
-        if(relevant >= allRelevant) break;
+        if(pred.isRelevant()) averagePrec += div(relevantPred, k);
+        if(relevantPred >= relevantExp) break; // we found all so we can stop
       }
       // fill values when retrieved < k
       while(k < 10) {
         k++;
-        precisionKsum[k] += div(relevant, k);
-        recallKsum[k]  += div(relevant, allRelevant);
+        precisionKsum[k] += div(relevantPred, k);
+        recallKsum[k]  += div(relevantPred, relevantExp);
         dcgKsum[k] += dcgSum; // unchanged when no more relevant documents appear
         ndcgKsum[k] += dcgSum / idcg[k];
       }
       
       // MAP
-      averagePrec = div(averagePrec, allRelevant);
+      averagePrec = div(averagePrec, relevantExp);
       mapsum += averagePrec;
       
       countExamples++;
-      if(first.isPresent()) {
-        log.info("Retrieved query {} with rank {} of {}.", q.toString(), first.get().rank, predicted.size());
-      } else {
-        log.warn("Retrieved no relevant result for query {} in {} results", q.toString(), predicted.size());
-      }
+      
     }
   
     log.info("{} queries, {} examples MRR={} P@1={} P@3={} P@5={} R@1={} R@3={} MAP={}",
       queries.size(), countExamples,
       getMRR(), getPrecisionK(1), getPrecisionK(3), getPrecisionK(5),
       getRecallK(1), getRecallK(3), getMAP()
-      );
+    );
   
-  }
-  
-  class RankAtK {
-    public RankAtK(Result result) {
-      this.result = result;
-    }
-    public Result result;
-    public int rank;
-    public boolean relevant = false;
-    public int relevance = 0;
   }
   
   protected double getDCGlog(int relevance, int p) {

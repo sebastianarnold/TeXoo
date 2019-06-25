@@ -12,18 +12,24 @@ import java.util.Comparator;
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class Result/*<S extends Comparable> */extends Annotation {
-  
-//  protected static Comparator<Double> nullsafeDoubleComparator =
-//  Comparator.nullsFirst(Double::compare);
+public abstract class Result extends Annotation {
   
   protected static Comparator<Result> resultComparator =
-    Comparator.comparing(Result::getScore, Comparator.nullsLast(Double::compare))
-      .thenComparing(Result::getRelevance, Comparator.nullsLast(Integer::compare));
+    Comparator.comparing(Result::getRank, Comparator.nullsLast(Integer::compare)) // lowest rank first
+      .thenComparing(Result::getScore, Comparator.nullsLast(Double::compare).reversed()) // highest score first
+      .thenComparing(Result::getRelevance, Comparator.nullsLast(Integer::compare).reversed()); // highest relevance first
   
-  protected /*S*/ Double score = null;
-  protected boolean sortDescending = true;
+  /* assigned ID for this result*/
   protected String id = null;
+  
+  /** score of this Result, highest ist best, NULL to ignore */
+  protected Double score = null;
+  
+  /** calculated rank of this result, lowest is best, NULL if unknown */
+  protected Integer rank = null;
+  
+  /** reference to an existing Annotation in a Document */
+  protected Annotation annotationRef = null;
   
   /** default constructor for JSON deserialization */
   protected Result() {};
@@ -54,6 +60,21 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
     return super.getDocumentRef();
   }
   
+  @JsonIgnore
+  public Annotation getAnnotationRef() {
+    return annotationRef;
+  }
+  
+  public void setAnnotationRef(Annotation ann) {
+    this.annotationRef = ann;
+  }
+  
+  @Override
+  @JsonIgnore
+  public double getConfidence() {
+    return super.getConfidence();
+  }
+  
   @Override
   @JsonIgnore
   public String getText() {
@@ -75,6 +96,20 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   }
   
   /**
+   * Set the ranking position 1..N
+   */
+  public void setRank(Integer rank) {
+    this.rank = rank;
+  }
+  
+  /**
+   * @return the ranking position 1..N or NULL if not ranked yet
+   */
+  public Integer getRank() {
+    return rank;
+  }
+  
+  /**
    * @return a relevence Value, which is assumed to be >0 if the result is relevant, 0 otherwise
    */
   public abstract Integer getRelevance();
@@ -85,17 +120,8 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   public abstract boolean isRelevant();
   
   /**
-   * Set to TRUE if high scores mean better ranking, FALSE otherwise.
+   * @return TRUE, iff the referred Document and offsets match exactly
    */
-  protected void setSortDescending(boolean sortDescending) {
-    this.sortDescending = sortDescending;
-  }
-  
-  @JsonIgnore
-  public boolean isSortDescending() {
-    return sortDescending;
-  }
-  
   public boolean matches(Result other) {
     return this.getDocumentRef().equals(other.getDocumentRef()) &&
       super.matches(other, Match.STRONG);
@@ -103,8 +129,7 @@ public abstract class Result/*<S extends Comparable> */extends Annotation {
   
   @Override
   public int compareTo(Span other) {
-    if(sortDescending) return resultComparator.compare((Result)other, this);
-    else return resultComparator.compare(this, (Result)other);
+    return resultComparator.compare(this, (Result)other);
   }
   
 }

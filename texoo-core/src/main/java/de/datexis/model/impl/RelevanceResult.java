@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RelevanceResult extends Result/*<Integer>*/ {
+public class RelevanceResult extends Result {
   
   protected final Logger log = LoggerFactory.getLogger(getClass());
   
@@ -23,17 +23,14 @@ public class RelevanceResult extends Result/*<Integer>*/ {
   
   public RelevanceResult(Source source) {
     super(source);
-    this.setSortDescending(true);
   }
   
   public RelevanceResult(Source source, Document doc, int begin, int end) {
     super(source, doc, begin, end);
-    this.setSortDescending(true);
   }
   
   public RelevanceResult(Source source, Document doc, int relevance) {
     super(source);
-    this.setSortDescending(true);
     this.setDocumentRef(doc);
     this.setRelevance(relevance);
   }
