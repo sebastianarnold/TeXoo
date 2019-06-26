@@ -231,7 +231,7 @@ public class SectorAnnotator extends Annotator {
     if (queueSize == -1) {
       queueSize = 256;
     }
-    int maxTimeSeriesLength = tagger.getMaxTimeSeriesLength();
+    int maxTimeSeriesLength = getTagger().getMaxTimeSeriesLength();
     SectorTaggerIterator it = new SectorTaggerIterator(AbstractMultiDataSetIterator.Stage.TRAIN, dataset.getDocuments(), getTagger(), dataset.getDocuments().size(), maxTimeSeriesLength, batchsize, true, false);
     AsyncMultiDataSetIterator ait = new AsyncMultiDataSetIterator(it, queueSize);
     this.presavedDatasetDirectory = directory.getPath().toAbsolutePath().toString();

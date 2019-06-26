@@ -1,26 +1,10 @@
 package de.datexis.tagger;
 
 import de.datexis.annotator.AnnotatorComponent;
-import de.datexis.annotator.IComponent;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
-import de.datexis.encoder.IDecoder;
-import de.datexis.encoder.IEncoder;
-import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
@@ -33,6 +17,15 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.nd4j.shade.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A Deep Neural Network Tagger. This is basically a wrapper for ComputationGraph
@@ -115,7 +108,15 @@ public abstract class Tagger extends AnnotatorComponent {
   public void setRandomize(boolean randomize) {
     this.randomize = randomize;
   }
-
+  
+  public int getMaxTimeSeriesLength() {
+    return maxTimeSeriesLength;
+  }
+  
+  public void setMaxTimeSeriesLength(int maxTimeSeriesLength) {
+    this.maxTimeSeriesLength = maxTimeSeriesLength;
+  }
+  
   public int getEmbeddingLayerSize() {
     return embeddingLayerSize;
   }
