@@ -194,6 +194,10 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
       example = input.get(batchIndex);
       INDArray vec = index.lookup(example.getText());
+      if(vec == null) {
+        log.debug("fallback encoding '{}' during lookup", example.getText());
+        vec = index.encode(example.getText()); // fallback encoding
+      }
       encoding.get(point(batchIndex), all()).assign(vec);
     }
     return encoding;
