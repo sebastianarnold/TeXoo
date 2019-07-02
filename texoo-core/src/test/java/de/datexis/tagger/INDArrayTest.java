@@ -105,12 +105,12 @@ public class INDArrayTest {
     
     INDArray arr = Nd4j.rand(20,1);
     String encoded = ObjectSerializer.getArrayAsBase64String(arr);
-    System.out.println(arr);
+    System.out.println(arr.transpose());
     System.out.println("encoded: " + encoded);
     assertNotNull(encoded);
 
     INDArray ret = ObjectSerializer.getArrayFromBase64String(encoded);
-    System.out.println(ret);
+    System.out.println(ret.transpose());
     assertEquals(arr, ret);
     
   }
