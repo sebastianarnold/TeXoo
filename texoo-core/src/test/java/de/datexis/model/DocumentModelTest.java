@@ -56,11 +56,11 @@ public class DocumentModelTest {
     assertEquals(5, doc.getSentence(0).getToken(1).getLength());
     assertEquals(8 + 5, doc.getSentence(0).getToken(1).getEnd());
     assertEquals(0, doc.getBegin());
-    assertEquals(66, doc.getLength());
-    assertEquals(66, doc.getEnd());
+    assertEquals(65, doc.getLength());
+    assertEquals(65, doc.getEnd());
     assertEquals(0, doc.getSentence(0).getBegin());
-    assertEquals(66, doc.getSentence(0).getLength());
-    assertEquals(66, doc.getSentence(0).getEnd());
+    assertEquals(65, doc.getSentence(0).getLength());
+    assertEquals(65, doc.getSentence(0).getEnd());
     assertEquals(doc, doc.getSentence(0).getDocumentRef());
   }
 

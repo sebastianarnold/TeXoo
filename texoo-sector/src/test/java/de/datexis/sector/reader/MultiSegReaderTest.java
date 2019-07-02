@@ -30,8 +30,8 @@ public class MultiSegReaderTest {
       assertEquals(doc.getSentence(i).getBegin(), anns.get(i).getBegin());
       assertEquals(doc.getSentence(i).getEnd(), anns.get(i).getEnd());
     }
-    assertEquals("I finally decided to try alternative medicine. \n", doc.getSentenceAtPosition(anns.get(2).getBegin()).get().getText());
-    assertEquals("I'm a little nervous about trying these unorthodox treatments, but after hearing about Amelia's and Ray's experiences, I'm willing to give them a try. Nothing has worked so far, so what do I have to lose? \n", doc.getSentence(10).getText());
+    assertEquals("I finally decided to try alternative medicine.", doc.getSentenceAtPosition(anns.get(2).getBegin()).get().getText());
+    assertEquals("I'm a little nervous about trying these unorthodox treatments, but after hearing about Amelia's and Ray's experiences, I'm willing to give them a try. Nothing has worked so far, so what do I have to lose?", doc.getSentence(10).getText());
     assertEquals(11, doc.countSentences());
     assertEquals(11, doc.countAnnotations());
 

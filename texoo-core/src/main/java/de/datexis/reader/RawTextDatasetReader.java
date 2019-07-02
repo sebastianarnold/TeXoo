@@ -60,7 +60,7 @@ public class RawTextDatasetReader extends DirectoryDatasetReader<RawTextDatasetR
         BufferedReader br = new BufferedReader(new InputStreamReader(in, utf8));
         String text = br.lines().collect(Collectors.joining("\n"));
         Document doc = isTokenized ? 
-            DocumentFactory.fromTokens(DocumentFactory.createTokensFromTokenizedText(text)) :
+            DocumentFactory.fromTokenizedText(text) :
             DocumentFactory.fromText(text, DocumentFactory.Newlines.KEEP);
         doc.setId(file.getFileName());
         doc.setSource(file.toString());

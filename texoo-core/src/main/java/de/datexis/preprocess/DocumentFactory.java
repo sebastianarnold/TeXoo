@@ -29,8 +29,8 @@ import static de.datexis.common.WordHelpers.skipSpaceAfter;
 import static de.datexis.common.WordHelpers.skipSpaceBefore;
 
 /**
- * Creates a fully tokenized Document from raw text or Stanford Tokens.
- * @author sarnold, fgrimme
+ * Creates a fully tokenized Document from raw text.
+ * @author sarnold, rschneider, fgrimme
  */
 public class DocumentFactory {
 
@@ -52,7 +52,6 @@ public class DocumentFactory {
   private final static String LANG_DE = "de";
   
   TreeMap<String, SentenceDetectorME> sentenceSplitter;
-  TreeMap<String, TokenizerME> plainTokenizer;
   TreeMap<String, TokenizerMENL> newlineTokenizer;
   
   TextObjectFactory textObjectFactory;
@@ -66,7 +65,6 @@ public class DocumentFactory {
   public DocumentFactory() {
     
     sentenceSplitter = new TreeMap<>();
-    plainTokenizer = new TreeMap<>();
     newlineTokenizer = new TreeMap<>();
     
     loadSentenceSplitter(LANG_EN, Resource.fromJAR("openNLP/en-sent.bin"));
@@ -100,7 +98,6 @@ public class DocumentFactory {
   private void loadTokenizer(String language, Resource modelPath) {
     try {
       TokenizerModel tokenModel = new TokenizerModel(modelPath.getInputStream());
-      plainTokenizer.put(language, new TokenizerME(tokenModel));
       newlineTokenizer.put(language, new TokenizerMENL(tokenModel));
     } catch (IOException ex) {
       throw new IllegalStateException("cannot load openNLP model '" + modelPath.toString() + "': " + ex.toString());
@@ -109,30 +106,48 @@ public class DocumentFactory {
   
   /**
    * Creates a Document with Sentences and Tokens from a String.
-   * Uses Stanford CoreNLP PTBTokenizerFactory and removes Tabs, Newlines and trailing whitespace.
-   * Use fromText(text, true) to keep the original String in memory.
-   * @param text
-   * @return 
+   * Newlines in the text will lead to new sentences, but will not be contained in the document.
+   * @param text The text to process
    */
   public static Document fromText(String text) {
 		return instance.createFromText(text);
 	}
-  
+	
+  /**
+   * Creates a Document with Sentences and Tokens from a String.
+   * Newlines in the text will always lead to new sentences, and you can choose to keep or discard them.
+   * @param text The text to process
+   * @param newlines Keep or discard newlines
+   */
   public static Document fromText(String text, Newlines newlines) {
 		return instance.createFromText(text, newlines);
 	}
   
+  /**
+   * Creates a Document with Sentences and Tokens from a String.
+   * Newlines in the text will always lead to new sentences, and you can choose to keep or discard them.
+   * @param text The text to process
+   * @param newlines Keep or discard newlines
+   * @param lang use a given language for tokenization and sentence splitting
+   */
   public static Document fromText(String text, Newlines newlines, WordHelpers.Language lang) {
     return instance.createFromText(text, newlines, lang);
   }
   
+  /**
+   * Creates a Document with Sentences and Tokens from a whitespace-tokenized String.
+   * The Tokens in the resulting Document will follow the tokenization from the input, and Sentences are split automatically.
+   * Whitespace between the tokens will be guessed according to some simple rules.
+   * @param text The tokenized text to process
+   */
   public static Document fromTokenizedText(String text) {
-    final List<Token> tokens = instance.tokenizeFast(text);
+    final List<Token> tokens = instance.createTokensFromTokenizedText(text, 0);
     return instance.createFromTokens(tokens);
   }
   
   /**
    * Creates a Document from existing Tokens, processing Span positions and Sentence splitting.
+   * @param tokens The list of Tokens to process in their natural order. WARNING: Token offsets must be set correctly!
    */
   public static Document fromTokens(List<Token> tokens) {
 		return instance.createFromTokens(tokens);
@@ -141,22 +156,48 @@ public class DocumentFactory {
   /**
    * Create Tokens from raw text, without sentence splitting.
    * If you don't need perfect tokenization of punctuation and Token offsets, consider using WordHelpers.splitSpaces()
+   * @param text The text to process
    */
   public static List<Token> createTokensFromText(String text) {
-		return instance.tokenizeFast(text);
+		return instance.createTokensFromText(text, 0);
 	}
   
   /**
    * Create Tokens from tokenized text, without sentence splitting.
+   * Whitespace between the tokens will be guessed according to some simple rules.
+   * @param text The tokenized text to process
    */
   public static List<Token> createTokensFromTokenizedText(String text) {
     return instance.createTokensFromTokenizedText(text, 0);
   }
     
   /**
-   * Creates a Document with Sentences and Tokens from a String.
-   * Uses Stanford CoreNLP PTBTokenizerFactory.
+   * Create a single Sentence from given Tokens, omitting Sentence splitting.
    */
+  public static Sentence createSentenceFromTokens(List<Token> tokens) {
+    Sentence s = new Sentence();
+    tokens.stream()
+      .filter(t -> !t.isEmpty())
+      .forEach(t -> s.addToken(t));
+    return s;
+  }
+  
+  public static Sentence createSentenceFromString(String text, String language) {
+    return createSentenceFromTokens(instance.createTokensFromText(text, 0, language));
+  }
+  
+  public static Sentence createSentenceFromTokenizedString(String text) {
+    return createSentenceFromTokens(instance.createTokensFromTokenizedText(text, 0));
+  }
+  
+  /**
+   * Detects the language of a text
+   * @return language code, e.g. "en" or "de"
+   */
+  public static String getLanguage(String text) {
+    return instance.detectLanguage(text);
+  }
+  
   public Document createFromText(String text) {
     Document doc = new Document();
     addToDocumentFromText(text, doc, Newlines.DISCARD);
@@ -179,7 +220,6 @@ public class DocumentFactory {
     String lang = doc.getLanguage();
     if(lang == null) {
       lang = detectLanguage(text);
-      //lang = WordHelpers.getLanguage(language);
       if(!lang.isEmpty()) doc.setLanguage(lang);
     }
     addToDocumentFromText(text, doc, newlines, lang);
@@ -226,20 +266,6 @@ public class DocumentFactory {
     }
   }
   
-  /** please use createTokensFromText() */
-  @Deprecated
-  public List<Token> tokenizeFast(String text) {
-    return createTokensFromText(text, 0);
-  }
-  
-  /**
-   * Detects the language of a text
-   * @return language code, e.g. "en" or "de"
-   */
-  public static String getLanguage(String text) {
-    return instance.detectLanguage(text);
-  }
-  
   public synchronized String detectLanguage(String text) {
     try {
       TextObject textObject = textObjectFactory.forText(text);
@@ -258,21 +284,6 @@ public class DocumentFactory {
       doc.addSentence(sentence, false);
     });
     return doc;
-  }
-  
-  /**
-   * Create a single Sentence from given Tokens, omitting Sentence splitting.
-   */
-  public static Sentence createSentenceFromTokens(List<Token> sentence) {
-    return instance.createSentenceFromTokens(sentence, "", 0);
-  }
-  
-  public static Sentence createSentenceFromString(String text, String language) {
-    return createSentenceFromTokens(instance.createTokensFromText(text, 0, language));
-  }
-  
-  public static Sentence createSentenceFromTokenizedString(String text) {
-    return createSentenceFromTokens(instance.createTokensFromTokenizedText(text, 0));
   }
   
   public List<Sentence> createSentencesFromTokens(List<Token> tokens) {
@@ -309,23 +320,6 @@ public class DocumentFactory {
     return result;
   }
   
-  private Sentence createSentenceFromTokens(List<Token> sentence, String last, Integer cursor) {
-    int length;
-    Sentence s = new Sentence();
-    s.setBegin(cursor);
-    for(Token t : sentence) {
-      if(!skipSpaceAfter.contains(last) && !skipSpaceBefore.contains(t.getText())) cursor++;
-      length = t.getText().length();
-      t.setBegin(cursor);
-      t.setLength(length);
-      cursor += length;
-      last = t.getText();
-      s.addToken(t);
-    }
-    s.setEnd(cursor);
-    return s;
-  }
-
   /**
    * Creates a list of Tokens from raw text (ignores sentences)
    */
@@ -338,7 +332,7 @@ public class DocumentFactory {
    * Creates a list of Tokens from raw text (ignores sentences)
    */
   public List<Token> createTokensFromText(String text, int offset, String language) {
-    TokenizerME tokenizer = plainTokenizer.getOrDefault(language, plainTokenizer.get(LANG_EN));
+    TokenizerME tokenizer = newlineTokenizer.getOrDefault(language, newlineTokenizer.get(LANG_EN));
     opennlp.tools.util.Span tokens[] = tokenizer.tokenizePos(text);
     List<Token> tokenList = new LinkedList<>();
     for(opennlp.tools.util.Span token : tokens) {

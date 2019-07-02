@@ -2,29 +2,22 @@ package de.datexis.sector.reader;
 
 import de.datexis.common.InternalResource;
 import de.datexis.common.Resource;
-import de.datexis.model.*;
+import de.datexis.model.Annotation;
+import de.datexis.model.Dataset;
+import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
 import de.datexis.reader.RawTextDatasetReader;
 import de.datexis.sector.model.SectionAnnotation;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Reader for MultiSeg dataset by Ivan Titov: "Multi-document topic segmentation". CIKM '10, Pages 1119-1128
@@ -126,7 +119,7 @@ public class MultiSegReader extends RawTextDatasetReader {
     // we don't split sentences here but use entire paragraphs to stay comparable to the paper
     for(String paragraph : text.split("\n")) {
       //List<Token> tokens = DocumentFactory.createTokensFromText(paragraph.trim() + "\n");
-      Document temp = DocumentFactory.fromText(paragraph.trim() + "\n", DocumentFactory.Newlines.KEEP);
+      Document temp = DocumentFactory.fromTokenizedText(paragraph.trim() + "\n");
       section.addSentence(DocumentFactory.createSentenceFromTokens(temp.getTokens()));
     }
     String sectionHead = Integer.toString(sectionId);

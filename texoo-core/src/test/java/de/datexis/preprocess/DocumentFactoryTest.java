@@ -1,6 +1,7 @@
 package de.datexis.preprocess;
 
 import de.datexis.model.Document;
+import de.datexis.model.Sentence;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -63,6 +64,44 @@ public class DocumentFactoryTest {
     //Assert.assertEquals(11, doc.countSentences());
     Assert.assertEquals(9, doc.countSentences()); // "...." are not detected as Sentence boundaries
     Assert.assertEquals(text.replace("\n", " "), doc.getText());
+  }
+  
+  @Test
+  public void testSentenceCreation() {
+    String text1 = "Nearing the coast of Mexico, the depression attained its peak intensity with winds of 35 mph (55 km/h) and a minimum pressure of 1,007 mbar (29.7 inHg).";
+    Document doc1 = DocumentFactory.fromText(text1);
+    Sentence sent1 = DocumentFactory.createSentenceFromString(text1, "en");
+    Assert.assertEquals(text1, sent1.getText()); // assert that whitespace is preserved
+    Assert.assertEquals(text1, doc1.getText()); // assert that whitespace is preserved
+    Assert.assertEquals(33, sent1.countTokens());
+    String text2 = "The National Hurricane Center issued the final advisory on July 7,[16] although the circulation persisted until July 9 southwest of Texas.[32]";
+    Document doc2 = DocumentFactory.fromText(text2);
+    Sentence sent2 = DocumentFactory.createSentenceFromString(text2, "en");
+    Assert.assertEquals(text2, sent2.getText()); // assert that whitespace is preserved
+    Assert.assertEquals(text2, doc2.getText()); // assert that whitespace is preserved
+    Assert.assertEquals(29, sent2.countTokens());
+  }
+  
+  @Test
+  public void testTokenizedSentenceCreation() {
+    String tokens1 = "Nearing the coast of Mexico , the depression attained its peak intensity with winds of 35 mph ( 55 km/h ) and a minimum pressure of 1,007 mbar ( 29.7 inHg ) .";
+    String text1 = "Nearing the coast of Mexico, the depression attained its peak intensity with winds of 35 mph (55 km/h) and a minimum pressure of 1,007 mbar (29.7 inHg).";
+    Document doc1 = DocumentFactory.fromTokenizedText(tokens1);
+    Sentence sent1 = DocumentFactory.createSentenceFromTokenizedString(tokens1);
+    Assert.assertEquals(33, doc1.countTokens());
+    Assert.assertEquals(33, sent1.countTokens());
+    Assert.assertEquals(tokens1, sent1.toTokenizedString()); // assert that tokenization is correct
+    Assert.assertEquals(text1, sent1.getText()); // assert that whitespace restoration makes sense
+    Assert.assertEquals(text1, doc1.getText()); // assert that sentence splitting does not alter the text
+    String tokens2 = "The National Hurricane Center issued the final advisory on July 7 , [16] although the circulation persisted until July 9 southwest of Texas . [32]";
+    String text2 = "The National Hurricane Center issued the final advisory on July 7, [16] although the circulation persisted until July 9 southwest of Texas. [32]";
+    Document doc2 = DocumentFactory.fromTokenizedText(tokens2);
+    Sentence sent2 = DocumentFactory.createSentenceFromTokenizedString(tokens2);
+    Assert.assertEquals(25, doc2.countTokens());
+    Assert.assertEquals(25, sent2.countTokens());
+    Assert.assertEquals(tokens2, sent2.toTokenizedString()); // assert that tokenization is correct
+    Assert.assertEquals(text2, sent2.getText()); // assert that whitespace restoration makes sense
+    Assert.assertEquals(text2, doc2.getText()); // assert that sentence splitting does not alter the text
   }
   
   @Test
