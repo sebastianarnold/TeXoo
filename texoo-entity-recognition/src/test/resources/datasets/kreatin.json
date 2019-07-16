@@ -1,0 +1,136 @@
+[ {
+  "id" : "https://de.wikipedia.org/wiki/Kreatin-Transporter-Defekt",
+  "title" : "Kreatin-Transporter-Defekt",
+  "language" : "de",
+  "type" : "disease",
+  "begin" : 0,
+  "length" : 1876,
+  "text" : "Die Häufigkeit ist nicht bekannt, bislang wurden mehr als 150 Betroffene beschrieben. Hauptsächlich ist das männliche Geschlecht betroffen. Die Vererbung erfolgt X-chromosomal-rezessiv.\nDer Erkrankung liegen Mutationen im SLC6A8-Gen auf dem X-Chromosom Genort q28, welches für einen Creatine transporter kodiert.\nZwischenzeitlich wurden weitere Kreatin-Transporter-Defekte identifiziert, so dass die X-Chromosomal vererbte Erkrankung abzugrenzen ist gegenüber\n- Typ II (GAMT-Mangel) (Synonym: Guanidinoacetate Methyltransferase Deficiency; GAMT Deficiency; Creatine Deficiency Syndrome Due To GAMT Deficiency; CCDS2) mit Mutationen im GAMT-Gen auf Chromosom 19 an p13.3, welches für die Guanidinoacetat-N-Methyltransferase kodiert\n- Typ III (AGAT-Mangel) (Synonym: Arginine:Glycine Amidinotransferase Deficiency; AGAT Deficiency; GATM Deficiency; Creatine Deficiency Syndrome Due To AGAT Deficiency; CCDS3) mit Mutationen im GATM-Gen auf Chromosom 15 an q21.q, welches für die kodiert.\nKlinische Kriterien sind:\n- Krankheitsbeginn während des Kindesalters, meist in den ersten Lebensjahren\n- intellektuelles Defizit\n- Verhaltensauffälligkeiten\n- Krampfanfälle\n- stark verzögerte Sprachentwicklung\nHinzu können Mikrozephalie, Hypoplasie des Mittelgesichtes mit langem und schmalem Gesicht und prominentem Kinn kommen.\nBei weiblichen Überträgern kann es zu milden neuropsychologischen Beeinträchtigungen kommen.\nIm Urin lässt sich eine erhöhte Ausscheidung von Kreatin nachweisen, in der Kernspinresonanzspektroskopie kann der Kreatinmangel im Gehirn erfasst werden. Die Diagnose wird durch eine humangenetische Untersuchung gesichert.\nAbzugrenzen sind andere Formen des Kreatinmangels wie der GAMT-Mangel oder AGAT-Mangel, s. unter Ursachen.\nBei einigen Patienten hat die hochdosierte Gabe von Kreatinmonohydrat, auch zusammen mit L-arginin und Glycin Verbesserungen gebracht.\n",
+  "annotations" : [ {
+    "class" : "PassageAnnotation",
+    "begin" : 0,
+    "length" : 186,
+    "label" : "Verbreitung"
+  }, {
+    "class" : "PassageAnnotation",
+    "begin" : 186,
+    "length" : 800,
+    "label" : "Ursache"
+  }, {
+    "class" : "PassageAnnotation",
+    "begin" : 986,
+    "length" : 424,
+    "label" : "Klinische Erscheinungen"
+  }, {
+    "class" : "PassageAnnotation",
+    "begin" : 1410,
+    "length" : 224,
+    "label" : "Diagnostik"
+  }, {
+    "class" : "PassageAnnotation",
+    "begin" : 1634,
+    "length" : 107,
+    "label" : "Differentialdiagnostik"
+  }, {
+    "class" : "PassageAnnotation",
+    "begin" : 1741,
+    "length" : 135,
+    "label" : "Behandlung"
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 190,
+    "text" : "Erkrankung",
+    "source" : "PRED",
+    "confidence" : 0.9971627481281757,
+    "type" : "GENERIC",
+    "length" : 10
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 241,
+    "text" : "X-Chromosom",
+    "source" : "PRED",
+    "confidence" : 0.9871597522869706,
+    "type" : "GENERIC",
+    "length" : 11
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 423,
+    "text" : "Erkrankung",
+    "source" : "PRED",
+    "confidence" : 0.9962760587222874,
+    "type" : "GENERIC",
+    "length" : 10
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 648,
+    "text" : "Chromosom 19",
+    "source" : "PRED",
+    "confidence" : 0.9452044370118529,
+    "type" : "GENERIC",
+    "length" : 12
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 938,
+    "text" : "Chromosom 15",
+    "source" : "PRED",
+    "confidence" : 0.8713856507092714,
+    "type" : "GENERIC",
+    "length" : 12
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1210,
+    "text" : "Mikrozephalie",
+    "source" : "PRED",
+    "confidence" : 0.9556727148592472,
+    "type" : "GENERIC",
+    "length" : 13
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1280,
+    "text" : "Gesicht",
+    "source" : "PRED",
+    "confidence" : 0.9565930627286434,
+    "type" : "GENERIC",
+    "length" : 7
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1304,
+    "text" : "Kinn",
+    "source" : "PRED",
+    "confidence" : 0.7656099200248718,
+    "type" : "GENERIC",
+    "length" : 4
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1459,
+    "text" : "Kreatin",
+    "source" : "PRED",
+    "confidence" : 0.9714563060551882,
+    "type" : "GENERIC",
+    "length" : 7
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1542,
+    "text" : "Gehirn",
+    "source" : "PRED",
+    "confidence" : 0.9889675956219435,
+    "type" : "GENERIC",
+    "length" : 6
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1569,
+    "text" : "Diagnose",
+    "source" : "PRED",
+    "confidence" : 0.9963444147724658,
+    "type" : "GENERIC",
+    "length" : 8
+  }, {
+    "class" : "MentionAnnotation",
+    "begin" : 1844,
+    "text" : "Glycin",
+    "source" : "PRED",
+    "confidence" : 0.963308185338974,
+    "type" : "GENERIC",
+    "length" : 6
+  } ]
+} ]

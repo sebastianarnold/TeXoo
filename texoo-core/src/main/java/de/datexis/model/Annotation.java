@@ -33,6 +33,9 @@ public abstract class Annotation extends Span {
     SAMPLED,
     /** Training annotation. Depicts that an Annotation was specifically selected for training. */
     TRAIN,
+    /** Unknown source. Depicts that an Annotation exists, but we don't know why (please avoid using this)*/
+    @Deprecated
+    UNK
   };
   
   /**
@@ -46,7 +49,7 @@ public abstract class Annotation extends Span {
   };
   
   protected String text;
-  protected Source source;
+  protected Source source = Source.UNK;
   protected double confidence = 0.;
   
   public Annotation(Source source, String text, int begin, int end) {
