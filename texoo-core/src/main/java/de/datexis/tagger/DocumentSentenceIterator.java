@@ -58,15 +58,17 @@ public abstract class DocumentSentenceIterator extends AbstractMultiDataSetItera
   protected DocumentBatch nextBatch(int num) {
     Document example;
     ArrayList<Document> examples = new ArrayList<>(num);
-    int exampleSize = 1; // guarantee to to not return a zero-size dataset
+    int maxWords = 1, maxSents = 1; // guarantee to to not return a zero-size dataset
     for(int batchNum=0; batchNum<num; batchNum++) {
       if(hasNext()) example = nextDocument();
       else example = new Document();
       examples.add(example);
-      if(maxTimeSeriesLength > 0) exampleSize = Math.min(Math.max(exampleSize, example.countSentences()), maxTimeSeriesLength);
-      else exampleSize = Math.max(exampleSize, example.countSentences());
+      if(maxTimeSeriesLength > 0) maxSents = Math.min(Math.max(maxSents, example.countSentences()), maxTimeSeriesLength);
+      else maxSents = Math.max(maxSents, example.countSentences());
+      OptionalInt longestSentence = example.streamSentences().mapToInt(s -> s.countTokens()).max();
+      maxWords = Math.max(maxWords, longestSentence.orElse(1));
     }
-    return new DocumentBatch(num, examples, exampleSize, null);
+    return new DocumentBatch(num, examples, maxSents, maxWords, null);
   }
   
   public class DocumentBatch {
@@ -74,11 +76,13 @@ public abstract class DocumentSentenceIterator extends AbstractMultiDataSetItera
     public MultiDataSet dataset;
     public int size;
     public int maxDocLength;
-    public DocumentBatch(int batchSize, List<Document> docs, int maxDocLength, MultiDataSet dataset) {
+    public int maxSentenceLength;
+    public DocumentBatch(int batchSize, List<Document> docs, int maxDocLength, int maxSentenceLength, MultiDataSet dataset) {
       this.size = batchSize;
       this.docs = docs;
       this.dataset = dataset;
       this.maxDocLength = maxDocLength;
+      this.maxSentenceLength = maxSentenceLength;
     }
   }
   
