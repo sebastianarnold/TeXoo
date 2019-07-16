@@ -1,15 +1,12 @@
 package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An extract of Sentence or Token References used for Training or Inference.
@@ -20,6 +17,9 @@ import org.slf4j.LoggerFactory;
 public class Snippet extends Document {
 
   protected final static Logger log = LoggerFactory.getLogger(Snippet.class);
+  
+  /** default constructor for JSON deserialization */
+  protected Snippet() {};
   
   /**
    * Create a Snippet from existing Document. Snippet is extended to Sentence boundaries.
