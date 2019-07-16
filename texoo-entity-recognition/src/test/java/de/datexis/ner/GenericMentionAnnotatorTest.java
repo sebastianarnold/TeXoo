@@ -5,14 +5,15 @@ import de.datexis.annotator.AnnotatorFactory;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
-import de.datexis.model.Snippet;
 import de.datexis.model.Sentence;
+import de.datexis.model.Snippet;
 import de.datexis.preprocess.DocumentFactory;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.Before;
 
 /**
  *
@@ -109,7 +110,7 @@ public class GenericMentionAnnotatorTest {
   public void testAnnotateType() throws IOException {
     
     Resource path = Resource.fromJAR("models");
-    MentionAnnotator annotatorEN = (MentionAnnotator) AnnotatorFactory.fromXML(path.resolve("MentionAnnotator_en_NER-GENERIC_WikiNER+tri_20170309")); 
+    MentionAnnotator annotatorEN = (MentionAnnotator) AnnotatorFactory.loadAnnotator(path.resolve("MentionAnnotator_en_NER-GENERIC_WikiNER+tri_20170309"));
     
     Document doc1 = DocumentFactory.fromText(textEN);
     annotatorEN.getTagger().setType("TEST");

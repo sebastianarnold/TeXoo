@@ -43,7 +43,7 @@ public class DocumentAnnotationTest {
 
   @Test
   public void streamAnnotationsIncludingSubtypesReturnsSubtypes() throws Exception {
-    Stream<Annotation> annotationStream = testDocument.streamAnnotationsIncludingSubtypes(Annotation.class);
+    Stream<Annotation> annotationStream = testDocument.streamAnnotations(Annotation.class, true);
     List<Annotation> collect = annotationStream.collect(Collectors.toList());
     boolean containsTestAnnotation = collect.contains(testAnnotation);
     boolean containsNERAnnotation = collect.contains(subtypeAnnotation);
@@ -54,7 +54,7 @@ public class DocumentAnnotationTest {
 
   @Test
   public void streamAnnotationsIncludingSubtypesReturnsNotSupertype() throws Exception {
-    Stream<SubtypeAnnotation> annotationStream = testDocument.streamAnnotationsIncludingSubtypes(SubtypeAnnotation.class);
+    Stream<SubtypeAnnotation> annotationStream = testDocument.streamAnnotations(SubtypeAnnotation.class, true);
     List<Annotation> collect = annotationStream.collect(Collectors.toList());
     boolean containsTestAnnotation = collect.contains(testAnnotation);
     boolean containsNERAnnotation = collect.contains(subtypeAnnotation);

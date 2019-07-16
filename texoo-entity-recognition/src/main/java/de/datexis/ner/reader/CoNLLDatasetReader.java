@@ -1,29 +1,31 @@
 package de.datexis.ner.reader;
 
-import de.datexis.preprocess.DocumentFactory;
-import static de.datexis.common.WordHelpers.skipSpaceAfter;
-import static de.datexis.common.WordHelpers.skipSpaceBefore;
 import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
+import de.datexis.model.Dataset;
+import de.datexis.model.Document;
+import de.datexis.model.Token;
+import de.datexis.model.tag.BIO2Tag;
+import de.datexis.model.tag.BIO2Tag.Label;
+import de.datexis.ner.MentionAnnotation;
+import de.datexis.preprocess.DocumentFactory;
+import de.datexis.reader.DatasetReader;
+import org.apache.commons.io.LineIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.commons.io.LineIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import de.datexis.ner.MentionAnnotation;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Token;
-import de.datexis.model.tag.BIO2Tag;
-import de.datexis.model.tag.BIO2Tag.Label;
-import de.datexis.reader.DatasetReader;
-import java.io.InputStream;
+
+import static de.datexis.common.WordHelpers.skipSpaceAfter;
+import static de.datexis.common.WordHelpers.skipSpaceBefore;
 
 /**
  * Reads a Dataset from CoNLL formatted file.
@@ -57,7 +59,7 @@ public class CoNLLDatasetReader implements DatasetReader {
   
   /**
    * Use a specific column as NER tag.
-   * @param index Use this index, starting from 0. Default: last column.
+   * @param tagIndex Use this index, starting from 0. Default: last column.
    */
   public CoNLLDatasetReader withTagIndex(int tagIndex) {
     this.tagIndex = tagIndex;
@@ -203,7 +205,7 @@ public class CoNLLDatasetReader implements DatasetReader {
 	/**
 	 * Creates Token from the given line of CoNLL2003 data
 	 * @param line - CoNLL2003 data to create Token
-	 * @param index - character index in the whole document
+	 * @param cursor - character index in the whole document
 	 * @return Token created from line
 	 */
 	protected Token createTokenFromLine(String line, int cursor, String prevType) {
@@ -225,9 +227,6 @@ public class CoNLLDatasetReader implements DatasetReader {
 
   /**
    * Returns the NER Label based on current and previous tags
-   * @param tag
-   * @param prevType
-   * @return 
    */
   protected BIO2Tag createTag(String label, String prevType) {
 		String[] parts = label.split("\\-");

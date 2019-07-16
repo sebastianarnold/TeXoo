@@ -34,7 +34,6 @@ public abstract class Annotation extends Span {
     /** Training annotation. Depicts that an Annotation was specifically selected for training. */
     TRAIN,
     /** Unknown source. Depicts that an Annotation exists, but we don't know why (please avoid using this)*/
-    @Deprecated
     UNK
   };
   

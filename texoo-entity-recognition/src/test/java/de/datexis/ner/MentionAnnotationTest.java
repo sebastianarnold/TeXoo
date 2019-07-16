@@ -1,26 +1,24 @@
 package de.datexis.ner;
 
+import de.datexis.common.AnnotationHelpers;
 import de.datexis.common.ObjectSerializer;
 import de.datexis.common.Resource;
-
-import de.datexis.model.Annotation;
+import de.datexis.model.*;
 import de.datexis.model.Annotation.Source;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Token;
 import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
 import de.datexis.ner.reader.CoNLLDatasetReader;
 import de.datexis.preprocess.DocumentFactory;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Test;
+
 import static org.junit.Assert.*;
-import org.junit.Before;
 
 /**
  *
@@ -173,35 +171,35 @@ public class MentionAnnotationTest {
     doc.addAnnotation(kengoAnn);
     assertEquals("Kengo", kengo.getText());
     assertEquals(2, doc.countAnnotations(Annotation.Source.GOLD, MentionAnnotation.class));
-    Iterator<MentionAnnotation> anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, 0, 0, true).iterator();
+    Iterator<MentionAnnotation> anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, 0, 0, true, false).iterator();
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, 0, 0, false).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, 0, 0, false, false).iterator();
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getBegin(), true).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getBegin(), true, false).iterator();
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getBegin(), false).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getBegin(), false, false).iterator();
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getEnd(), true).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getEnd(), true, false).iterator();
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getEnd(), false).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), prime.getEnd(), false, false).iterator();
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), primeMinisterAnn);
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getBegin(), true).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getBegin(), true, false).iterator();
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), primeMinisterAnn);
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getBegin(), false).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getBegin(), false, false).iterator();
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), primeMinisterAnn);
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getEnd(), true).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getEnd(), true, false).iterator();
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), primeMinisterAnn);
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), kengoAnn);
     assertFalse(anns.hasNext());
-    anns = doc.streamAnnotationsInRange(Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getEnd(), false).iterator();
+    anns = AnnotationHelpers.streamAnnotationsInRange(doc, Source.GOLD, MentionAnnotation.class, prime.getBegin(), kengo.getEnd(), false, false).iterator();
     assertTrue(anns.hasNext());
     assertEquals(anns.next(), primeMinisterAnn);
     assertTrue(anns.hasNext());

@@ -1,35 +1,34 @@
 package de.datexis.ner;
 
 import de.datexis.annotator.Annotator;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
+import net.amygdalum.stringsearchalgorithms.search.MatchOption;
+import net.amygdalum.stringsearchalgorithms.search.StringFinder;
+import net.amygdalum.stringsearchalgorithms.search.StringMatch;
+import net.amygdalum.stringsearchalgorithms.search.chars.SetBackwardOracleMatching;
+import net.amygdalum.stringsearchalgorithms.search.chars.StringSearchAlgorithm;
+import net.amygdalum.util.io.CharProvider;
+import net.amygdalum.util.io.StringCharProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import net.amygdalum.stringsearchalgorithms.search.MatchOption;
-import net.amygdalum.stringsearchalgorithms.search.StringFinder;
-import net.amygdalum.stringsearchalgorithms.search.StringMatch;
-import net.amygdalum.stringsearchalgorithms.search.chars.*;
-import net.amygdalum.util.io.CharProvider;
-import net.amygdalum.util.io.StringCharProvider;
 
 /**
  * An Annotator that creates MentionAnnotations based on a term list for String matching.
@@ -181,7 +180,6 @@ public class MatchingAnnotator extends Annotator {
    * Annotates a Dataset using the pre-trained list.
    * @param docs - the Documents to annotate
    * @param source - the type of annotations to create, e.g. SILVER
-   * @param fuzzyness - set to 0 for exact matching
    */
   public void annotate(Iterable<Document> docs, Annotation.Source source) {
     for(Document doc : docs) {

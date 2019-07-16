@@ -52,23 +52,6 @@ public abstract class AnnotatorEvaluation {
   public abstract void calculateScores(Collection<Document> docs);
   
   /**
-   * Calculate all scores for a given Dataset an Annoation level.
-   * This needs to be called before you can access getScore(). Existing scores will be cleared.
-   * @param documents - the test documents to evaluate
-   * @param annotationClass - the Annotation type that is being evaluated, requires a matching function
-   */
-  //public abstract void calculateScoresFromAnnotations(Iterable<Document> documents, Class<? extends Annotation> annotationClass);
-
-  /**
-   * Calculate all scores for a given Dataset an Annoation level.
-   * This needs to be called before you can access getScore(). Existing scores will be cleared.
-   * @param documents - the test documents to evaluate
-   * @param spanClass - the Span type that is being evaluated, e.g. Token.class or Sentence.class
-   * @param tagClass - the Tag type that is attached to the spans, e.g. BIOES.class
-   */
-  //public abstract void calculateScoresFromTags(Iterable<Document> documents, Class<? extends Span> spanClass, Class<? extends Tag> tagClass);
-  
-  /**
    * @return the primary score from last call to calculateScores()
    */
   public abstract double getScore();

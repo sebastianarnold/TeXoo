@@ -1,10 +1,30 @@
 package de.datexis.annotator;
 
-import com.google.common.collect.Lists;
 import de.datexis.common.ExternalResource;
-import de.datexis.tagger.Tagger;
 import de.datexis.common.Resource;
 import de.datexis.encoder.Encoder;
+import de.datexis.tagger.Tagger;
+import org.nd4j.shade.jackson.databind.ObjectMapper;
+import org.reflections.Configuration;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,20 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
-import javax.xml.bind.*;
-import javax.xml.parsers.*;
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.nd4j.shade.jackson.databind.ObjectMapper;
-import org.reflections.Configuration;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  * Factory Class for loading and saving Annotators
@@ -135,12 +141,12 @@ public class AnnotatorFactory {
   }
   
   @Deprecated //** please use loadAnnotator() */
-  public static Annotator fromXML(Resource path, String name) throws IOException {
+  protected static Annotator fromXML(Resource path, String name) throws IOException {
     return fromXML(path, name, new Resource[]{});
   }
   
   @Deprecated //** please use loadAnnotator() */
-  public static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
+  protected static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
     
     ObjectMapper mapper = new ObjectMapper();
     
