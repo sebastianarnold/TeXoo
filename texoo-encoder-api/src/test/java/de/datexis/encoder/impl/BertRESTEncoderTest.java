@@ -25,8 +25,8 @@ import java.util.List;
 
 public class BertRESTEncoderTest {
   public static final int EMBEDDING_VECTOR_SIZE = 1024;
-  public static final String domain = "localhost";
-  public static final int port = 8125;
+  public static final String DOMAIN = "localhost";
+  public static final int PORT = 8125;
 
 
   private final String DUMMY_TEXT = "This is a sentence. And this is another Sentence!";
@@ -44,7 +44,7 @@ public class BertRESTEncoderTest {
     dummySentence = dummyDocument.getSentence(0);
     dummyDocuments = Lists.newArrayList(dummyDocument);
 
-    restAdapter = new BertRESTAdapter("localhost", 8125, EMBEDDING_VECTOR_SIZE);
+    restAdapter = new BertRESTAdapter(DOMAIN, PORT, EMBEDDING_VECTOR_SIZE);
     bertRESTEncoder = new BertRESTEncoder(restAdapter, "testIdentifier");
   }
 
