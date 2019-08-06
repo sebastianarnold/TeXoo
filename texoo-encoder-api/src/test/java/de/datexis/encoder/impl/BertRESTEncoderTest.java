@@ -55,7 +55,7 @@ public class BertRESTEncoderTest {
     for (Token t : dummySentence.getTokens()) {
       INDArray embedding = t.getVector("testIdentifier");
       Assert.assertNotNull(embedding);
-      Assert.assertTrue(embedding.toFloatVector().length == 1024);
+      Assert.assertEquals(1024, embedding.toFloatVector().length);
     }
   }
 
@@ -66,7 +66,7 @@ public class BertRESTEncoderTest {
       for (Token t : s.getTokens()) {
         INDArray embedding = t.getVector("testIdentifier");
         Assert.assertNotNull(embedding);
-        Assert.assertTrue(embedding.toFloatVector().length == 1024);
+        Assert.assertEquals(1024, embedding.toFloatVector().length);
       }
     }
   }
@@ -77,7 +77,7 @@ public class BertRESTEncoderTest {
     for (Token t : dummySentence.getTokens()) {
       INDArray embedding = t.getVector("testIdentifier");
       Assert.assertNotNull(embedding);
-      Assert.assertTrue(embedding.toFloatVector().length == 1024);
+      Assert.assertEquals(1024, embedding.toFloatVector().length);
     }
   }
 

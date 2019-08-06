@@ -1,13 +1,22 @@
 package de.datexis.encoder.impl.BERTAsAService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import de.datexis.encoder.impl.AbstractRESTAdapter;
 import de.datexis.encoder.impl.serde.DeserializationProvider;
 import de.datexis.encoder.impl.serde.JacksonSerdeProvider;
 import de.datexis.encoder.impl.serde.SerializationProvider;
+import de.datexis.model.Document;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 
 public class BertRESTAdapter extends AbstractRESTAdapter {
@@ -24,11 +33,6 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
 
   private JacksonSerdeProvider serdeProvider;
 
-  private class BaaSRequest {
-    public int id = 0;
-    public String[][] texts;
-    public boolean is_tokenized = true;
-  }
 
   public BertRESTAdapter(String domain, int port, long embeddingVectorSize) {
     super(embeddingVectorSize, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT);
@@ -36,6 +40,74 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     this.port = port;
     serdeProvider = new JacksonSerdeProvider();
 
+  }
+
+  public BertResponse simpleRequest(String request) throws IOException {
+    URL url = getUrl();
+    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+    con.setRequestMethod("POST");
+    con.setRequestProperty("Content-Type", "application/json");
+    con.setDoInput(true);
+    con.setDoOutput(true);
+    try (OutputStream os = con.getOutputStream()) {
+      byte[] input = request.getBytes("utf-8");
+      os.write(input, 0, input.length);
+    }
+
+    BertResponse bertResponse = null;
+
+    try (BufferedReader br = new BufferedReader(
+      new InputStreamReader(con.getInputStream(), "utf-8"))) {
+      StringBuilder response = new StringBuilder();
+      String responseLine = null;
+      while ((responseLine = br.readLine()) != null) {
+        response.append(responseLine);
+      }
+
+      Gson gson = new Gson();
+      bertResponse = gson.fromJson(response.toString(), BertResponse.class);
+    }
+
+    return bertResponse;
+  }
+
+  public BertNonTokenizedResponse simpleRequestNonTokenized(Document d) throws IOException {
+    Gson gson = new Gson();
+    String[] sentences = new String[d.getSentences().size()];
+    for (int i = 0; i < d.getSentences().size(); ++i) {
+      sentences[i] = d.getSentence(i).getText();
+    }
+    BaaSRequestNonTokenized request = new BaaSRequestNonTokenized();
+    request.texts = sentences;
+    String req = gson.toJson(request);
+
+
+    URL url = getUrl();
+    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+    con.setRequestMethod("POST");
+    con.setRequestProperty("Content-Type", "application/json");
+    con.setDoInput(true);
+    con.setDoOutput(true);
+    try (OutputStream os = con.getOutputStream()) {
+      byte[] input = req.getBytes("utf-8");
+      os.write(input, 0, input.length);
+    }
+
+    BertNonTokenizedResponse bertResponse = null;
+
+    try (BufferedReader br = new BufferedReader(
+      new InputStreamReader(con.getInputStream(), "utf-8"))) {
+      StringBuilder response = new StringBuilder();
+      String responseLine = null;
+      while ((responseLine = br.readLine()) != null) {
+        response.append(responseLine);
+      }
+
+      gson = new Gson();
+      bertResponse = gson.fromJson(response.toString(), BertNonTokenizedResponse.class);
+    }
+
+    return bertResponse;
   }
 
 
@@ -77,6 +149,7 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     }
     return result;
   }
+
 
   @Override
   public SerializationProvider getSerializationProvider() {
