@@ -135,7 +135,7 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
       .filter(d -> d.getSentences().size() > 0)
       .map(d -> {
         try {
-          return this.adapter.simpleRequestNonTokenized(d);
+          return this.adapter.simpleRequestNonTokenized(d, maxSequenceLength);
         } catch (IOException e) {
           e.printStackTrace();
           System.out.println("Error at document: " + d.getId());
