@@ -1,16 +1,13 @@
 package de.datexis.model.tag;
 
-import de.datexis.model.Annotation;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Token;
-import java.util.Iterator;
-import java.util.Objects;
+import de.datexis.model.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * A Tag that is used to label a single Token in BIO2 format, used for sequence learning.
@@ -213,8 +210,6 @@ public class BIO2Tag implements Tag {
    * Converts BIO2 Tags to BIOES Tags
    * requires: BIO2Tag.class on Token.class
    * attaches: BIOESTag.class to Token.class
-   * @param data
-   * @param source 
    */
   public static void convertToBIOES(Document doc, Annotation.Source source) {
     for(Sentence sent : doc.getSentences()) {
@@ -226,8 +221,6 @@ public class BIO2Tag implements Tag {
    * Converts BIO2 Tags to BIOES Tags
    * requires: BIO2Tag.class on Token.class
    * attaches: BIOESTag.class to Token.class
-   * @param sent
-   * @param source 
    */
   public static synchronized void convertToBIOES(Sentence sent, Annotation.Source source) {
     Token l = new Token("");

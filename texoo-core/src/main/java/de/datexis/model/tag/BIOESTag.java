@@ -1,24 +1,13 @@
 package de.datexis.model.tag;
 
-import de.datexis.model.Annotation;
+import de.datexis.model.*;
 import de.datexis.model.Annotation.Source;
-import de.datexis.model.Dataset;
-import de.datexis.model.Document;
-import de.datexis.model.Sentence;
-import de.datexis.model.Token;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * A Tag that is used to label a single Token in BIOES format, used for sequence learning.
@@ -345,8 +334,6 @@ public class BIOESTag implements Tag {
   
   /**
    * Corrects the order of BIOES Tags similar to a CRF Classifier.
-   * @param doc
-   * @param source 
    */
   public static synchronized void correctCRF(Sentence sent, Annotation.Source source) {
 

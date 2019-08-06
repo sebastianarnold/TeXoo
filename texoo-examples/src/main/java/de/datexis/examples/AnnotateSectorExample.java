@@ -1,25 +1,28 @@
 package de.datexis.examples;
 
-import de.datexis.sector.model.SectionAnnotation;
-import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.annotator.AnnotatorFactory;
-import de.datexis.common.*;
+import de.datexis.common.AnnotationHelpers;
+import de.datexis.common.DialogHelpers;
+import de.datexis.common.Resource;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.sector.SectorAnnotator;
+import de.datexis.sector.encoder.ClassEncoder;
 import de.datexis.sector.encoder.HeadingEncoder;
+import de.datexis.sector.model.SectionAnnotation;
 import de.datexis.sector.reader.WikiSectionReader;
 import de.datexis.sector.tagger.SectorEncoder;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Run experiments on a pre-trained SECTOR model
@@ -52,7 +55,7 @@ public class AnnotateSectorExample {
     Nd4j.create(1);
     
     // --- load model ----------------------------------------------------------
-    SectorAnnotator sector = (SectorAnnotator) AnnotatorFactory.fromXML(modelPath);
+    SectorAnnotator sector = (SectorAnnotator) AnnotatorFactory.loadAnnotator(modelPath);
     HeadingEncoder headings = ((HeadingEncoder)sector.getComponent("HL"));
     ClassEncoder labels = ((ClassEncoder)sector.getComponent("CLS"));
     
@@ -71,8 +74,8 @@ public class AnnotateSectorExample {
     System.out.println("GOLD HEADING\tPRED HEADINGS\tPRED LABEL\tEMBEDDING\tTEXT");
     for(Sentence s : doc.getSentences()) {
       // These are the Annotations for this Sentence:
-      SectionAnnotation gold = doc.getAnnotationsForSpan(Annotation.Source.GOLD, SectionAnnotation.class, s).stream().findFirst().get();
-      SectionAnnotation pred = doc.getAnnotationsForSpan(Annotation.Source.PRED, SectionAnnotation.class, s).stream().findFirst().get();
+      SectionAnnotation gold = AnnotationHelpers.getAnnotationsForSpan(doc, Annotation.Source.GOLD, SectionAnnotation.class, s).stream().findFirst().get();
+      SectionAnnotation pred = AnnotationHelpers.getAnnotationsForSpan(doc, Annotation.Source.PRED, SectionAnnotation.class, s).stream().findFirst().get();
       // This is the topic embedding:
       INDArray embedding = s.getVector(SectorEncoder.class);
       // This is the headline prediction:

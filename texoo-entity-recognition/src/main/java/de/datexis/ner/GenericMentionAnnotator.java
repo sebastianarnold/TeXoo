@@ -3,14 +3,15 @@ package de.datexis.ner;
 import de.datexis.annotator.AnnotatorFactory;
 import de.datexis.common.Resource;
 import de.datexis.model.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A generic Named Entity Mention Annotator with language detection.
@@ -45,8 +46,8 @@ public class GenericMentionAnnotator extends MentionAnnotator {
    * Please use GenericMentionAnnotator().create()
    */
   protected GenericMentionAnnotator() throws IOException {
-    annotatorEN = (MentionAnnotator) AnnotatorFactory.fromXML(path.resolve("MentionAnnotator_en_NER-GENERIC_WikiNER+tri_20170309")); // English Wiki Entities
-    annotatorDE = (MentionAnnotator) AnnotatorFactory.fromXML(path.resolve("MentionAnnotator_de_NER-GENERIC_WikiNER+tri_20170309")); // German Wiki Entities
+    annotatorEN = (MentionAnnotator) AnnotatorFactory.loadAnnotator(path.resolve("MentionAnnotator_en_NER-GENERIC_WikiNER+tri_20170309")); // English Wiki Entities
+    annotatorDE = (MentionAnnotator) AnnotatorFactory.loadAnnotator(path.resolve("MentionAnnotator_de_NER-GENERIC_WikiNER+tri_20170309")); // German Wiki Entities
   }
   
   /**

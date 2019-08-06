@@ -1,7 +1,6 @@
 package de.datexis.model;
 
 import com.fasterxml.jackson.annotation.*;
-import de.datexis.common.AnnotationHelpers;
 import de.datexis.common.WordHelpers;
 import de.datexis.model.tag.Tag;
 import de.datexis.preprocess.DocumentFactory;
@@ -344,42 +343,10 @@ public class Document extends Span {
   }
   
   /**
-   * Please use streamAnnotations(..., true)
-   */
-  @Deprecated
-  public <A extends Annotation> Stream<A> streamAnnotationsIncludingSubtypes(Class<A> type) {
-    return streamAnnotations(type, true);
-  }
-
-  /**
    * @return all Annotations for JSON deserialization
    */
   public Collection<? extends Annotation> getAnnotations() {
     return streamAnnotations().collect(Collectors.toList());
-  }
-  
-  /** Please use AnnotationHelpers.* */
-  @Deprecated
-  public <A extends Annotation> Stream<A> streamAnnotationsInRange(Annotation.Source source, Class<A> type, int begin, int end, boolean enclosed) {
-    return AnnotationHelpers.streamAnnotationsInRange(this, source,type, begin, end, enclosed, false);
-  };
-  
-  /** Please use AnnotationHelpers.* */
-  @Deprecated
-  public <A extends Annotation> Stream<A> streamAnnotationsForSpan(Annotation.Source source, Class<A> type, Span s) {
-    return streamAnnotationsInRange(source, type, s.getBegin(), s.getEnd(), false);
-  }
-  
-  /** Please use AnnotationHelpers.* */
-  @Deprecated
-  public <A extends Annotation> Collection<A> getAnnotationsForSpan(Annotation.Source source, Class<A> type, Span s) {
-    return streamAnnotationsForSpan(source, type, s).collect(Collectors.toList());
-  }
-  
-  /** Please use AnnotationHelpers.* */
-  @Deprecated
-  public <A extends Annotation> Optional<A> getAnnotationMaxOverlap(Annotation.Source source, Class<A> type, Span s) {
-   return AnnotationHelpers.getAnnotationMaxOverlap(this, source, type, s);
   }
   
   public <A extends Annotation> Collection<A> getAnnotations(Class<A> type) {

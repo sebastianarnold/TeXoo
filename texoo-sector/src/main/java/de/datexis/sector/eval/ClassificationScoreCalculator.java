@@ -7,7 +7,6 @@ import org.deeplearning4j.datasets.iterator.AsyncMultiDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultiDataSetWrapperIterator;
 import org.deeplearning4j.datasets.iterator.impl.MultiDataSetIteratorAdapter;
 import org.deeplearning4j.earlystopping.scorecalc.base.BaseIEvaluationScoreCalculator;
-import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.Model;
 import org.deeplearning4j.nn.conf.BackpropType;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -20,7 +19,7 @@ import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import java.util.Map;
 
 /**
- * Score function for evaluating a MultiLayerNetwork according to an evaluation metric ({@link Evaluation.Metric} such
+ * Score function for evaluating a MultiLayerNetwork according to an evaluation metric such
  * as accuracy, F1 score, etc.
  * Used for both MultiLayerNetwork and ComputationGraph
  *

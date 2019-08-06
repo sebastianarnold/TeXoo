@@ -65,10 +65,8 @@ public class MentionAnnotatorTest {
     annotator.writeTestLog(path);
     annotator.writeModel(path);
     
-    // TODO: check if all models are saved and exist?
-    Annotator test = AnnotatorFactory.fromXML(path);
+    Annotator test = AnnotatorFactory.loadAnnotator(path);
     //assertEquals(Annotator.class, test.getClass());
-    // TODO: set model to available only when it was properly loaded!
     assertTrue(annotator.isModelAvailable()); // EmptyTagger is available
     assertTrue(annotator.isModelAvailableInChildren());
     
@@ -117,7 +115,7 @@ public class MentionAnnotatorTest {
     ann.getTagger().tag(data.getDocuments());
     
     // load saved model
-    Annotator test = AnnotatorFactory.fromXML(path, "ner_test.xml");
+    Annotator test = AnnotatorFactory.loadAnnotator(path);
     
     // test saved model
     assertEquals(MentionAnnotator.class, test.getClass());

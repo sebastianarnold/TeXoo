@@ -1,6 +1,7 @@
 package de.datexis.sector.eval;
 
 import de.datexis.annotator.AnnotatorEvaluation;
+import de.datexis.common.AnnotationHelpers;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
@@ -87,7 +88,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
     for(Document doc : documents) {
       // match relevant annotations to predicted annotations
       for(Annotation expected : doc.getAnnotations(expectedSource, annotationClass)) {
-        Optional<? extends Annotation> predicted = doc.getAnnotationMaxOverlap(predictedSource, annotationClass, expected);
+        Optional<? extends Annotation> predicted = AnnotationHelpers.getAnnotationMaxOverlap(doc, predictedSource, annotationClass, expected);
         if(predicted.isPresent()) {
           matched.put(predicted.get(), true);
           INDArray r = expected.getVector(encoder.getClass()).transpose();
@@ -101,7 +102,7 @@ public class ClassificationEvaluation extends AnnotatorEvaluation implements IEv
       // match additional predicted annotations to expected
       for(Annotation predicted : doc.getAnnotations(predictedSource, annotationClass)) {
         if(!matched.containsKey(predicted)) {
-          Optional<? extends Annotation> expected = doc.getAnnotationMaxOverlap(expectedSource, annotationClass, predicted);
+          Optional<? extends Annotation> expected = AnnotationHelpers.getAnnotationMaxOverlap(doc, expectedSource, annotationClass, predicted);
           if(expected.isPresent()) {
             INDArray r = expected.get().getVector(encoder.getClass()).transpose();
             INDArray p = predicted.getVector(encoder.getClass()).transpose();
