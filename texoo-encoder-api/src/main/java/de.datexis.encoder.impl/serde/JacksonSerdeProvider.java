@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class JacksonSerdeProvider implements SerializationProvider, DeserializationProvider {
-  private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   public <O> O deserialize(InputStream inputStream, Class<O> classOfO) throws IOException {
