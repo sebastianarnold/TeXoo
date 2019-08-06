@@ -73,7 +73,7 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
 
   public BertNonTokenizedResponse simpleRequestNonTokenized(Document d, int maxSequenceLength) throws IOException {
     Gson gson = new Gson();
-    String[] sentences = new String[d.getSentences().size()];
+    String[] sentences = new String[Math.min(d.getSentences().size(),maxSequenceLength)];
     for (int i = 0; i < Math.min(d.getSentences().size(), maxSequenceLength); ++i) {
       sentences[i] = d.getSentence(i).getText();
     }
