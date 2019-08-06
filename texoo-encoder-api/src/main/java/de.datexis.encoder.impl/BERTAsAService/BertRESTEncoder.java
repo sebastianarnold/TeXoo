@@ -27,13 +27,13 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
   private BertRESTAdapter adapter;
 
   public BertRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
-    super(restAdapter, vectorIdentifier, Token.class);
+    super(restAdapter, vectorIdentifier, Sentence.class);
     this.vectorIdentifier = vectorIdentifier;
     this.adapter = (BertRESTAdapter) restAdapter;
   }
 
   public BertRESTEncoder(RESTAdapter restAdapter) {
-    super(restAdapter, Token.class);
+    super(restAdapter, Sentence.class);
     this.vectorIdentifier = vectorIdentifier;
     this.adapter = (BertRESTAdapter) restAdapter;
   }
