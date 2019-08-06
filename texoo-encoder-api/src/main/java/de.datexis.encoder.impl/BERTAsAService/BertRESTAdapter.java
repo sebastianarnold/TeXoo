@@ -71,10 +71,10 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     return bertResponse;
   }
 
-  public BertNonTokenizedResponse simpleRequestNonTokenized(Document d) throws IOException {
+  public BertNonTokenizedResponse simpleRequestNonTokenized(Document d, int maxSequenceLength) throws IOException {
     Gson gson = new Gson();
-    String[] sentences = new String[d.getSentences().size()];
-    for (int i = 0; i < d.getSentences().size(); ++i) {
+    String[] sentences = new String[Math.min(d.getSentences().size(),maxSequenceLength)];
+    for (int i = 0; i < Math.min(d.getSentences().size(), maxSequenceLength); ++i) {
       sentences[i] = d.getSentence(i).getText();
     }
     BaaSRequestNonTokenized request = new BaaSRequestNonTokenized();

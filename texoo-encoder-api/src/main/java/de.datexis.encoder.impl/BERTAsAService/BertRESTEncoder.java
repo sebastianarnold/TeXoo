@@ -27,13 +27,13 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
   private BertRESTAdapter adapter;
 
   public BertRESTEncoder(RESTAdapter restAdapter, String vectorIdentifier) {
-    super(restAdapter, vectorIdentifier, Token.class);
+    super(restAdapter, vectorIdentifier, Sentence.class);
     this.vectorIdentifier = vectorIdentifier;
     this.adapter = (BertRESTAdapter) restAdapter;
   }
 
   public BertRESTEncoder(RESTAdapter restAdapter) {
-    super(restAdapter, Token.class);
+    super(restAdapter, Sentence.class);
     this.vectorIdentifier = vectorIdentifier;
     this.adapter = (BertRESTAdapter) restAdapter;
   }
@@ -130,14 +130,20 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
 
   public INDArray encodeDocumentsParallelNoTokenization(Collection<Document> documents, int maxSequenceLength) {
     INDArray encoding = EncodingHelpers.createTimeStepMatrix((long) documents.size(), this.getEmbeddingVectorSize(), (long) maxSequenceLength);
-    List<BertNonTokenizedResponse> responses = documents.parallelStream().map(d -> {
-      try {
-        return this.adapter.simpleRequestNonTokenized(d);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      return null;
-    }).sorted(Comparator.comparingInt(b -> b.id)).collect(Collectors.toList());
+    List<BertNonTokenizedResponse> responses = documents.parallelStream()
+      .filter(Objects::nonNull)
+      .filter(d -> d.getSentences().size() > 0)
+      .map(d -> {
+        try {
+          return this.adapter.simpleRequestNonTokenized(d, maxSequenceLength);
+        } catch (IOException e) {
+          e.printStackTrace();
+          System.out.println("Error at document: " + d.getId());
+        }
+        return null;
+      }).filter(Objects::nonNull)
+      .sorted(Comparator.comparingInt(b -> b.id))
+      .collect(Collectors.toList());
 
     int docIndex = 0;
     for (BertNonTokenizedResponse resp : responses) {
