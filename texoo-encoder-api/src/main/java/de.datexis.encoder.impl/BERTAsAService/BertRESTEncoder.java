@@ -12,6 +12,7 @@ import de.datexis.model.Token;
 import org.datavec.api.writable.DoubleWritable;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.io.IOException;
 import java.net.URL;
@@ -149,7 +150,7 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
     for (BertNonTokenizedResponse resp : responses) {
       for (int i = 0; i < resp.result.length && i < maxSequenceLength; ++i) {
         INDArray vec = Nd4j.create(resp.result[i], new long[]{getEmbeddingVectorSize(), 1});
-        EncodingHelpers.putTimeStep(encoding, (long) docIndex, (long) i, vec);
+        EncodingHelpers.putTimeStep(encoding, (long) docIndex, (long) i, Transforms.unitVec(vec));
       }
       docIndex++;
     }
