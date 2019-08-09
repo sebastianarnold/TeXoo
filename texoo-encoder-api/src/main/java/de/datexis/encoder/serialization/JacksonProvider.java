@@ -1,4 +1,4 @@
-package encoder.serialization;
+package de.datexis.encoder.serialization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class JacksonProvider implements encoder.serialization.SerializationProvider, encoder.serialization.DeserializationProvider {
+public class JacksonProvider implements SerializationProvider, DeserializationProvider {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   @Override

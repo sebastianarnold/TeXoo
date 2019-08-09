@@ -1,4 +1,4 @@
-package encoder;
+package de.datexis.encoder;
 
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 /**
  * A simple implementation as base for most REST encoders.
  */
-public abstract class SimpleRESTEncoder extends encoder.AbstractRESTEncoder {
+public abstract class SimpleRESTEncoder extends AbstractRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(SimpleRESTEncoder.class);
 
   private Class<? extends Span> elementClass;
@@ -31,13 +31,13 @@ public abstract class SimpleRESTEncoder extends encoder.AbstractRESTEncoder {
     super(id);
   }
   
-  public SimpleRESTEncoder(String id, encoder.RESTAdapter restAdapter, Class<? extends Span> elementClass) {
+  public SimpleRESTEncoder(String id, RESTAdapter restAdapter, Class<? extends Span> elementClass) {
     super(id, restAdapter);
     this.elementClass = elementClass;
     this.vectorIdentifier = vectorIdentifier;
   }
 
-  public SimpleRESTEncoder(String id, encoder.RESTAdapter restAdapter, String vectorIdentifier, Class<? extends Span> elementClass) {
+  public SimpleRESTEncoder(String id, RESTAdapter restAdapter, String vectorIdentifier, Class<? extends Span> elementClass) {
     super(id, restAdapter);
     this.elementClass = elementClass;
     this.vectorIdentifier = vectorIdentifier;

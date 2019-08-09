@@ -1,9 +1,9 @@
-package encoder.elmo;
+package de.datexis.encoder.elmo;
 
-import encoder.AbstractRESTAdapter;
-import encoder.serialization.DeserializationProvider;
-import encoder.serialization.JacksonProvider;
-import encoder.serialization.SerializationProvider;
+import de.datexis.encoder.AbstractRESTAdapter;
+import de.datexis.encoder.serialization.DeserializationProvider;
+import de.datexis.encoder.serialization.JacksonProvider;
+import de.datexis.encoder.serialization.SerializationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

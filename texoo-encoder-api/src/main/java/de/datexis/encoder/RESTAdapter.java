@@ -1,4 +1,4 @@
-package encoder;
+package de.datexis.encoder;
 
 import java.io.IOException;
 

@@ -1,6 +1,5 @@
 package de.datexis.encoder.fasttext;
 
-import encoder.fasttext.FastTextRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -1,11 +1,11 @@
-package encoder.fasttext;
+package de.datexis.encoder.fasttext;
 
+import de.datexis.encoder.RESTAdapter;
+import de.datexis.encoder.SimpleRESTEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import encoder.RESTAdapter;
-import encoder.SimpleRESTEncoder;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

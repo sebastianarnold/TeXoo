@@ -1,8 +1,7 @@
 package de.datexis.encoder;
 
-import encoder.AbstractRESTAdapter;
-import encoder.serialization.DeserializationProvider;
-import encoder.serialization.SerializationProvider;
+import de.datexis.encoder.serialization.DeserializationProvider;
+import de.datexis.encoder.serialization.SerializationProvider;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package encoder.serialization;
+package de.datexis.encoder.serialization;
 
 import java.io.IOException;
 import java.io.InputStream;

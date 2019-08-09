@@ -2,11 +2,10 @@ package de.datexis.encoder.skipthought;
 
 import com.google.common.collect.Lists;
 import de.datexis.encoder.DummyRESTAdapter;
+import de.datexis.encoder.RESTAdapter;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.preprocess.DocumentFactory;
-import encoder.RESTAdapter;
-import encoder.skipthought.SkipthoughtRESTEncoder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

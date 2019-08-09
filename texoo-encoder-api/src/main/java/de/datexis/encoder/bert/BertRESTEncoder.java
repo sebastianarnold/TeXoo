@@ -1,13 +1,12 @@
-package encoder.bert;
+package de.datexis.encoder.bert;
 
 import com.google.gson.Gson;
+import de.datexis.encoder.AbstractRESTEncoder;
 import de.datexis.encoder.EncodingHelpers;
-import encoder.AbstractRESTEncoder;
-import encoder.RESTAdapter;
+import de.datexis.encoder.RESTAdapter;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import de.datexis.model.Token;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -16,12 +15,10 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 public class BertRESTEncoder extends AbstractRESTEncoder {
-
-  private BertRESTAdapter adapter;
 
   protected BertRESTEncoder() {
     super("BERT");
@@ -29,7 +26,6 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
   
   public BertRESTEncoder(RESTAdapter restAdapter) {
     super("BERT", restAdapter);
-    this.adapter = (BertRESTAdapter) restAdapter;
   }
 
   public static BertRESTEncoder create(String domain, int port, int embeddingDimension) {
@@ -119,7 +115,7 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
       sequences[i] = sequence;
     }
     Gson gson = new Gson();
-    encoder.bert.BaaSRequest req = new encoder.bert.BaaSRequest();
+    BaaSRequest req = new BaaSRequest();
     req.id = id;
     req.texts = sequences;
     req.is_tokenized = true;
@@ -128,12 +124,12 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
 
   public INDArray encodeDocumentsParallelNoTokenization(Collection<Document> documents, int maxSequenceLength) {
     INDArray encoding = EncodingHelpers.createTimeStepMatrix((long) documents.size(), this.getEmbeddingVectorSize(), (long) maxSequenceLength);
-    List<encoder.bert.BertNonTokenizedResponse> responses = documents.parallelStream()
+    List<BertNonTokenizedResponse> responses = documents.parallelStream()
       .filter(Objects::nonNull)
       .filter(d -> d.getSentences().size() > 0)
       .map(d -> {
         try {
-          return this.adapter.simpleRequestNonTokenized(d, maxSequenceLength);
+          return ((BertRESTAdapter)this.restAdapter).simpleRequestNonTokenized(d, maxSequenceLength);
         } catch (IOException e) {
           e.printStackTrace();
           System.out.println("Error at document: " + d.getId());
@@ -144,7 +140,7 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
       .collect(Collectors.toList());
 
     int docIndex = 0;
-    for (encoder.bert.BertNonTokenizedResponse resp : responses) {
+    for (BertNonTokenizedResponse resp : responses) {
       for (int i = 0; i < resp.result.length && i < maxSequenceLength; ++i) {
         INDArray vec = Nd4j.create(resp.result[i], new long[]{getEmbeddingVectorSize(), 1});
         EncodingHelpers.putTimeStep(encoding, (long) docIndex, (long) i, Transforms.unitVec(vec));
@@ -158,7 +154,7 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
 
   public ArrayList<double[][][]> encodeDocumentsParallel(Collection<Document> documents, int maxSequenceLength, INDArray toFill) throws InterruptedException {
     ArrayList<double[][][]> results = new ArrayList<>();
-    LinkedBlockingQueue<encoder.bert.BertResponse> resps = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<BertResponse> resps = new LinkedBlockingQueue<>();
     ArrayList<String> requests = new ArrayList<>();
 
     Instant beforeRequestGen = Instant.now();
@@ -171,9 +167,9 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
     long requestGenDur = Duration.between(beforeRequestGen, afterRequestGen).toMillis();
 
     Instant beforeRequest = Instant.now();
-    List<encoder.bert.BertResponse> responses = requests.parallelStream().map(req -> {
+    List<BertResponse> responses = requests.parallelStream().map(req -> {
       try {
-        return this.adapter.simpleRequest(req);
+        return ((BertRESTAdapter)this.restAdapter).simpleRequest(req);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -186,7 +182,7 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
     // remove first and last element from sequence arrays
     Instant beforeArrayGen = Instant.now();
     int docId = 0;
-    for (encoder.bert.BertResponse respons : responses) {
+    for (BertResponse respons : responses) {
       double[][][] result = new double[respons.result.length][][];
       // [sentence][token][certain EmbeddingValue]
       for (int i = 0; i < respons.result.length && i < maxSequenceLength; ++i) {

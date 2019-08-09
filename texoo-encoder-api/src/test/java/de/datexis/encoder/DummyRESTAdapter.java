@@ -1,7 +1,5 @@
 package de.datexis.encoder;
 
-import encoder.RESTAdapter;
-
 import java.io.IOException;
 
 public class DummyRESTAdapter implements RESTAdapter {

@@ -1,4 +1,4 @@
-package encoder.bert;
+package de.datexis.encoder.bert;
 
 public class BertResponse {
   public int id = 0;

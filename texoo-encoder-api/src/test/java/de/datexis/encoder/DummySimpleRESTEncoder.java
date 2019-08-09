@@ -3,8 +3,6 @@ package de.datexis.encoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import encoder.RESTAdapter;
-import encoder.SimpleRESTEncoder;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;

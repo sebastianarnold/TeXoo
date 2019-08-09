@@ -1,8 +1,8 @@
-package encoder;
+package de.datexis.encoder;
 
 import de.datexis.common.Resource;
-import de.datexis.encoder.Encoder;
 import de.datexis.model.Document;
+import org.nd4j.shade.jackson.annotation.JsonTypeInfo;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -19,11 +19,20 @@ public abstract class AbstractRESTEncoder extends Encoder {
     super(id);
   }
   
-  public AbstractRESTEncoder(String id, encoder.RESTAdapter restAdapter) {
+  public AbstractRESTEncoder(String id, RESTAdapter restAdapter) {
     super(id);
     this.restAdapter = restAdapter;
   }
-
+  
+  @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
+  public RESTAdapter getRestAdapter() {
+    return restAdapter;
+  }
+  
+  public void setRestAdapter(RESTAdapter restAdapter) {
+    this.restAdapter = restAdapter;
+  }
+  
   @Override
   public long getEmbeddingVectorSize() {
     return restAdapter.getEmbeddingVectorSize();

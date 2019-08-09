@@ -1,7 +1,8 @@
-package encoder;
+package de.datexis.encoder;
 
-import encoder.serialization.DeserializationProvider;
-import encoder.serialization.SerializationProvider;
+import de.datexis.encoder.serialization.DeserializationProvider;
+import de.datexis.encoder.serialization.SerializationProvider;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ import java.net.URL;
 /**
  * Outline for REST API Adapter.
  */
-public abstract class AbstractRESTAdapter implements encoder.RESTAdapter {
+public abstract class AbstractRESTAdapter implements RESTAdapter {
   
   private static final Logger log = LoggerFactory.getLogger(AbstractRESTAdapter.class);
 
@@ -25,6 +26,8 @@ public abstract class AbstractRESTAdapter implements encoder.RESTAdapter {
   private int connectTimeout;
   private int readTimeout;
 
+  protected AbstractRESTAdapter() {}
+  
   public AbstractRESTAdapter(long embeddingVectorSize, int connectTimeout, int readTimeout) {
     this.connectTimeout = connectTimeout;
     this.readTimeout = readTimeout;
@@ -35,7 +38,27 @@ public abstract class AbstractRESTAdapter implements encoder.RESTAdapter {
   public long getEmbeddingVectorSize() {
     return embeddingVectorSize;
   }
-
+  
+  public void setEmbeddingVectorSize(long embeddingVectorSize) {
+    this.embeddingVectorSize = embeddingVectorSize;
+  }
+  
+  public int getConnectTimeout() {
+    return connectTimeout;
+  }
+  
+  public void setConnectTimeout(int connectTimeout) {
+    this.connectTimeout = connectTimeout;
+  }
+  
+  public int getReadTimeout() {
+    return readTimeout;
+  }
+  
+  public void setReadTimeout(int readTimeout) {
+    this.readTimeout = readTimeout;
+  }
+  
   @Override
   public double[] encode(String data) throws IOException {
     try {
@@ -105,8 +128,10 @@ public abstract class AbstractRESTAdapter implements encoder.RESTAdapter {
     return httpConnection;
   }
 
+  @JsonIgnore
   public abstract SerializationProvider getSerializationProvider();
-
+  
+  @JsonIgnore
   public abstract DeserializationProvider getDeserializationProvider();
 
   public HttpURLConnection getConnection(URL url) throws IOException {

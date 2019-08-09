@@ -1,10 +1,10 @@
-package encoder.sector;
+package de.datexis.encoder.sector;
 
+import de.datexis.encoder.RESTAdapter;
+import de.datexis.encoder.SimpleRESTEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import encoder.RESTAdapter;
-import encoder.SimpleRESTEncoder;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +16,19 @@ public class SectorRESTEncoder extends SimpleRESTEncoder {
   private static final Logger log = LoggerFactory.getLogger(SectorRESTEncoder.class);
 
   public static SectorRESTEncoder create(String domain, int port) {
-    return new SectorRESTEncoder(new encoder.sector.SectorRESTAdapter(domain, port));
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port));
   }
 
   public static SectorRESTEncoder create(String domain, int port, String vectorIdentifier) {
-    return new SectorRESTEncoder(new encoder.sector.SectorRESTAdapter(domain, port), vectorIdentifier);
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port), vectorIdentifier);
   }
 
   public static SectorRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout) {
-    return new SectorRESTEncoder(new encoder.sector.SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout));
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout));
   }
 
   public static SectorRESTEncoder create(String domain, int port, long embeddingVectorSize, int connectTimeout, int readTimeout, String vectorIdentifier) {
-    return new SectorRESTEncoder(new encoder.sector.SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
+    return new SectorRESTEncoder(new SectorRESTAdapter(domain, port, embeddingVectorSize, connectTimeout, readTimeout), vectorIdentifier);
   }
 
   protected SectorRESTEncoder() {

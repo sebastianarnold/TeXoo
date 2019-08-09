@@ -1,4 +1,4 @@
-package encoder.elmo;
+package de.datexis.encoder.elmo;
 
 public enum ELMoLayerOutput {
   TOP("top"),

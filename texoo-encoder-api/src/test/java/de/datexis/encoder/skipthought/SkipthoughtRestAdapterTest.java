@@ -1,6 +1,5 @@
 package de.datexis.encoder.skipthought;
 
-import encoder.skipthought.SkipthoughtRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 

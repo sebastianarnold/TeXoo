@@ -1,10 +1,10 @@
-package encoder.skipthought;
+package de.datexis.encoder.skipthought;
 
+import de.datexis.encoder.RESTAdapter;
+import de.datexis.encoder.SimpleRESTEncoder;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
-import encoder.RESTAdapter;
-import encoder.SimpleRESTEncoder;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

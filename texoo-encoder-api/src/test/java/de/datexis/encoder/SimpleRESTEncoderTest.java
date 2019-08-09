@@ -6,8 +6,6 @@ import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
-import encoder.RESTAdapter;
-import encoder.SimpleRESTEncoder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

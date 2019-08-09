@@ -1,7 +1,5 @@
 package de.datexis.encoder.elmo;
 
-import encoder.elmo.ELMoLayerOutput;
-import encoder.elmo.ELMoRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 

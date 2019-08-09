@@ -1,6 +1,5 @@
 package de.datexis.encoder;
 
-import encoder.AbstractRESTAdapter;
 import org.junit.Before;
 import org.junit.Test;
 
