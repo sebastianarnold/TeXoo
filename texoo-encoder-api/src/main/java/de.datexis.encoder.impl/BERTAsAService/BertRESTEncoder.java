@@ -186,7 +186,6 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
     long requestDur = Duration.between(beforeRequest, afterRequest).toMillis();
 
     // remove first and last element from sequence arrays
-    Instant beforeArrayGen = Instant.now();
     int docId = 0;
     for (BertResponse respons : responses) {
       double[][][] result = new double[respons.result.length][][];
@@ -197,9 +196,8 @@ public class BertRESTEncoder extends SimpleRESTEncoder {
       results.add(result);
       docId++;
     }
-    Instant afterArrayGen = Instant.now();
-    long arrayGenDur = Duration.between(beforeArrayGen, afterArrayGen).toMillis();
-    System.out.println("Request generation: " + requestGenDur + "\n" + "Requests: " + requestDur + "\n" + "Array generation: " + arrayGenDur);
+
+
     return results;
 
   }
