@@ -18,13 +18,13 @@ import java.net.URL;
 import java.util.Arrays;
 
 public class BertRESTAdapter extends AbstractRESTAdapter {
-  
+
   public static final int DEFAULT_READ_TIMEOUT = 300000;
   public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
   public static final long DEFAULT_EMBEDDING_VECTOR_SIZE = 768;
 
   public static final String URL_FORMAT = "http://%s:%d/encode";
-  
+
   protected String domain;
   protected int port;
 
@@ -34,31 +34,31 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     super();
     serdeProvider = new JacksonProvider();
   }
-  
+
   public BertRESTAdapter(String domain, int port, long embeddingVectorSize) {
     super(embeddingVectorSize, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT);
     this.domain = domain;
     this.port = port;
     serdeProvider = new JacksonProvider();
   }
-  
+
   public String getDomain() {
     return domain;
   }
-  
+
   public void setDomain(String domain) {
     this.domain = domain;
   }
-  
+
   public int getPort() {
     return port;
   }
-  
+
   public void setPort(int port) {
     this.port = port;
   }
-  
-  public BertResponse simpleRequest(String request) throws IOException {
+
+  public BertResponse encodeTokens(String request, long maxSequenceLength) throws IOException {
     URL url = getUrl();
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
     con.setRequestMethod("POST");
@@ -87,17 +87,7 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     return bertResponse;
   }
 
-  public BertNonTokenizedResponse simpleRequestNonTokenized(Document d, int maxSequenceLength) throws IOException {
-    Gson gson = new Gson();
-    String[] sentences = new String[Math.min(d.getSentences().size(),maxSequenceLength)];
-    for (int i = 0; i < Math.min(d.getSentences().size(), maxSequenceLength); ++i) {
-      sentences[i] = d.getSentence(i).getText();
-    }
-    BaaSRequestNonTokenized request = new BaaSRequestNonTokenized();
-    request.texts = sentences;
-    String req = gson.toJson(request);
-
-
+  public BertNonTokenizedResponse encodeSentences(String request, int maxSequenceLength) throws IOException {
     URL url = getUrl();
     HttpURLConnection con = (HttpURLConnection) url.openConnection();
     con.setRequestMethod("POST");
@@ -105,7 +95,7 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
     con.setDoInput(true);
     con.setDoOutput(true);
     try (OutputStream os = con.getOutputStream()) {
-      byte[] input = req.getBytes("utf-8");
+      byte[] input = request.getBytes("utf-8");
       os.write(input, 0, input.length);
     }
 
@@ -119,7 +109,7 @@ public class BertRESTAdapter extends AbstractRESTAdapter {
         response.append(responseLine);
       }
 
-      gson = new Gson();
+      Gson gson = new Gson();
       bertResponse = gson.fromJson(response.toString(), BertNonTokenizedResponse.class);
     }
 
