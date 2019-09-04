@@ -28,7 +28,8 @@ public class WordHelpers {
   public static HashSet<String> skipSpaceAfter = new HashSet<>(Arrays.asList("(", "[", "", "\n"));
   private static final String[][] umlautReplacements = { {"Ä","Ae"}, {"Ü","Ue"}, {"Ö","Oe"}, {"ä","ae"}, {"ü","ue"}, {"ö","oe"}, {"ß","ss"}, {"–","-"} };
   private static final String[][] tokenizationReplacements = { {"``","\""}, {"''","\""} };
-  public static final Pattern punctPattern = Pattern.compile("[^\\w\\s\\-_]+");
+  public static final Pattern dashPattern = Pattern.compile("[\\-_\\/]+");
+  public static final Pattern punctPattern = Pattern.compile("[^\\w\\s]+");
   public static final Pattern spacePattern = Pattern.compile("[\\s]+");
   public static final Pattern numericPattern = Pattern.compile("[\\d]+");
   public static final Pattern bracketsPattern = Pattern.compile("[\\(\\)\\[\\]\"]");
@@ -179,6 +180,10 @@ public class WordHelpers {
         str = str.replaceAll(rep[0], rep[1]);
     }
     return str;
+  }
+  
+  public static String replaceDashes(String str, String rep) {
+    return dashPattern.matcher(str).replaceAll(rep);
   }
   
   public static String replacePunctuation(String str, String rep) {
