@@ -179,7 +179,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
       int count = examples.get(key).size();
       if(sum != null) {
         INDArray avg = count > 1 ? sum.divi(count) : sum;
-        lookupVectors.putVector(keyPreprocessor.preProcess(key), avg);
+        lookupVectors.putVector(key, avg); // key needs to be normalized
         if(++num % 100000 == 0) log.info("inserted {} vectors into vector index", num);
       }
     }
