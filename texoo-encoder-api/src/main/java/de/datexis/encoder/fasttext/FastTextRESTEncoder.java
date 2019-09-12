@@ -46,12 +46,12 @@ public class FastTextRESTEncoder extends SimpleRESTEncoder {
 
   @Override
   public INDArray encodeImpl(String word) throws IOException {
-    throw new UnsupportedOperationException();
+    return encodeValue(word);
   }
 
   @Override
   public INDArray encodeImpl(Span span) throws IOException {
-    throw new UnsupportedOperationException();
+    return encodeValue(span.getText());
   }
 
   @Override

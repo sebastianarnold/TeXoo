@@ -48,7 +48,8 @@ public class ELMoRESTAdapter extends AbstractRESTAdapter {
 
   @Override
   public double[] encodeImpl(String data) throws IOException {
-    throw new UnsupportedOperationException("ELMo can't embed just one Token");
+    log.warn("ELMo can't embed just one Token");
+    return encodeImpl(new String[] { data })[0];
   }
 
   @Override
