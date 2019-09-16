@@ -103,13 +103,13 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
     }
   }
 
-  public void buildVectorIndex(Map<String, INDArray> vectors) {
+  public void buildVectorIndex(Map<String, INDArray> vectors, boolean normalizeKeys) {
     log.info("Building vector index for {} entries...", vectors.size());
     if(size() <= 0) throw new IllegalStateException("Cannot insert vectors into empty index. Please insert keys first.");
     lookupVectors.resetWeights();
     long num = 0;
     for(Map.Entry<String, INDArray> vec : vectors.entrySet()) {
-      lookupVectors.putVector(keyPreprocessor.preProcess(vec.getKey()), vec.getValue());
+      lookupVectors.putVector(normalizeKeys ? keyPreprocessor.preProcess(vec.getKey()) : vec.getKey(), vec.getValue());
       if(++num % 100000 == 0) log.info("inserted {} vectors into vector index", num);
     }
     // apply normalization
