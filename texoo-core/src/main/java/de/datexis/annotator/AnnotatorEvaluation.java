@@ -108,6 +108,10 @@ public abstract class AnnotatorEvaluation {
     return String.format(Locale.ROOT, "%6.2f", d * 100);
   }
   
+  protected static String fDbl4(double d) {
+    return String.format(Locale.ROOT, "%6.4f", d);
+  }
+  
   /**
    * @return format Integer for Table
    */
