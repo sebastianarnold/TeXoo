@@ -19,7 +19,7 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
   
   protected final Logger log = LoggerFactory.getLogger(getClass());
   
-  protected double mrrsum = 0., mapsum = 0.;
+  protected double mrrsum = 0., mapsum = 0., recallNsum = 0.;
   protected double[] precisionKsum = new double[] {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
   protected double[] recallKsum = new double[] {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
   protected double[] dcgKsum = new double[] {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
@@ -113,6 +113,8 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
         dcgKsum[k] += dcgSum; // unchanged when no more relevant documents appear
         ndcgKsum[k] += dcgSum / idcg[k];
       }
+      // calculate recall@N as recall over all candidates
+      recallNsum  += div(relevantPred, relevantExp);
       
       // MAP
       averagePrec = div(averagePrec, relevantExp);
@@ -173,6 +175,13 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
   }
   
   /**
+   * @return Recall@N, the recall over all predictions (macro-averaged over all Queries)
+   */
+  public double getRecallN() {
+    return recallNsum / countExamples;
+  }
+  
+  /**
    * @return Discounted Cumulative Gain (macro-averaged over all Queries)
    * https://en.wikipedia.org/wiki/Discounted_cumulative_gain#Discounted_Cumulative_Gain
    */
@@ -221,7 +230,7 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
   
     StringBuilder line = new StringBuilder("\n");
     line.append("RETRIEVAL EVALUATION [macro-avg]\n");
-    line.append("|queries|\t P@1\t P@5\t P@10\t R@1\t R@5\t R@10\tnDCG@10\t MRR\t MAP\t"); //MRR	 NDCG
+    line.append("|queries|\t P@1\t P@3\t P@5\t P@10\t R@1\t R@3\t R@5\t R@10\t R@N\tnDCG@1\tnDCG@3\tnDCG@5\tnDCG@10\t MRR\t MAP\t");
     line.append("\n");
   
     // statistics
@@ -229,11 +238,17 @@ public class RetrievalEvaluation extends AnnotatorEvaluation {
   
     // Classification: label(s) per sentence
     line.append(fDbl(getPrecisionK(1))).append("\t");
+    line.append(fDbl(getPrecisionK(3))).append("\t");
     line.append(fDbl(getPrecisionK(5))).append("\t");
     line.append(fDbl(getPrecisionK(10))).append("\t");
     line.append(fDbl(getRecallK(1))).append("\t");
+    line.append(fDbl(getRecallK(3))).append("\t");
     line.append(fDbl(getRecallK(5))).append("\t");
     line.append(fDbl(getRecallK(10))).append("\t");
+    line.append(fDbl(getRecallN())).append("\t");
+    line.append(fDbl(getNDCG(1))).append("\t");
+    line.append(fDbl(getNDCG(3))).append("\t");
+    line.append(fDbl(getNDCG(5))).append("\t");
     line.append(fDbl(getNDCG(10))).append("\t");
     line.append(fDbl(getMRR())).append("\t");
     line.append(fDbl(getMAP())).append("\t");
