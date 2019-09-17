@@ -15,7 +15,6 @@ public class MinimalLowercasePreprocessor implements TokenPreProcess {
     token = token.trim();
     token = WordHelpers.replaceUmlauts(token);
     token = WordHelpers.replaceAccents(token);
-    token = WordHelpers.replaceDashes(token, " ");
     token = WordHelpers.replacePunctuation(token, "");
     token = WordHelpers.replaceNumbers(token, "#");
     token = WordHelpers.replaceSpaces(token, "_");
