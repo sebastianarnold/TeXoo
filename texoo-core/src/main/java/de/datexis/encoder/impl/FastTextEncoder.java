@@ -101,6 +101,13 @@ public class FastTextEncoder extends Encoder {
     modelSource = null;
   }
   
+  /**
+   * On save, the model will not be copied.
+   */
+  public void setModelAsReference() {
+    modelSource = null;
+  }
+  
   @Override
   public void saveModel(Resource modelPath, String name) {
      if(modelSource != null) {

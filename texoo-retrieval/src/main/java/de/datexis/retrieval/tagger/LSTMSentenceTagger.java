@@ -85,7 +85,12 @@ public class LSTMSentenceTagger extends Tagger {
   public void setTargetEncoder(IEncoder targetEncoder) {
     this.targetEncoder = targetEncoder;
   }
-
+  
+  @JsonIgnore
+  public IEncoder getInputEncoder() {
+    return inputEncoder;
+  }
+  
   @JsonIgnore
   public IEncoder getTargetEncoder() {
     return targetEncoder;
@@ -246,7 +251,7 @@ public class LSTMSentenceTagger extends Tagger {
   public void saveModel(Resource modelPath, String name) {
     Resource modelFile = modelPath.resolve(name + ".zip");
     try(OutputStream os = modelFile.getOutputStream()){
-      ModelSerializer.writeModel(net, os, true);
+      ModelSerializer.writeModel(net, os, false);
       setModel(modelFile);
     } catch (IOException ex) {
       log.error(ex.toString());
