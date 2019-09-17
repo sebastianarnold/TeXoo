@@ -1,6 +1,5 @@
 package de.datexis.encoder.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.LookupCacheEncoder;
 import de.datexis.model.Document;
@@ -13,6 +12,7 @@ import org.deeplearning4j.models.word2vec.wordstore.VocabularyHolder;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
