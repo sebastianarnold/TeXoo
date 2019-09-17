@@ -1,16 +1,12 @@
 package de.datexis.common;
 
+import org.reflections.util.ClasspathHelper;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Properties;
-import org.reflections.util.ClasspathHelper;
-import org.slf4j.LoggerFactory;
+import java.util.*;
 
 /**
  * Provides static mthods for configuration.
@@ -69,10 +65,6 @@ public class Configuration {
   
   public static String getVersion() {
     return config.getProperty("de.datexis.texoo.version", null);
-  }
-  
-  public static boolean isCudaEnabled() {
-    return config.getProperty("de.datexis.texoo.backend", "").contains("cuda");
   }
   
 }
