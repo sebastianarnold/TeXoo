@@ -122,14 +122,14 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
    * using the configured Encoder.
    * @param entries Map key -> description
    */
-  public void encodeAndBuildVectorIndex(Map<String, String> entries) {
+  public void encodeAndBuildVectorIndex(Map<String, String> entries, boolean normalizeKeys) {
     log.info("Building vector index for {} entries...", entries.size());
     if(size() <= 0) throw new IllegalStateException("Cannot insert vectors into empty index. Please insert keys first.");
     lookupVectors.resetWeights();
     long num = 0;
     for(Map.Entry<String, String> span : entries.entrySet()) {
       INDArray vec = encoder.encode(span.getValue()); // not normalized yet
-      lookupVectors.putVector(keyPreprocessor.preProcess(span.getKey()), vec);
+      lookupVectors.putVector(keyPreprocessor.preProcess(normalizeKeys ? keyPreprocessor.preProcess(span.getKey()) : span.getKey()), vec);
       if(++num % 100000 == 0) log.info("inserted {} vectors into vector index", num);
     }
     // apply normalization

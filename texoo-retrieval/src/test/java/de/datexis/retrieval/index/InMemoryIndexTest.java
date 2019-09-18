@@ -85,7 +85,7 @@ public class InMemoryIndexTest {
     TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
     InMemoryIndex index = new InMemoryIndex(preprocessor, trigram);
     index.buildKeyIndex(headings);
-    index.encodeAndBuildVectorIndex(entries);
+    index.encodeAndBuildVectorIndex(entries, true);
   
     INDArray vec, enc;
     
@@ -145,7 +145,7 @@ public class InMemoryIndexTest {
     TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
     InMemoryIndex index = new InMemoryIndex(preprocessor, trigram);
     index.buildKeyIndex(headings);
-    index.encodeAndBuildVectorIndex(entries);
+    index.encodeAndBuildVectorIndex(entries, true);
     index.find(Nd4j.ones(10, 1)).toString();
   }
   
@@ -157,7 +157,7 @@ public class InMemoryIndexTest {
     TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
     InMemoryIndex index = new InMemoryIndex(preprocessor, trigram);
     index.buildKeyIndex(headings);
-    index.encodeAndBuildVectorIndex(entries);
+    index.encodeAndBuildVectorIndex(entries, true);
     index.saveModel(path, "index");
   
     InMemoryIndex index2 = new InMemoryIndex(preprocessor, trigram);
