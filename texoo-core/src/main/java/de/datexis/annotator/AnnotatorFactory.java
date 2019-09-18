@@ -133,20 +133,24 @@ public class AnnotatorFactory {
 
   @Deprecated //** please use loadAnnotator() */
   public static Annotator fromXML(Resource path) throws IOException {
-    return fromXML(path, findXML(path));
+    return loadAnnotator(path, findXML(path));
   }
 
-  public static Annotator loadAnnotator(Resource path, Resource... searchPaths) throws IOException {
-    return fromXML(path, findXML(path), searchPaths);
+  @Deprecated //** please use loadAnnotator() */
+  protected static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
+    return loadAnnotator(path, name, searchPaths);
   }
   
   @Deprecated //** please use loadAnnotator() */
   protected static Annotator fromXML(Resource path, String name) throws IOException {
-    return fromXML(path, name, new Resource[]{});
+    return loadAnnotator(path, name, new Resource[]{});
   }
   
-  @Deprecated //** please use loadAnnotator() */
-  protected static Annotator fromXML(Resource path, String name, Resource... searchPaths) throws IOException {
+  public static Annotator loadAnnotator(Resource path, Resource... searchPaths) throws IOException {
+    return loadAnnotator(path, findXML(path), searchPaths);
+  }
+  
+  protected static Annotator loadAnnotator(Resource path, String name, Resource... searchPaths) throws IOException {
     
     ObjectMapper mapper = new ObjectMapper();
     
