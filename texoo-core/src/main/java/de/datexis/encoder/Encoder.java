@@ -9,6 +9,7 @@ import de.datexis.model.Span;
 import de.datexis.model.Token;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +24,8 @@ import java.util.stream.Stream;
  */
 public abstract class Encoder extends AnnotatorComponent implements IEncoder, IComponent {
 
+  protected boolean enableCache = false;
+  
   public Encoder() {
     this("");
   }
@@ -31,7 +34,16 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder, IC
     super(false);
     this.id = id;
   }
-    
+  
+  @JsonIgnore
+  public boolean isCachingEnabled() {
+    return enableCache;
+  }
+  
+  public void setCachingEnabled(boolean enableCache) {
+    this.enableCache = enableCache;
+  }
+  
   /**
    * Encode a fixed-size vector from multiple Spans
    * @param spans the Spans to encode
@@ -83,7 +95,15 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder, IC
       else if(timeStepClass == Sentence.class) spansToEncode = Lists.newArrayList(example.getSentences());
 
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
-        INDArray vec = encode(spansToEncode.get(t));
+        Span span = spansToEncode.get(t);
+        INDArray vec;
+        if(span.hasVector(this.getClass())) {
+          // use cached vector
+          vec = span.getVector(this.getClass());
+        } else {
+          vec = encode(span);
+          span.putVector(this.getClass(), vec);
+        }
         EncodingHelpers.putTimeStep(encoding, batchIndex, t, vec);
       }
       
