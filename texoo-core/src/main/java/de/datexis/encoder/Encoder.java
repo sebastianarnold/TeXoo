@@ -97,12 +97,12 @@ public abstract class Encoder extends AnnotatorComponent implements IEncoder, IC
       for(int t = 0; t < spansToEncode.size() && t < maxTimeSteps; t++) {
         Span span = spansToEncode.get(t);
         INDArray vec;
-        if(span.hasVector(this.getClass())) {
+        if(isCachingEnabled() && span.hasVector(this.getClass())) {
           // use cached vector
           vec = span.getVector(this.getClass());
         } else {
           vec = encode(span);
-          span.putVector(this.getClass(), vec);
+          if(isCachingEnabled()) span.putVector(this.getClass(), vec);
         }
         EncodingHelpers.putTimeStep(encoding, batchIndex, t, vec);
       }

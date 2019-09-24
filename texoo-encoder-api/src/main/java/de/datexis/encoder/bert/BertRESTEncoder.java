@@ -44,62 +44,15 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
   
   @Override
   public INDArray encodeMatrix(List<Document> input, int maxTimeSteps, Class<? extends Span> timeStepClass) {
-/*
-    INDArray encoding = EncodingHelpers.createTimeStepMatrix((long) input.size(), this.getEmbeddingVectorSize(), (long) maxTimeSteps);
-    ArrayList<double[][][]> docEmbeddings = null;
-    try {
-      Instant start = Instant.now();
-      docEmbeddings = this.encodeDocumentsParallel(input, maxTimeSteps, encoding);
-      Instant end = Instant.now();
-      System.out.println("Encoded all Documents in: " + Duration.between(start, end).toMillis() + "ms");
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    // check if we have all the sentence vectors already
+    if(isCachingEnabled() && timeStepClass.equals(Sentence.class) && input.stream()
+      .flatMap(doc -> doc.streamSentences()
+        .limit(maxTimeSteps)
+        .map(sent -> sent.hasVector(this.getClass())))
+      .allMatch(b -> b == true)) {
+      // use the implementation that returns cached vectors
+      return super.encodeMatrix(input, maxTimeSteps, timeStepClass);
     }
-    Instant start = Instant.now();
-    for (int i = 0; i < docEmbeddings.size(); ++i) {
-      // document
-      for (int j = 0; j < docEmbeddings.get(i).length; ++j) {
-        // sentence
-        if (docEmbeddings.get(i)[j] == null)
-          continue;
-        for (int t = 0; t < docEmbeddings.get(i)[j].length; ++t) {
-          // token
-          INDArray vec = Nd4j.create(docEmbeddings.get(i)[j][t], new long[]{getEmbeddingVectorSize(), 1});
-          EncodingHelpers.putTimeStep(encoding, (long) i, (long) t, vec);
-        }
-      }
-    }
-    Instant end = Instant.now();
-    System.out.println("Put Embeddings in Encoding-Matrix in: " + Duration.between(start, end).toMillis() + "ms");
-*/
-/*
-    for (int batchIndex = 0; batchIndex < input.size(); ++batchIndex) {
-      Document example = (Document) input.get(batchIndex);
-      List<? extends Span> spansToEncode = Collections.EMPTY_LIST;
-      if (timeStepClass == Token.class) {
-        spansToEncode = Lists.newArrayList(example.getTokens());
-      } else if (timeStepClass == Sentence.class) {
-        spansToEncode = Lists.newArrayList(example.getSentences());
-      }c
-
-      int offset = 0;
-      for (int t = 0; t + offset < ((List) spansToEncode).size() && t < maxTimeSteps + offset; ++t) {
-        Optional<Token> t_opt = example.getToken(t + offset);
-        Token tok = t_opt.get();
-        if (tok.isEmpty()) {
-          offset++;
-          continue;
-        }
-        try {
-          INDArray vec = tok.getVector(this.vectorIdentifier);
-          EncodingHelpers.putTimeStep(encoding, (long) batchIndex, (long) t, vec);
-        } catch (Exception e) {
-          System.out.println("Error encoding doc: " + tok.getDocumentRef().getId());
-          throw e;
-        }
-      }
-    }
-*/
     return encodeDocumentsParallelNoTokenization(input, maxTimeSteps);
   }
 
@@ -122,28 +75,28 @@ public class BertRESTEncoder extends AbstractRESTEncoder {
     return gson.toJson(req);
   }
 
-  public INDArray encodeDocumentsParallelNoTokenization(Collection<Document> documents, int maxSequenceLength) {
+  public INDArray encodeDocumentsParallelNoTokenization(List<Document> documents, int maxSequenceLength) {
     INDArray encoding = EncodingHelpers.createTimeStepMatrix((long) documents.size(), this.getEmbeddingVectorSize(), (long) maxSequenceLength);
     List<BertNonTokenizedResponse> responses = documents.parallelStream()
-      .filter(Objects::nonNull)
-      .filter(d -> d.getSentences().size() > 0)
       .map(d -> {
         try {
-          return ((BertRESTAdapter)this.restAdapter).simpleRequestNonTokenized(d, maxSequenceLength);
+          if(d != null && d.getSentences().size() > 0)
+            return ((BertRESTAdapter)this.restAdapter).simpleRequestNonTokenized(d, maxSequenceLength);
         } catch (IOException e) {
           e.printStackTrace();
           System.out.println("Error at document: " + d.getId());
         }
         return null;
-      }).filter(Objects::nonNull)
-      .sorted(Comparator.comparingInt(b -> b.id))
-      .collect(Collectors.toList());
+      }).collect(Collectors.toList());
 
     int docIndex = 0;
     for (BertNonTokenizedResponse resp : responses) {
-      for (int i = 0; i < resp.result.length && i < maxSequenceLength; ++i) {
-        INDArray vec = Nd4j.create(resp.result[i], new long[]{getEmbeddingVectorSize(), 1});
-        EncodingHelpers.putTimeStep(encoding, (long) docIndex, (long) i, Transforms.unitVec(vec));
+      if(resp != null) {
+        for(int t = 0; t < resp.result.length && t < maxSequenceLength; ++t) {
+          INDArray vec = Transforms.unitVec(Nd4j.create(resp.result[t], new long[]{getEmbeddingVectorSize(), 1}));
+          EncodingHelpers.putTimeStep(encoding, (long) docIndex, (long) t, vec);
+          if(isCachingEnabled()) documents.get(docIndex).getSentence(t).putVector(this.getClass(), vec);
+        }
       }
       docIndex++;
     }
