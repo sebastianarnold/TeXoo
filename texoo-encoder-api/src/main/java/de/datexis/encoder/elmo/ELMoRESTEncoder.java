@@ -38,7 +38,7 @@ public class ELMoRESTEncoder extends SimpleRESTEncoder {
   protected ELMoRESTEncoder() {
     super("ELMO");
   }
-  
+
   public ELMoRESTEncoder(RESTAdapter restAdapter) {
     super("ELMO", restAdapter, Token.class);
   }
@@ -49,12 +49,12 @@ public class ELMoRESTEncoder extends SimpleRESTEncoder {
 
   @Override
   public INDArray encodeImpl(String word) throws IOException {
-    throw new UnsupportedOperationException();
+    return encodeValue(word);
   }
 
   @Override
   public INDArray encodeImpl(Span span) throws IOException {
-    throw new UnsupportedOperationException();
+    return encodeValue(span.getText());
   }
 
   @Override

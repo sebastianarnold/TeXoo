@@ -40,7 +40,7 @@ public class FastTextRESTAdapter extends AbstractRESTAdapter {
 
   @Override
   public double[] encodeImpl(String data) throws IOException {
-    throw new UnsupportedOperationException("FastText can't embed just one Token");
+    return encodeImpl(new String[] { data })[0];
   }
 
   @Override

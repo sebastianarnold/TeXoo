@@ -5,6 +5,7 @@ import de.datexis.encoder.DummyRESTAdapter;
 import de.datexis.encoder.RESTAdapter;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class FastTextRESTEncoderTest {
   private List<Document> dummyDocuments;
   private Document dummyDocument;
   private Sentence dummySentence;
+  private Token dummyToken;
 
   private RESTAdapter restAdapter;
   private FastTextRESTEncoder fastTextRestEncoder;
@@ -32,15 +34,23 @@ public class FastTextRESTEncoderTest {
   public void setup() throws IOException {
     dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
     dummySentence = dummyDocument.getSentence(0);
+    dummyToken = dummySentence.getToken(0);
     dummyDocuments = Lists.newArrayList(dummyDocument);
 
     restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
     fastTextRestEncoder = spy(new FastTextRESTEncoder(restAdapter));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void encodeImplTest(){
+  public void encodeImplTest() throws IOException {
     fastTextRestEncoder.encode(DUMMY_TEXT);
+
+    verify(fastTextRestEncoder, times(1)).encodeValue(anyString());
+  }
+
+  public void encodeImplTokenTest() throws IOException {
+    fastTextRestEncoder.encode(dummyToken);
+
+    verify(fastTextRestEncoder, times(1)).encodeValue(anyString());
   }
 
   @Test(expected = UnsupportedOperationException.class)

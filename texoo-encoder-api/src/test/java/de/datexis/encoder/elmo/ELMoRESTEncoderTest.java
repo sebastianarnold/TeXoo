@@ -5,10 +5,12 @@ import de.datexis.encoder.DummyRESTAdapter;
 import de.datexis.encoder.RESTAdapter;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.model.Token;
 import de.datexis.preprocess.DocumentFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,6 +26,7 @@ public class ELMoRESTEncoderTest {
   private List<Document> dummyDocuments;
   private Document dummyDocument;
   private Sentence dummySentence;
+  private Token dummyToken;
 
   private RESTAdapter restAdapter;
   private ELMoRESTEncoder elMoRESTEncoder;
@@ -32,20 +35,30 @@ public class ELMoRESTEncoderTest {
   public void setup() throws IOException {
     dummyDocument = DocumentFactory.fromText(DUMMY_TEXT);
     dummySentence = dummyDocument.getSentence(0);
+    dummyToken = dummySentence.getToken(0);
     dummyDocuments = Lists.newArrayList(dummyDocument);
 
     restAdapter = spy(new DummyRESTAdapter(EMBEDDING_VECTOR_SIZE));
     elMoRESTEncoder = spy(new ELMoRESTEncoder(restAdapter));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void encodeImplTest(){
+  public void encodeImplTest() throws IOException {
     elMoRESTEncoder.encode(DUMMY_TEXT);
+
+    verify(elMoRESTEncoder, times(1)).encodeValue(anyString());
+  }
+
+  public void encodeImplTokenTest() throws IOException {
+    elMoRESTEncoder.encode(dummyToken);
+
+    verify(elMoRESTEncoder, times(1)).encodeValue(anyString());
   }
 
   @Test(expected = UnsupportedOperationException.class)
   public void encodeImplSentenceTest(){
     elMoRESTEncoder.encode(dummySentence);
+
+
   }
 
   @Test
