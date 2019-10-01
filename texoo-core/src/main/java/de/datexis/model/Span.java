@@ -189,13 +189,8 @@ public abstract class Span implements Comparable<Span> {
    */
   public INDArray getVector(String identifier) {
     if(vectors != null && vectors.containsKey(identifier)) {
-      try {
-        final byte[] vec = vectors.get(identifier);
-        return Nd4j.fromByteArray(vec);
-      } catch(IOException ex) {
-        log.error("IOError in getVector(): {}", ex.toString());
-        return null;
-      }
+      final byte[] vec = vectors.get(identifier);
+      return Nd4j.fromByteArray(vec);
     } else {
       log.error("Requesting unknown vector with identifier '" + identifier + "'");
       return null;

@@ -89,12 +89,7 @@ public class ClassTag implements Tag {
    */
   @Override
   public INDArray getVector() {
-    try {
-      return Nd4j.fromByteArray(vector);
-    } catch(IOException ex) {
-      log.error("IOError in getVector(): {}", ex.toString());
-      return null;
-    }
+    return Nd4j.fromByteArray(vector);
   }
   
   @Override

@@ -7,12 +7,13 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.tag.Tag;
 import de.datexis.sector.model.SectionAnnotation;
-import java.io.IOException;
-import java.util.Iterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  *
@@ -54,12 +55,7 @@ public class HeadingTag implements Tag {
 
   @Override
   public INDArray getVector() {
-    try {
-      return Nd4j.fromByteArray(vector);
-    } catch(IOException ex) {
-      log.error("IOError in HeadingTag: {}", ex.toString());
-      return null;
-    }
+    return Nd4j.fromByteArray(vector);
   }
 
   @Override
