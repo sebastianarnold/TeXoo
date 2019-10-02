@@ -48,7 +48,7 @@ public class Word2VecEncoder extends Encoder {
 
   public static enum ModelType { TEXT, BINARY, DL4J, GOOGLE };
   
-  private final static Collection<String> FILENAMES_TEXT = Arrays.asList(".txt", ".txt.gz");
+  private final static Collection<String> FILENAMES_TEXT = Arrays.asList(".txt", ".txt.gz", ".vec");
   private final static Collection<String> FILENAMES_BINARY = Arrays.asList(".bin", ".bin.gz");
   private final static Collection<String> FILENAMES_DL4J = Arrays.asList(".zip");
   private final static Collection<String> FILENAMES_GOOGLE = Arrays.asList(".zip");
