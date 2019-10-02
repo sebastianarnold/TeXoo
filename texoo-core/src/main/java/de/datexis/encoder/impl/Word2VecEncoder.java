@@ -97,7 +97,7 @@ public class Word2VecEncoder extends Encoder {
     log.info("Loading Word2Vec model: {} with preprocessor {}", modelFile.getFileName(), getPreprocessorClass());
     switch(getModelType(modelFile.getFileName())) {
       default:
-      case TEXT: vec = WordVectorSerializer.readWord2VecModel(modelFile.toFile()); break;
+      case TEXT: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
       case BINARY: vec = Word2VecEncoder.loadBinaryModel(modelFile.getInputStream()); break;
       case DL4J: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
       case GOOGLE: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
