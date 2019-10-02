@@ -9,7 +9,7 @@ import de.datexis.model.Document;
 import de.datexis.model.Sentence;
 import de.datexis.model.Span;
 import de.datexis.model.Token;
-import de.datexis.preprocess.LowercasePreprocessor;
+import de.datexis.preprocess.IdentityPreprocessor;
 import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
@@ -57,7 +57,7 @@ public class Word2VecEncoder extends Encoder {
 	private long length;
   private String modelName;
   private boolean saveModelReference = false;
-  private TokenPreProcess preprocessor = new LowercasePreprocessor();
+  private TokenPreProcess preprocessor = new IdentityPreprocessor();
   
 	public Word2VecEncoder() {
     super("EMB");
@@ -97,7 +97,7 @@ public class Word2VecEncoder extends Encoder {
     log.info("Loading Word2Vec model: {} with preprocessor {}", modelFile.getFileName(), getPreprocessorClass());
     switch(getModelType(modelFile.getFileName())) {
       default:
-      case TEXT: vec = WordVectorSerializer.loadTxtVectors(modelFile.getInputStream(), false); break;
+      case TEXT: vec = WordVectorSerializer.loadStaticModel(modelFile.getInputStream()); break;
       case BINARY: vec = Word2VecEncoder.loadBinaryModel(modelFile.getInputStream()); break;
       case DL4J: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
       case GOOGLE: vec = WordVectorSerializer.loadStaticModel(modelFile.toFile()); break;
@@ -324,7 +324,7 @@ public class Word2VecEncoder extends Encoder {
       writer.flush();
     }
     
-    log.info("Wrote " + words + " words with size " + vec.lookupTable().layerSize());
+    log.info("Wrote " + words + " words with size " + vec.vectorSize());
     
   }
   
