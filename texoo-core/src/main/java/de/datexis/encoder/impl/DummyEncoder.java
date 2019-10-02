@@ -5,7 +5,6 @@ import de.datexis.encoder.StaticEncoder;
 import de.datexis.model.Span;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.shade.jackson.annotation.JsonIgnore;
 
 /**
  * A an empty dummy Encoder with vector size 1 that returns always [0].
@@ -14,17 +13,28 @@ import org.nd4j.shade.jackson.annotation.JsonIgnore;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DummyEncoder extends StaticEncoder {
 
+  protected int vectorSize = 1;
+  
   public DummyEncoder() {
     super("dummy");
     setName("dummy");
   }
   
-  @Override
-  @JsonIgnore
-  public long getEmbeddingVectorSize() {
-    return 1;
+  public DummyEncoder(int vectorSize) {
+    super("dummy");
+    setName("dummy");
+    this.vectorSize = vectorSize;
   }
-
+  
+  @Override
+  public long getEmbeddingVectorSize() {
+    return vectorSize;
+  }
+  
+  public void setEmbeddingVectorSize(int vectorSize) {
+    this.vectorSize = vectorSize;
+  }
+  
   @Override
   public INDArray encode(Span span) {
     return Nd4j.create(1, 1);
