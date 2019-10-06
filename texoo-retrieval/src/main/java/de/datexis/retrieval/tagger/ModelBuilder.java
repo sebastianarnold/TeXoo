@@ -14,7 +14,6 @@ import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
@@ -37,11 +36,11 @@ public class ModelBuilder {
     
     ComputationGraphConfiguration.GraphBuilder gb = new NeuralNetConfiguration.Builder()
       .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-      .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.85)))
+      .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.975)))
       .weightInit(WeightInit.XAVIER)
-      .l2(0.00001)
+      .weightDecay(0.0001)
       .dropOut(0)
-      .gradientNormalization(GradientNormalization.ClipL2PerLayer)
+      //.gradientNormalization(GradientNormalization.ClipL2PerLayer)
       .trainingWorkspaceMode(WorkspaceMode.ENABLED)
       .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
       .cacheMode(CacheMode.HOST)
@@ -50,17 +49,6 @@ public class ModelBuilder {
       // INPUT LAYERS - SENTENCE EMBEDDINGS
       .addInputs("input")
   
-      /*.addLayer("BLSTM", new Bidirectional.Builder(Bidirectional.Mode.CONCAT,
-        new LastTimeStep(
-          new LSTM.Builder()
-            .name("LSTM")
-            .nIn(sentenceVectorSize).nOut(lstmLayerSize)
-            .activation(Activation.TANH)
-            .gateActivationFunction(Activation.SIGMOID)
-            .dropOut(dropout)
-            .build()
-        )).build(), "input")*/
-      
       // LSTM LAYERS - SENTENCE LEVEL
       .addLayer("BLSTM", new Bidirectional(Bidirectional.Mode.CONCAT, new LSTM.Builder()
         .nIn(sentenceVectorSize).nOut(lstmLayerSize)
@@ -85,13 +73,8 @@ public class ModelBuilder {
         .nIn(lstmLayerSize * 2).nOut(embeddingLayerSize)
         .activation(Activation.TANH)
         .build(), "merge")
-      
+  
       // OUTPUT LAYERS
-      /*.addLayer("target", new RnnOutputLayer.Builder(lossFunc)
-        .nIn(embeddingLayerSize).nOut(targetVectorSize)
-        .activation(activation)
-        .build(), "embedding")
-      .setOutputs("target")*/
       .addLayer("target", new OutputLayer.Builder(lossFunc)
         .nIn(embeddingLayerSize).nOut(targetVectorSize)
         .activation(activation)
@@ -105,8 +88,7 @@ public class ModelBuilder {
     ComputationGraph lstm = new ComputationGraph(conf);
     lstm.init();
     lstm.setListeners(
-      new PerformanceListener(128, true),
-      new ScoreIterationListener(16)
+      new PerformanceListener(128, true)
     );
     
     return lstm;

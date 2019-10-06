@@ -50,6 +50,8 @@ public class LSTMSentenceTagger extends Tagger {
   // target representation encoder
   protected IEncoder targetEncoder;
   
+  protected Collection<String> stopWords = Collections.emptySet();
+  
   protected final FeedForwardToRnnPreProcessor ff2rnn = new FeedForwardToRnnPreProcessor();
 
   /** used by XML deserializer */
@@ -84,6 +86,14 @@ public class LSTMSentenceTagger extends Tagger {
   
   public void setTargetEncoder(IEncoder targetEncoder) {
     this.targetEncoder = targetEncoder;
+  }
+  
+  public Collection<String> getStopWords() {
+    return stopWords;
+  }
+  
+  public void setStopWords(Collection<String> stopWords) {
+    this.stopWords = stopWords;
   }
   
   @JsonIgnore
@@ -124,7 +134,7 @@ public class LSTMSentenceTagger extends Tagger {
   }
 
   protected void trainModel(Resource trainingSentences, int numEpochs) {
-    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.TRAIN, inputEncoder, targetEncoder, trainingSentences, "utf-8", WordHelpers.Language.EN, true, batchSize);
+    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.TRAIN, inputEncoder, targetEncoder, trainingSentences, "utf-8", WordHelpers.Language.EN, stopWords, true, batchSize);
     timer.start();
     appendTrainLog("Training " + getName() + " for " + numEpochs + " epochs.");
     Nd4j.getMemoryManager().togglePeriodicGc(false);

@@ -576,7 +576,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
         gloveBuilder.append(key.replaceAll("\\s+", "_")).append(" ");
         
         for(int k = 0; k < vec.length(); k++) {
-          String val = fDbl8(vec.getDouble(k));
+          String val = fDbl12(vec.getDouble(k));
           gloveBuilder.append(val);
           vecBuilder.append(val);
           if(k < vec.length() - 1) {
@@ -603,8 +603,8 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
     
   }
   
-  protected static String fDbl8(double d) {
-    return String.format(Locale.ENGLISH, "%.8f", d);
+  protected static String fDbl12(double d) {
+    return String.format(Locale.ENGLISH, "%.12f", d);
   }
 
 }

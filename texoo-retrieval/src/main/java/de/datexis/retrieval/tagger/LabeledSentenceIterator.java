@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A MultiDatasetIterator that returns one Sentence per Example, with Tokens as time steps.
@@ -32,6 +33,8 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
   protected WordHelpers.Language lang;
   protected String encoding;
   protected boolean tokenized;
+  
+  protected TreeSet<String> stopWords = new TreeSet<>();
   
   protected static Pattern TAB_SEPARATOR = Pattern.compile("^(.*)\t(.*)$");
   
@@ -95,6 +98,10 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
     Sentence s = tokenized ?
       DocumentFactory.createSentenceFromTokenizedString(text) :
       DocumentFactory.createSentenceFromString(text, lang.toString());
+    if(!stopWords.isEmpty()) s = new Sentence(
+      s.streamTokens()
+       .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
+       .collect(Collectors.toList()));
     return new AbstractMap.SimpleEntry<>(label, s);
   }
   

@@ -15,6 +15,8 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+
 /**
  * This Annotator capsules a Sentence Embedding
  * @author Sebastian Arnold <sarnold@beuth-hochschule.de>
@@ -67,6 +69,7 @@ public class LSTMSentenceAnnotator extends Annotator {
     private int iterations = 1;
     private int batchSize = 16; // number of Examples until Sample/Test
     private int numEpochs = 1;
+    private Collection<String> stopWords;
     
     private boolean enabletrainingUI = false;
     
@@ -143,6 +146,11 @@ public class LSTMSentenceAnnotator extends Annotator {
       return this;
     }
     
+    public Builder withStopWords(Collection<String> stopWords) {
+      this.stopWords = stopWords;
+      return this;
+    }
+    
     public LSTMSentenceAnnotator build() {
       tagger.initializeNetwork(ModelBuilder.buildLSTMSentenceTagger(
         inputEncoder.getEmbeddingVectorSize(),
@@ -151,6 +159,7 @@ public class LSTMSentenceAnnotator extends Annotator {
         targetEncoder.getEmbeddingVectorSize(),
         iterations, learningRate, dropOut, lossFunc, activation)
       );
+      if(stopWords != null) tagger.setStopWords(stopWords);
       if(enabletrainingUI) tagger.enableTrainingUI();
       tagger.setEmbeddingLayerSize(embeddingLayerSize);
       tagger.setTrainingParams(examplesPerEpoch, maxTimeSeriesLength, batchSize, numEpochs, true);
