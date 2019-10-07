@@ -62,16 +62,23 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
   public MultiDataSet generateDataSet(LabeledSentenceBatch batch) {
     
     List<Sentence> examples = batch.sentences;
+    List<String> labels = batch.labels;
     if(!stopWords.isEmpty()) {
       examples = batch.sentences.stream()
         .map(s -> new Sentence(s.streamTokens()
           .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
-          .collect(Collectors.toList()))
-        ).collect(Collectors.toList());
+          .collect(Collectors.toList())))
+        .collect(Collectors.toList());
     }
     int maxSentenceLength = 1;
-    for(Sentence s : examples) {
-      maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
+    for(int i = examples.size() - 1; i >= 0; i--) {
+      Sentence s = examples.get(i);
+      if(s.countTokens() > 0) {
+        maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
+      } else {
+        examples.remove(i);
+        labels.remove(i);
+      }
     }
     
     // input encodings
@@ -83,9 +90,9 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
 
     // target encodings
     INDArray targets;
-    if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(examples, batch.labels);
+    if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(examples, labels);
     else targets = Nd4j.zeros(DataType.FLOAT, examples.size(), targetEncoder.getEmbeddingVectorSize());
-    
+  
     return new org.nd4j.linalg.dataset.MultiDataSet(
       new INDArray[]{input},
       new INDArray[]{targets},
@@ -170,11 +177,11 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
     
     INDArray encoding = Nd4j.zeros(DataType.FLOAT, labels.size(), targetEncoder.getEmbeddingVectorSize());
     String label;
-    
+    INDArray vec;
     for(int batchIndex = 0; batchIndex < labels.size(); batchIndex++) {
       label = labels.get(batchIndex);
-      INDArray vec = targetEncoder.encode(label);
-      encoding.get(point(batchIndex), all()).assign(vec.dup());
+      vec = targetEncoder.encode(label);
+      encoding.slice(batchIndex).assign(vec.dup());
     }
     return encoding;
   }
