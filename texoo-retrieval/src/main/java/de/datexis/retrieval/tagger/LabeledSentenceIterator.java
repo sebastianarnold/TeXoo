@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * A MultiDatasetIterator that returns one Sentence per Example, with Tokens as time steps.
@@ -34,9 +33,11 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
   protected String encoding;
   protected boolean tokenized;
   
-  protected TreeSet<String> stopWords = new TreeSet<>();
-  
   protected static Pattern TAB_SEPARATOR = Pattern.compile("^(.*)\t(.*)$");
+  
+  public LabeledSentenceIterator(Stage stage, int batchSize, int numExamples, int maxTimeSeriesLength) {
+    super(stage, numExamples, maxTimeSeriesLength, batchSize, false);
+  }
   
   public LabeledSentenceIterator(Stage stage, Resource sentencesTSV, String encoding, WordHelpers.Language language, boolean isTokenized, int batchSize, int numExamples, int maxTimeSeriesLength) {
     super(stage, numExamples, maxTimeSeriesLength, batchSize, false);
@@ -98,10 +99,6 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
     Sentence s = tokenized ?
       DocumentFactory.createSentenceFromTokenizedString(text) :
       DocumentFactory.createSentenceFromString(text, lang.toString());
-    if(!stopWords.isEmpty()) s = new Sentence(
-      s.streamTokens()
-       .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
-       .collect(Collectors.toList()));
     return new AbstractMap.SimpleEntry<>(label, s);
   }
   
@@ -129,7 +126,7 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
     return nextSentenceBatch(batchSize);
   }
   
-  public class LabeledSentenceBatch {
+  public static class LabeledSentenceBatch {
     public List<Sentence> sentences;
     public List<String> labels;
     public MultiDataSet dataset;
@@ -140,6 +137,15 @@ public abstract class LabeledSentenceIterator extends AbstractMultiDataSetIterat
       this.sentences = sentences;
       this.labels = labels;
       this.dataset = dataset;
+      this.maxSentenceLength = maxSentenceLength;
+    }
+    public LabeledSentenceBatch(List<Sentence> sentences) {
+      this.sentences = sentences;
+      this.size = sentences.size();
+      int maxSentenceLength = 1;
+      for(Sentence s : sentences) {
+        maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
+      }
       this.maxSentenceLength = maxSentenceLength;
     }
   }

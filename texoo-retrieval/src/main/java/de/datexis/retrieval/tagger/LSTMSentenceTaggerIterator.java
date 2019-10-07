@@ -12,10 +12,10 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.nd4j.linalg.indexing.NDArrayIndex.all;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
@@ -28,20 +28,31 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
 
   protected IEncoder inputEncoder, targetEncoder;
   
+  protected Set<String> stopWords = Collections.emptySet();
+  
   public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Resource sentencesTSV, String encoding, WordHelpers.Language language, boolean isTokenized, int batchSize) {
     this(stage, inputEncoder, targetEncoder, sentencesTSV, encoding, language, Collections.emptySet(), isTokenized, batchSize, -1, -1);
   }
   
-  public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Resource sentencesTSV, String encoding, WordHelpers.Language language, Collection<String> stopWords, boolean isTokenized, int batchSize) {
+  public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Resource sentencesTSV, String encoding, WordHelpers.Language language, Set<String> stopWords, boolean isTokenized, int batchSize) {
     this(stage, inputEncoder, targetEncoder, sentencesTSV, encoding, language, stopWords, isTokenized, batchSize, -1, -1);
   }
   
-  public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Resource sentencesTSV, String encoding, WordHelpers.Language language, Collection<String> stopWords, boolean isTokenized, int batchSize, int numExamples, int maxTimeSeriesLength) {
+  public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Resource sentencesTSV, String encoding, WordHelpers.Language language, Set<String> stopWords, boolean isTokenized, int batchSize, int numExamples, int maxTimeSeriesLength) {
     super(stage, sentencesTSV, encoding, language, isTokenized, batchSize, numExamples, maxTimeSeriesLength);
     this.inputEncoder = inputEncoder;
     this.targetEncoder = targetEncoder;
-    this.stopWords = new TreeSet<>(stopWords);
+    this.stopWords = stopWords;
   }
+  
+  /** no file reading, used for encoding only */
+  public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, IEncoder targetEncoder, Set<String> stopWords, int batchSize, int numExamples, int maxTimeSeriesLength) {
+    super(stage, batchSize, numExamples, maxTimeSeriesLength);
+    this.inputEncoder = inputEncoder;
+    this.targetEncoder = targetEncoder;
+    this.stopWords = stopWords;
+  }
+  
   
   /*public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, int numExamples, int batchSize, int maxTimeSeriesLength) {
     this(stage, inputEncoder, null, null, null, WordHelpers.Language.EN, false, batchSize, numExamples, maxTimeSeriesLength);
@@ -50,15 +61,30 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
   @Override
   public MultiDataSet generateDataSet(LabeledSentenceBatch batch) {
     
+    List<Sentence> examples = batch.sentences;
+    if(!stopWords.isEmpty()) {
+      examples = batch.sentences.stream()
+        .map(s -> new Sentence(s.streamTokens()
+          .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
+          .collect(Collectors.toList()))
+        ).collect(Collectors.toList());
+    }
+    int maxSentenceLength = 1;
+    for(Sentence s : examples) {
+      maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
+    }
+    
     // input encodings
-    INDArray inputMask = createMask(batch.sentences, batch.maxSentenceLength, Token.class); // activate all Tokens
-    INDArray labelsMask = createLabelsMask(batch.sentences, Token.class); // activate Sentences in batch
+    INDArray inputMask = createMask(examples, maxSentenceLength, Token.class); // activate all Tokens
+    INDArray labelsMask = createLabelsMask(examples, Token.class); // activate Sentences in batch
 
     // return all encodings on Token level
-    INDArray input = EncodingHelpers.encodeTimeStepMatrix(batch.sentences, inputEncoder, batch.maxSentenceLength, Token.class);
+    INDArray input = EncodingHelpers.encodeTimeStepMatrix(examples, inputEncoder, maxSentenceLength, Token.class);
 
     // target encodings
-    INDArray targets = encodeTarget(batch.sentences, batch.labels, batch.maxSentenceLength, Token.class);
+    INDArray targets;
+    if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(examples, batch.labels);
+    else targets = Nd4j.zeros(DataType.FLOAT, examples.size(), targetEncoder.getEmbeddingVectorSize());
     
     return new org.nd4j.linalg.dataset.MultiDataSet(
       new INDArray[]{input},
@@ -140,17 +166,14 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
     return encoding;
   }
   
-  public INDArray encodeTarget(List<Sentence> input, List<String> labels, int maxTimeSteps, Class<? extends Span> timeStepClass) {
+  public INDArray encodeTarget(List<Sentence> input, List<String> labels) {
     
     INDArray encoding = Nd4j.zeros(DataType.FLOAT, labels.size(), targetEncoder.getEmbeddingVectorSize());
     String label;
-    Sentence example;
     
     for(int batchIndex = 0; batchIndex < labels.size(); batchIndex++) {
       label = labels.get(batchIndex);
-      //example = input.get(batchIndex);
       INDArray vec = targetEncoder.encode(label);
-      //log.debug("target: {} -> {} ({})", label, vec.transpose().toString(), vec.sumNumber().toString());
       encoding.get(point(batchIndex), all()).assign(vec.dup());
     }
     return encoding;

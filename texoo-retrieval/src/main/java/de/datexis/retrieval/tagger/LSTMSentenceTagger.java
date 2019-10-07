@@ -4,22 +4,17 @@ import com.google.common.collect.Lists;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.Encoder;
-import de.datexis.encoder.EncodingHelpers;
 import de.datexis.encoder.IEncoder;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
-import de.datexis.model.Token;
 import de.datexis.tagger.AbstractMultiDataSetIterator;
-import de.datexis.tagger.DocumentSentenceIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
 import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.nn.workspace.LayerWorkspaceMgr;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.util.ModelSerializer;
-import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.MultiDataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -31,10 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Entity/Aspect embedding based on BLSTM / BLOOM training.
@@ -50,7 +42,7 @@ public class LSTMSentenceTagger extends Tagger {
   // target representation encoder
   protected IEncoder targetEncoder;
   
-  protected Collection<String> stopWords = Collections.emptySet();
+  protected Set<String> stopWords = Collections.emptySet();
   
   protected final FeedForwardToRnnPreProcessor ff2rnn = new FeedForwardToRnnPreProcessor();
 
@@ -93,7 +85,7 @@ public class LSTMSentenceTagger extends Tagger {
   }
   
   public void setStopWords(Collection<String> stopWords) {
-    this.stopWords = stopWords;
+    this.stopWords = new TreeSet<>(stopWords);
   }
   
   @JsonIgnore
@@ -164,69 +156,25 @@ public class LSTMSentenceTagger extends Tagger {
   }
   
   public INDArray encodeSentence(Sentence s) {
-    INDArray inputMask = LSTMSentenceTaggerIterator.createMask(Collections.singletonList(s), s.getLength(), Token.class);
-    INDArray labelsMask = Nd4j.ones(DataType.FLOAT, 1, 1);
-    INDArray input = EncodingHelpers.encodeTimeStepMatrix(Collections.singletonList(s), inputEncoder, s.getLength(), Token.class);
-    getNN().setLayerMaskArrays(new INDArray[]{inputMask}, new INDArray[]{labelsMask});
-    Map<String,INDArray> weights = getNN().feedForward(new INDArray[]{input}, false, true);
-    if(weights.containsKey("embedding")) {
-      return weights.get("embedding").transpose();
-    } else {
-      throw new IllegalStateException("Embedding does not have an embeddding layer");
-    }
+    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, null, stopWords, 1, -1, -1);
+    MultiDataSet data = it.generateDataSet(new LabeledSentenceIterator.LabeledSentenceBatch(Collections.singletonList(s)));
+    getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
+    Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
+    if(weights.containsKey("embedding")) return weights.get("embedding").transpose();
+    else throw new IllegalStateException("Embedding does not have an embeddding layer");
   }
   
-  public INDArray encodeBatch(LabeledSentenceIterator.LabeledSentenceBatch batch) {
-    INDArray inputMask = LSTMSentenceTaggerIterator.createMask(batch.sentences, batch.maxSentenceLength, Token.class);
-    INDArray labelsMask = LSTMSentenceTaggerIterator.createLabelsMask(batch.sentences, Token.class);
-    INDArray input = EncodingHelpers.encodeTimeStepMatrix(batch.sentences, inputEncoder, batch.maxSentenceLength, Token.class);
-    getNN().setLayerMaskArrays(new INDArray[]{inputMask}, new INDArray[]{labelsMask});
-    Map<String,INDArray> weights = getNN().feedForward(new INDArray[]{input}, false, true);
-    if(weights.containsKey("embedding")) {
-      return weights.get("embedding");
-    } else {
-      throw new IllegalStateException("Embedding does not have an embeddding layer");
-    }
+  public INDArray encodeBatchMatrix(LabeledSentenceIterator.LabeledSentenceBatch batch) {
+    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, targetEncoder, stopWords, 1, -1, -1);
+    MultiDataSet data = it.generateDataSet(batch);
+    getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
+    Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
+    if(weights.containsKey("embedding")) return weights.get("embedding"); //Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize());
+    else throw new IllegalStateException("Embedding does not have an embeddding layer");
   }
   
   public INDArray encodeBatchMatrix(List<Sentence> examples) {
-    int maxSentenceLength = 1;
-    for(Sentence s : examples) {
-      maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
-    }
-    INDArray inputMask = LSTMSentenceTaggerIterator.createMask(examples, maxSentenceLength, Token.class);
-    INDArray labelsMask = LSTMSentenceTaggerIterator.createLabelsMask(examples, Token.class);
-    INDArray input = EncodingHelpers.encodeTimeStepMatrix(examples, inputEncoder, maxSentenceLength, Token.class);
-    getNN().setLayerMaskArrays(new INDArray[]{inputMask}, new INDArray[]{labelsMask});
-    Map<String,INDArray> weights = getNN().feedForward(new INDArray[]{input}, false, true);
-    if(weights.containsKey("embedding")) {
-      return weights.get("embedding");
-    } else {
-      throw new IllegalStateException("Embedding does not have an embeddding layer");
-    }
-  }
-  
-  public Map<String,INDArray> encodeMatrix(DocumentSentenceIterator.DocumentBatch batch) {
-    
-    MultiDataSet next = batch.dataset;
-
-    Map<String,INDArray> weights = feedForward(getNN(), next);
-    
-    if(weights.containsKey("embedding")) {
-      weights.put("embedding", ff2rnn.preProcess(weights.get("embedding"), batch.size, LayerWorkspaceMgr.noWorkspaces()));
-    }
-
-    return weights;
-    
-  }
-  
-  public static Map<String,INDArray> feedForward(ComputationGraph net, MultiDataSet next) {
-      INDArray[] features = next.getFeatures();
-      INDArray[] featuresMasks = next.getFeaturesMaskArrays();
-      INDArray[] labelMasks = next.getLabelsMaskArrays();
-      net.setLayerMaskArrays(featuresMasks, labelMasks);
-      Map<String,INDArray> weights = net.feedForward(features, false, true);
-      return weights;
+    return encodeBatchMatrix(new LabeledSentenceIterator.LabeledSentenceBatch(examples));
   }
   
   protected void triggerEpochListeners(boolean epochStart, int epochNum){
