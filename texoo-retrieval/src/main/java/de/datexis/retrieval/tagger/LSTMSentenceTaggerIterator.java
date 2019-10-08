@@ -14,6 +14,7 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,45 +54,60 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
     this.stopWords = stopWords;
   }
   
+  public LabeledSentenceBatch applyStopWordFilter(LabeledSentenceBatch batch) {
+    if(!stopWords.isEmpty()) {
+      List<String> labels = batch.labels;
+      List<Sentence> examples = batch.sentences.stream()
+        .map(s -> applyStopWordFilter(s))
+        .collect(Collectors.toList());
+      int maxSentenceLength = 1;
+      for(int i = examples.size() - 1; i >= 0; i--) {
+        Sentence s = examples.get(i);
+        if(s.countTokens() > 0) {
+          maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
+        } else {
+          examples.remove(i);
+          labels.remove(i);
+        }
+      }
+      batch.sentences = examples;
+      batch.labels = labels;
+      batch.size = labels.size();
+      batch.maxSentenceLength = maxSentenceLength;
+    }
+    return batch;
+  }
   
-  /*public LSTMSentenceTaggerIterator(Stage stage, IEncoder inputEncoder, int numExamples, int batchSize, int maxTimeSeriesLength) {
-    this(stage, inputEncoder, null, null, null, WordHelpers.Language.EN, false, batchSize, numExamples, maxTimeSeriesLength);
-  }*/
-
+  public Sentence applyStopWordFilter(Sentence s) {
+    return new Sentence(s.streamTokens()
+          .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
+          .collect(Collectors.toList()));
+  }
+  
+  public LabeledSentenceBatch nextSentenceBatch(int num) {
+    return applyStopWordFilter(super.nextSentenceBatch(num));
+  }
+  
+  public Map.Entry<String, Sentence> nextLabeledSentence() {
+    Map.Entry<String, Sentence> next = super.nextLabeledSentence();
+    if(!stopWords.isEmpty()) next.setValue(applyStopWordFilter(next.getValue()));
+    return next;
+  }
+  
   @Override
   public MultiDataSet generateDataSet(LabeledSentenceBatch batch) {
     
-    List<Sentence> examples = batch.sentences;
-    List<String> labels = batch.labels;
-    if(!stopWords.isEmpty()) {
-      examples = batch.sentences.stream()
-        .map(s -> new Sentence(s.streamTokens()
-          .filter(t -> !stopWords.contains(t.getText().toLowerCase().trim()))
-          .collect(Collectors.toList())))
-        .collect(Collectors.toList());
-    }
-    int maxSentenceLength = 1;
-    for(int i = examples.size() - 1; i >= 0; i--) {
-      Sentence s = examples.get(i);
-      if(s.countTokens() > 0) {
-        maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
-      } else {
-        examples.remove(i);
-        labels.remove(i);
-      }
-    }
-    
     // input encodings
-    INDArray inputMask = createMask(examples, maxSentenceLength, Token.class); // activate all Tokens
-    INDArray labelsMask = createLabelsMask(examples, Token.class); // activate Sentences in batch
+    INDArray inputMask = createMask(batch.sentences, batch.maxSentenceLength, Token.class); // activate all Tokens
+    INDArray labelsMask = createLabelsMask(batch.sentences, Token.class); // activate Sentences in batch
 
     // return all encodings on Token level
-    INDArray input = EncodingHelpers.encodeTimeStepMatrix(examples, inputEncoder, maxSentenceLength, Token.class);
+    INDArray input = EncodingHelpers.encodeTimeStepMatrix(batch.sentences, inputEncoder, batch.maxSentenceLength, Token.class);
 
     // target encodings
     INDArray targets;
-    if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(examples, labels);
-    else targets = Nd4j.zeros(DataType.FLOAT, examples.size(), targetEncoder.getEmbeddingVectorSize());
+    if(stage.equals(Stage.TRAIN) || stage.equals(Stage.TEST)) targets = encodeTarget(batch.sentences, batch.labels);
+    else targets = Nd4j.zeros(DataType.FLOAT, batch.size, targetEncoder.getEmbeddingVectorSize());
   
     return new org.nd4j.linalg.dataset.MultiDataSet(
       new INDArray[]{input},

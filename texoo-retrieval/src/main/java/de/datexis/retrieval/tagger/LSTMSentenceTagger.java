@@ -8,6 +8,7 @@ import de.datexis.encoder.IEncoder;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.retrieval.tagger.LabeledSentenceIterator.LabeledSentenceBatch;
 import de.datexis.tagger.AbstractMultiDataSetIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
@@ -157,16 +158,17 @@ public class LSTMSentenceTagger extends Tagger {
   
   public INDArray encodeSentence(Sentence s) {
     LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, null, stopWords, 1, -1, -1);
-    MultiDataSet data = it.generateDataSet(new LabeledSentenceIterator.LabeledSentenceBatch(Collections.singletonList(s)));
+    LabeledSentenceBatch batch = new LabeledSentenceBatch(Collections.singletonList(s));
+    MultiDataSet data = it.generateDataSet(it.applyStopWordFilter(batch));
     getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
     Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
     if(weights.containsKey("embedding")) return weights.get("embedding").transpose();
     else throw new IllegalStateException("Embedding does not have an embeddding layer");
   }
   
-  public INDArray encodeBatchMatrix(LabeledSentenceIterator.LabeledSentenceBatch batch) {
+  public INDArray encodeBatchMatrix(LabeledSentenceBatch batch) {
     LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, targetEncoder, stopWords, 1, -1, -1);
-    MultiDataSet data = it.generateDataSet(batch);
+    MultiDataSet data = it.generateDataSet(it.applyStopWordFilter(batch));
     getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
     Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
     if(weights.containsKey("embedding")) return weights.get("embedding"); //Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize());
@@ -174,7 +176,7 @@ public class LSTMSentenceTagger extends Tagger {
   }
   
   public INDArray encodeBatchMatrix(List<Sentence> examples) {
-    return encodeBatchMatrix(new LabeledSentenceIterator.LabeledSentenceBatch(examples));
+    return encodeBatchMatrix(new LabeledSentenceBatch(examples));
   }
   
   protected void triggerEpochListeners(boolean epochStart, int epochNum){
