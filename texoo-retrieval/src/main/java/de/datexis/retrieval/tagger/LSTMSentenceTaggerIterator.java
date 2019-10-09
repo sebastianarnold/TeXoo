@@ -67,7 +67,7 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
           maxSentenceLength = Math.max(maxSentenceLength, s.countTokens());
         } else {
           examples.remove(i);
-          labels.remove(i);
+          if(labels != null) labels.remove(i);
         }
       }
       batch.sentences = examples;
