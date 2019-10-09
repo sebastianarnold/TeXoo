@@ -3,17 +3,16 @@ package de.datexis.retrieval.tagger;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.graph.MergeVertex;
-import org.deeplearning4j.nn.conf.graph.SubsetVertex;
-import org.deeplearning4j.nn.conf.graph.rnn.LastTimeStepVertex;
 import org.deeplearning4j.nn.conf.graph.rnn.ReverseTimeSeriesVertex;
 import org.deeplearning4j.nn.conf.inputs.InputType;
 import org.deeplearning4j.nn.conf.layers.DenseLayer;
 import org.deeplearning4j.nn.conf.layers.LSTM;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.deeplearning4j.nn.conf.layers.recurrent.Bidirectional;
+import org.deeplearning4j.nn.conf.layers.recurrent.LastTimeStep;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.PerformanceListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.ILossFunction;
@@ -36,11 +35,13 @@ public class ModelBuilder {
     
     ComputationGraphConfiguration.GraphBuilder gb = new NeuralNetConfiguration.Builder()
       .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-      .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.975)))
+      .updater(new Adam(new ExponentialSchedule(ScheduleType.EPOCH, learningRate, 0.95)))
       .weightInit(WeightInit.XAVIER)
-      .weightDecay(0.0001)
+      .l2(0.00001)
+      //.weightDecay(0.0001)
       .dropOut(0)
-      //.gradientNormalization(GradientNormalization.ClipL2PerLayer)
+      //.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
+      .gradientNormalization(GradientNormalization.ClipL2PerLayer)
       .trainingWorkspaceMode(WorkspaceMode.ENABLED)
       .inferenceWorkspaceMode(WorkspaceMode.ENABLED)
       .cacheMode(CacheMode.HOST)
@@ -48,36 +49,42 @@ public class ModelBuilder {
       
       // INPUT LAYERS - SENTENCE EMBEDDINGS
       .addInputs("input")
+      .addVertex("reverse", new ReverseTimeSeriesVertex("input"), "input")
   
       // LSTM LAYERS - SENTENCE LEVEL
-      .addLayer("BLSTM", new Bidirectional(Bidirectional.Mode.CONCAT, new LSTM.Builder()
+      //.addLayer("BLSTM", new Bidirectional(Bidirectional.Mode.CONCAT, new LSTM.Builder()
+      .addLayer("LSTM_FW", new LastTimeStep(new LSTM.Builder()
         .nIn(sentenceVectorSize).nOut(lstmLayerSize)
         .activation(Activation.TANH)
         .gateActivationFunction(Activation.SIGMOID)
         .dropOut(dropout)
         .build()), "input")
-      .addVertex("FW", new SubsetVertex(0, (int)lstmLayerSize - 1), "BLSTM")
-      .addVertex("BW", new SubsetVertex((int)lstmLayerSize, (2 * (int)lstmLayerSize) - 1), "BLSTM")
-      .addVertex("revBW", new ReverseTimeSeriesVertex("input"), "BW")
       
-      // extract last time steps and merge
-      .addVertex("lastFW", new LastTimeStepVertex("input"), "FW")
-      .addVertex("lastBW", new LastTimeStepVertex("input"), "revBW")
-      .addVertex("merge", new MergeVertex(), "lastFW", "lastBW" )
+      .addLayer("LSTM_BW", new LastTimeStep(new LSTM.Builder()
+        .nIn(sentenceVectorSize).nOut(lstmLayerSize)
+        .activation(Activation.TANH)
+        .gateActivationFunction(Activation.SIGMOID)
+        .dropOut(dropout)
+        .build()), "reverse")
       
-      //.addVertex("merge", new LastTimeStepVertex("input"), "BLSTM")
+      .addVertex("merge", new MergeVertex(), "LSTM_FW", "LSTM_BW" )
+      
       //.addLayer("maxPooling", new GlobalPoolingLayer(PoolingType.MAX), "FW")
       
       // EMBEDDING LAYER
       .addLayer("embedding", new DenseLayer.Builder()
-        .nIn(lstmLayerSize * 2).nOut(embeddingLayerSize)
+        .nIn(2 * lstmLayerSize).nOut(embeddingLayerSize)
+        .dropOut(0)
         .activation(Activation.TANH)
         .build(), "merge")
+  
+      //.addVertex("embedding", new L2NormalizeVertex(new int[]{1}, 1e-8), "dense")
   
       // OUTPUT LAYERS
       .addLayer("target", new OutputLayer.Builder(lossFunc)
         .nIn(embeddingLayerSize).nOut(targetVectorSize)
         .activation(activation)
+        .dropOut(0)
         .weightInit(WeightInit.SIGMOID_UNIFORM)
         .build(), "embedding")
       .setOutputs("target")
@@ -88,7 +95,8 @@ public class ModelBuilder {
     ComputationGraph lstm = new ComputationGraph(conf);
     lstm.init();
     lstm.setListeners(
-      new PerformanceListener(128, true)
+      new PerformanceListener(128, true),
+      new ScoreIterationListener(16)
     );
     
     return lstm;
