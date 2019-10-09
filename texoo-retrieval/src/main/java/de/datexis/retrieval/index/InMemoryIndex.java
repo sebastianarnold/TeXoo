@@ -163,7 +163,7 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
           lookupBatchMatrix(sents, (InMemoryIndex) encoder) :
           EncodingHelpers.encodeBatchMatrix(sents, encoder);
       }
-      for(int batchNum = 0; batchNum < batch.size(); batchNum++) {
+      for(int batchNum = 0; batchNum < embs.rows(); batchNum++) {
         String key = batch.get(batchNum).getKey();
         INDArray sum = sums.getOrDefault(key, Nd4j.zeros(DataType.FLOAT, encoder.getEmbeddingVectorSize(), 1));
         vec = embs.getRow(batchNum).reshape(encoder.getEmbeddingVectorSize(), 1);
