@@ -157,7 +157,7 @@ public class LSTMSentenceTagger extends Tagger {
   }
   
   public INDArray encodeSentence(Sentence s) {
-    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, null, stopWords, 1, -1, -1);
+    LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, targetEncoder, stopWords, 1, -1, -1);
     LabeledSentenceBatch batch = new LabeledSentenceBatch(Collections.singletonList(s));
     MultiDataSet data = it.generateDataSet(it.applyStopWordFilter(batch));
     getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());

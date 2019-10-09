@@ -72,7 +72,7 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
       }
       batch.sentences = examples;
       batch.labels = labels;
-      batch.size = labels.size();
+      batch.size = examples.size();
       batch.maxSentenceLength = maxSentenceLength;
     }
     return batch;
