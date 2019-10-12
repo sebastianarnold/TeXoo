@@ -12,7 +12,6 @@ import de.datexis.retrieval.tagger.LabeledSentenceIterator.LabeledSentenceBatch;
 import de.datexis.tagger.AbstractMultiDataSetIterator;
 import de.datexis.tagger.Tagger;
 import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
-import org.deeplearning4j.nn.conf.preprocessor.FeedForwardToRnnPreProcessor;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.optimize.api.TrainingListener;
 import org.deeplearning4j.util.ModelSerializer;
@@ -45,8 +44,6 @@ public class LSTMSentenceTagger extends Tagger {
   
   protected Set<String> stopWords = Collections.emptySet();
   
-  protected final FeedForwardToRnnPreProcessor ff2rnn = new FeedForwardToRnnPreProcessor();
-
   /** used by XML deserializer */
   public LSTMSentenceTagger() {
     super("EMB");

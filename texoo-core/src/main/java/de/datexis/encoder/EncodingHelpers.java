@@ -12,9 +12,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import java.util.Collections;
 import java.util.List;
 
-import static org.nd4j.linalg.indexing.NDArrayIndex.all;
-import static org.nd4j.linalg.indexing.NDArrayIndex.point;
-
 public class EncodingHelpers {
   
   public static INDArray createTimeStepMatrix(long batchSize, long vectorSize, long timeSteps) {
@@ -86,7 +83,7 @@ public class EncodingHelpers {
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
       example = input.get(batchIndex);
       INDArray vec = encoder.encode(example);
-      encoding.get(point(batchIndex), all()).assign(vec);
+      encoding.slice(batchIndex).assign(vec);
     }
     
     return encoding;

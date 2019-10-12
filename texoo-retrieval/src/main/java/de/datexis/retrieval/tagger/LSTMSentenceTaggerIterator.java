@@ -125,7 +125,8 @@ public class LSTMSentenceTaggerIterator extends LabeledSentenceIterator {
     for(int batchIndex = 0; batchIndex < input.size(); batchIndex++) {
       int spanCount = 0;
       if(timeStepClass == Token.class) spanCount = input.get(batchIndex).countTokens();
-      for(int t = 0; t < spanCount && t < maxTimeSteps; t++) {
+      mask.putScalar(new int[] {batchIndex, 0}, 1.); // always activate first token, otherwise empty sentences will throw errors
+      for(int t = 1; t < spanCount && t < maxTimeSteps; t++) {
         mask.putScalar(new int[] {batchIndex, t}, 1.);
       }
     }
