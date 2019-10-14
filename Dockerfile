@@ -7,22 +7,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Install Java
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java8-installer && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk8-installer
+RUN apt-get update && apt-get install openjdk-8-jdk -y
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-
-# Install maven 3.3.9
-RUN wget --no-verbose -O /tmp/apache-maven-3.3.9-bin.tar.gz http://www-eu.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz && \
-    tar xzf /tmp/apache-maven-3.3.9-bin.tar.gz -C /opt/ && \
-    ln -s /opt/apache-maven-3.3.9 /opt/maven && \
+# Install maven 3.6.2
+RUN wget --no-verbose -O /tmp/apache-maven-3.6.2-bin.tar.gz https://www-eu.apache.org/dist/maven/maven-3/3.6.2/binaries/apache-maven-3.6.2-bin.tar.gz && \
+    tar xzf /tmp/apache-maven-3.6.2-bin.tar.gz -C /opt/ && \
+    ln -s /opt/apache-maven-3.6.2 /opt/maven && \
     ln -s /opt/maven/bin/mvn /usr/local/bin  && \
-    rm -f /tmp/apache-maven-3.3.9-bin.tar.gz
+    rm -f /tmp/apache-maven-3.6.2-bin.tar.gz
 
 ENV MAVEN_HOME /opt/maven
 
@@ -32,10 +24,12 @@ COPY texoo-cuda-9.2/pom.xml /tmp/texoo-cuda-9.2/pom.xml
 COPY texoo-cuda-10.1/pom.xml /tmp/texoo-cuda-10.1/pom.xml
 COPY texoo-core/pom.xml /tmp/texoo-core/pom.xml
 COPY texoo-examples/pom.xml /tmp/texoo-examples/pom.xml
-COPY texoo-retrieval/build.xml /tmp/texoo-retrieval/build.xml
+COPY texoo-retrieval/pom.xml /tmp/texoo-retrieval/pom.xml
 COPY texoo-entity-recognition/pom.xml /tmp/texoo-entity-recognition/pom.xml
 COPY texoo-entity-linking/pom.xml /tmp/texoo-entity-linking/pom.xml
 COPY texoo-sector/pom.xml /tmp/texoo-sector/pom.xml
+COPY texoo-encoder-api/pom.xml /tmp/texoo-encoder-api/pom.xml
+COPY texoo-core/src/main/resources/texoo.properties.template /tmp/texoo-core/src/main/resources/texoo.properties.template
 COPY texoo-core/build.xml /tmp/texoo-core/build.xml
 RUN mvn -B -f /tmp/pom.xml verify --fail-never
 
