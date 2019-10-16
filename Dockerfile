@@ -10,6 +10,8 @@ RUN apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
+ENV CUDA_HOME=/usr/local/cuda/
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/compat:$LD_LIBRARY_PATH
 ENV OMP_NUM_THREADS=4
 ENV CUDA_VISIBLE_DEVICES=0
 ENV BACKEND_PRIORITY_CPU=1
