@@ -1,2 +1,0 @@
-#!/bin/sh
-docker run -v "$(pwd)":/usr/src -it texoo /bin/bash

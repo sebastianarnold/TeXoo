@@ -3,4 +3,4 @@
 # build and install TeXoo modules with CUDA support
 #
 
-mvn -e -DskipTests=true -Dmaven.javadoc.skip=true -P cuda-9.2 install
+mvn -e -DskipTests=true -Dmaven.javadoc.skip=true -P cuda-10.1 install

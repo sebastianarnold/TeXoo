@@ -3,6 +3,6 @@
 # start the docker container and mount the local directory as /usr/src
 #
 
-docker start texoo-example || docker run -v "$(pwd)":/usr/src --name texoo-example --entrypoint "/bin/sh" -t -d texoo
-docker exec -it texoo-example bash -c "bash $*"
-docker stop texoo-example
+docker start texoo || docker run -v "$(pwd)":/usr/src --name texoo --entrypoint "/bin/sh" -t -d texoo
+docker exec -it texoo bash -c "bash $*"
+docker stop texoo
