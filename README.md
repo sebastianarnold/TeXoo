@@ -29,7 +29,7 @@ TeXoo comes with a Dockerfile that contains all software necessary to run on mos
 
 The following dependencies are required if you are planning to run TeXoo locally. They are already contained in the Dockerfile:
 
-- **Oracle Java 8 JDK**
+- **OpenJDK 8**
 - **Apache Maven** Build system for Java  
 <https://maven.apache.org/guides/index.html>
 
@@ -61,13 +61,13 @@ To use TeXoo NER in your Java project, just add the following dependencies to yo
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-core</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
   <type>jar</type>
 </dependency>
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-entity-recognition</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
   <type>jar</type>
 </dependency>
 ```
@@ -77,8 +77,8 @@ And to enable CUDA support, add the following dependency:
 ```
 <dependency>
   <groupId>de.datexis</groupId>
-  <artifactId>texoo-cuda-9.2</artifactId>
-  <version>1.2.0</version>
+  <artifactId>texoo-cuda-10.1</artifactId>
+  <version>1.3.0</version>
   <type>pom</type>
 </dependency>
 ```
