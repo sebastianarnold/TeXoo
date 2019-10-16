@@ -35,13 +35,13 @@ The following dependencies are required if you are planning to run TeXoo locally
 
 ### Installation
 
-First we need to build a docker image with all dependencies:
+First we need to build a docker image with all dependencies (including CUDA 10.1):
 
 - run ```docker build -t texoo .```
 
 And then we're ready to build TeXoo from source:
 
-- run ```bin/run-docker texoo-build``` or ```bin/run-docker texoo-build-cuda``` to build with CUDA support
+- run ```bin/run-docker texoo-build```
 
 ## Usage
 
@@ -49,7 +49,7 @@ And then we're ready to build TeXoo from source:
 
 There exist several run scripts in the `bin/` directory. You can start them right in the docker container, e.g. run all JUnit tests:
 
-- run ```bin/run-docker texoo-test```
+- run ```bin/run-docker texoo-test``` or - run ```bin/run-docker-cuda texoo-test```
 
 See the Modules Overview for more examples.
 
@@ -72,7 +72,7 @@ To use TeXoo NER in your Java project, just add the following dependencies to yo
 </dependency>
 ```
 
-And to enable CUDA support, add the following dependency:
+And to enable CUDA support, set `TEXOO_CUDA=10.1` add the following dependency in your project:
 
 ```
 <dependency>

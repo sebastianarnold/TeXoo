@@ -17,7 +17,6 @@ ENV CUDA_VISIBLE_DEVICES=0
 ENV BACKEND_PRIORITY_CPU=1
 ENV BACKEND_PRIORITY_GPU=2
 ENV TEXOO_CUDA=10.1
-ENV JAVA_TOOL_OPTIONS=-Dfile.encoding="UTF-8"
 ENV MAVEN_OPTS="-XX:+UseG1GC -Xms4G -Xmx16G -Dorg.bytedeco.javacpp.maxbytes=16G -Dorg.bytedeco.javacpp.maxphysicalbytes=32G -Djavacpp.platform=linux-x86_64 -Dfile.encoding=UTF-8"
 
 # Resolve dependencies at install time
@@ -33,7 +32,7 @@ COPY texoo-sector/pom.xml /tmp/texoo-sector/pom.xml
 COPY texoo-encoder-api/pom.xml /tmp/texoo-encoder-api/pom.xml
 COPY texoo-core/src/main/resources/texoo.properties.template /tmp/texoo-core/src/main/resources/texoo.properties.template
 COPY texoo-core/build.xml /tmp/texoo-core/build.xml
-RUN mvn -B -f /tmp/pom.xml verify -Djavacpp.platform=linux-x86_64 -DskipTests=true --fail-never
+RUN mvn -B -f /tmp/pom.xml dependency:go-offline -DskipTests=true --fail-never
 
 # Define working directory
 WORKDIR /usr/src
