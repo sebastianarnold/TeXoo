@@ -32,7 +32,7 @@ COPY texoo-sector/pom.xml /tmp/texoo-sector/pom.xml
 COPY texoo-encoder-api/pom.xml /tmp/texoo-encoder-api/pom.xml
 COPY texoo-core/src/main/resources/texoo.properties.template /tmp/texoo-core/src/main/resources/texoo.properties.template
 COPY texoo-core/build.xml /tmp/texoo-core/build.xml
-RUN mvn -B -f /tmp/pom.xml dependency:go-offline -DskipTests=true --fail-never
+RUN mvn -B -f /tmp/pom.xml verify dependency:go-offline -DskipTests=true --fail-never
 
 # Define working directory
 WORKDIR /usr/src
