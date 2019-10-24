@@ -3,6 +3,6 @@
 # start the docker container and mount the local directory as /usr/src
 #
 
-docker start texoo || docker run -v "$(pwd)":/usr/src --runtime=nvidia --privileged --name texoo --entrypoint "/bin/sh" -t -d texoo
+docker start texoo || docker run -v "$(pwd)":/usr/src --runtime=nvidia --name texoo --entrypoint "/bin/sh" -t -d texoo
 docker exec -it texoo bash -c "bash $*"
 docker stop texoo
