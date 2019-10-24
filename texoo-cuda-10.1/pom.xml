@@ -26,28 +26,29 @@
       <version>${dl4j.version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
+<!--    <dependency>
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-native-platform</artifactId>
       <version>${dl4j.version}</version>
-    </dependency>
+    </dependency>-->
     <!-- ND4j CUDA -->
-    <dependency>
+<!--    <dependency>
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-cuda-10.1-platform</artifactId>
       <version>${dl4j.version}</version>
-    </dependency>
+    </dependency>-->
     <!-- DL4j cuDNN -->
     <dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>deeplearning4j-cuda-10.1</artifactId>
       <version>${dl4j.version}</version>
     </dependency>
-    <!-- DL4j CUDA + cuDNN binaries -->
+    <!-- DL4j cuDNN 7.6 binaries -->
     <dependency>
-      <groupId>org.bytedeco.javacpp-presets</groupId>
+      <groupId>org.bytedeco</groupId>
       <artifactId>cuda</artifactId>
-      <version>10.0-7.4-1.4.4</version>
+      <version>10.1-7.6-1.5.1</version>
+      <!--<version>10.0-7.3-1.4.3</version> -->
       <classifier>linux-x86_64-redist</classifier>
     </dependency>
 
