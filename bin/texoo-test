@@ -1,2 +1,6 @@
 #!/bin/sh
+
+# configure environment:
+. bin/texoo-env
+
 mvn -e -DskipTests=false test

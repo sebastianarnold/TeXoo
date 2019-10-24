@@ -17,7 +17,7 @@ export BACKEND_PRIORITY_GPU=2
 export TEXOO_CUDA=10.1
 
 # make sure file operations are done using UTF-8 (depends on host)
-export JAVA_TOOL_OPTIONS=-Dfile.encoding="UTF-8"
+#export JAVA_TOOL_OPTIONS=-Dfile.encoding="UTF-8"
 
 # set memory limits to 8GB (Java) and 16GB (DL4j Host Memory)
 export MAVEN_OPTS="-XX:+UseG1GC -Xms4G -Xmx16G -Dorg.bytedeco.javacpp.maxbytes=16G -Dorg.bytedeco.javacpp.maxphysicalbytes=32G -Djavacpp.platform=linux-x86_64 -Dfile.encoding=UTF-8"

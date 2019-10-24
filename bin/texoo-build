@@ -3,4 +3,7 @@
 # build and install TeXoo modules
 #
 
+# configure environment:
+. bin/texoo-env
+
 mvn -e -DskipTests=true -Dmaven.javadoc.skip=true install
