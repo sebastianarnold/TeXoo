@@ -39,6 +39,7 @@ public class WikipediaIndex {
   
   /** Map of all Wikipedia pages Title->URI (including redirects) to map to a different UI scheme than Wikipedia */
   Map<String, String> pageURIs = null;
+  Map<String, String> pageURIsReverse = null;
   
   protected long matched = 0;
   protected long unmatched = 0;
@@ -101,9 +102,14 @@ public class WikipediaIndex {
   public void readIDMapping(Resource file) throws IOException {
     List<String> mapping = FileUtils.readLines(file.toFile(), "UTF-8");
     pageURIs = new ConcurrentHashMap<>(mapping.size());
+    pageURIsReverse = new ConcurrentHashMap<>(mapping.size());
     mapping.stream()
       .map(s -> s.split("\\t"))
-      .forEach(s -> pageURIs.put(WikipediaUrlPreprocessor.cleanWikiPageTitle(s[0]), s[1]));
+      .forEach(s -> {
+        String title = WikipediaUrlPreprocessor.cleanWikiPageTitle(s[0]);
+        pageURIs.put(title, s[1]);
+        pageURIsReverse.put(s[1], title);
+        });
     // TODO: extend pageURIs with all redirects, like it is done in filterPages()
   }
   
@@ -213,6 +219,14 @@ public class WikipediaIndex {
   public String getURIForTitle(String requestedPage) {
     if(pageURIs == null) return getTitleFromRedirect(requestedPage);
     else return pageURIs.get(requestedPage);
+  }
+  
+  /**
+   * @return URI from any Wikipedia pageTitle (including redirects)
+   */
+  public String getTitleForURI(String requestedURI) {
+    if(pageURIsReverse == null) return null;
+    else return pageURIsReverse.get(requestedURI);
   }
   
   public String getStats() {
