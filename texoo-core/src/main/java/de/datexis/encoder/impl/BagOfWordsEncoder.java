@@ -41,6 +41,11 @@ public class BagOfWordsEncoder extends LookupCacheEncoder {
     return preprocessor.getClass();
   }
   
+  public void setPreprocessorClass(String preprocessor) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    Class<?> clazz = Class.forName(preprocessor);
+    this.preprocessor = (TokenPreProcess) clazz.newInstance();
+  }
+  
   @JsonIgnore
   public TokenPreProcess getPreprocessor() {
     return preprocessor;

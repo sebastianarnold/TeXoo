@@ -1,39 +1,37 @@
 package de.datexis.parvec.encoder;
 
 import de.datexis.common.Resource;
-import de.datexis.encoder.IDecoder;
 import de.datexis.encoder.LookupCacheEncoder;
-import de.datexis.model.Annotation;
-import de.datexis.model.Document;
-import de.datexis.model.Span;
-
-import org.nd4j.shade.jackson.annotation.JsonIgnore;
-import de.datexis.model.Dataset;
-import de.datexis.model.Sentence;
+import de.datexis.model.*;
 import de.datexis.preprocess.DocumentFactory;
 import de.datexis.preprocess.MinimalLowercasePreprocessor;
+import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.paragraphvectors.ParagraphVectors;
 import org.deeplearning4j.models.word2vec.VocabWord;
+import org.deeplearning4j.models.word2vec.wordstore.inmemory.AbstractCache;
+import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.nd4j.linalg.api.buffer.DataBuffer;
+import org.nd4j.linalg.api.buffer.util.AllocUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.exception.ND4JIllegalStateException;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.shade.jackson.annotation.JsonIgnore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.deeplearning4j.models.embeddings.inmemory.InMemoryLookupTable;
-import org.deeplearning4j.models.word2vec.wordstore.inmemory.AbstractCache;
-import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ParVecEncoder extends LookupCacheEncoder {
 
@@ -58,7 +56,6 @@ public class ParVecEncoder extends LookupCacheEncoder {
 
   public ParVecEncoder() {
     super("PV");
-
     tokenizerFactory = new DefaultTokenizerFactory();
     tokenizerFactory.setTokenPreProcessor(preprocessor);
   }
@@ -150,7 +147,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
         return model.inferVector(text, learningRate, minLearningRate, 1).transpose();
       } catch(ND4JIllegalStateException ex) {
         //log.trace("unknown paragraph vector for '{}'", text);
-        return Nd4j.zeros(layerSize).transpose();
+        return Nd4j.zeros(layerSize, 1);
       }
     } else {
       return encode(span.getText());
@@ -169,7 +166,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
       return model.inferVector(text, learningRate, minLearningRate, 1).transpose();
     } catch(ND4JIllegalStateException ex) {
       //log.trace("unknown paragraph vector for '{}'", text);
-      return Nd4j.zeros(layerSize).transpose();
+      return Nd4j.zeros(layerSize, 1);
     }
   }
 
@@ -188,7 +185,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
       return model.inferVector(text).transpose();
     } catch(ND4JIllegalStateException ex) {
       log.trace("unknown paragraph vector for '{}'", text);
-      return Nd4j.zeros(layerSize).transpose();
+      return Nd4j.zeros(layerSize, 1);
     }
   }
 
@@ -202,7 +199,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
       log.error(ex.toString());
     }
   }
-
+  
   public static ParVecEncoder load(Resource path) throws IOException {
     ParVecEncoder encoder = new ParVecEncoder();
     encoder.loadModel(path);
@@ -227,6 +224,34 @@ public class ParVecEncoder extends LookupCacheEncoder {
     log.info("Loaded ParagraphVectors with {} classes and layer size {}", targetSize, layerSize);
     setModel(modelFile);
     setModelAvailable(true);
+  }
+  
+  
+  /**
+   * Writes the model to DATEXIS binary word2vec format
+   */
+  public void writeBinaryW2VModel(OutputStream outputStream) throws IOException {
+    // set to deprecated option so it can be read in legacy SECTOR fork
+    AllocUtil.setAllocationModeForContext(DataBuffer.AllocationMode.LONG_SHAPE);
+    int words = 0;
+    try(BufferedOutputStream buf = new BufferedOutputStream(outputStream);
+        DataOutputStream writer = new DataOutputStream(buf)) {
+      for(Object word : model.vocab().words()) {
+        if(word == null) continue;
+        INDArray wordVector = model.getWordVectorMatrix((String) word);
+        log.trace("Write: " + word + " (size " + wordVector.length() + ")");
+        writer.writeUTF((String) word);
+        // make sure the legacy AllocationMode is used
+        DataBuffer temp = Nd4j.createBuffer(wordVector.toDoubleVector());
+        INDArray vec = Nd4j.create(temp, wordVector.shape());
+        Nd4j.write(vec, writer);
+        words++;
+      }
+      writer.flush();
+    }
+    
+    log.info("Wrote " + words + " words with size " + model.vectorSize());
+    
   }
 
   @JsonIgnore
@@ -272,7 +297,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
 
   @Override
   public INDArray oneHot(String word) {
-    INDArray vector = Nd4j.zeros(targetSize);
+    INDArray vector = Nd4j.zeros(targetSize, 1);
     int i = getIndex(word);
     if(i>=0) vector.putScalar(i, 1.0);
     else log.warn("could not encode class '{}'. is it contained in training set?", word);

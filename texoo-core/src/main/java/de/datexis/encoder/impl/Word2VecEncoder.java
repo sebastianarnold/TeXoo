@@ -233,6 +233,11 @@ public class Word2VecEncoder extends Encoder {
     return preprocessor.getClass();
   }
   
+  public void setPreprocessorClass(String preprocessor) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    Class<?> clazz = Class.forName(preprocessor);
+    this.preprocessor = (TokenPreProcess) clazz.newInstance();
+  }
+  
 	@Override
 	public String getName() {
 		return modelName;
