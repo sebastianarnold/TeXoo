@@ -13,8 +13,6 @@ import org.deeplearning4j.models.word2vec.VocabWord;
 import org.deeplearning4j.models.word2vec.wordstore.inmemory.AbstractCache;
 import org.deeplearning4j.text.tokenization.tokenizer.TokenPreProcess;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
-import org.nd4j.linalg.api.buffer.DataBuffer;
-import org.nd4j.linalg.api.buffer.util.AllocUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.exception.ND4JIllegalStateException;
 import org.nd4j.linalg.factory.Nd4j;
@@ -231,8 +229,6 @@ public class ParVecEncoder extends LookupCacheEncoder {
    * Writes the model to DATEXIS binary word2vec format
    */
   public void writeBinaryW2VModel(OutputStream outputStream) throws IOException {
-    // set to deprecated option so it can be read in legacy SECTOR fork
-    AllocUtil.setAllocationModeForContext(DataBuffer.AllocationMode.LONG_SHAPE);
     int words = 0;
     try(BufferedOutputStream buf = new BufferedOutputStream(outputStream);
         DataOutputStream writer = new DataOutputStream(buf)) {
@@ -241,10 +237,7 @@ public class ParVecEncoder extends LookupCacheEncoder {
         INDArray wordVector = model.getWordVectorMatrix((String) word);
         log.trace("Write: " + word + " (size " + wordVector.length() + ")");
         writer.writeUTF((String) word);
-        // make sure the legacy AllocationMode is used
-        DataBuffer temp = Nd4j.createBuffer(wordVector.toDoubleVector());
-        INDArray vec = Nd4j.create(temp, wordVector.shape());
-        Nd4j.write(vec, writer);
+        Nd4j.write(wordVector, writer);
         words++;
       }
       writer.flush();
