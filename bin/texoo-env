@@ -14,7 +14,7 @@ export BACKEND_PRIORITY_CPU=1
 export BACKEND_PRIORITY_GPU=2
 
 # use this to enable CUDA support
-export TEXOO_CUDA=10.1
+export TEXOO_CUDA=9.2
 
 # make sure file operations are done using UTF-8 (depends on host)
 #export JAVA_TOOL_OPTIONS=-Dfile.encoding="UTF-8"
