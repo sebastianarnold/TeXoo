@@ -119,4 +119,11 @@ public class DocumentFactoryTest {
     Assert.assertEquals("sentence.\n\n", doc.getSentence(0).getText());
   }
   
+  @Test
+  public void testEnumerationSplitter() {
+    String text = "They describe the process in three stages:\n1. Adaptive stage.";
+    Document doc = DocumentFactory.fromText(text,DocumentFactory.Newlines.KEEP);
+    Assert.assertEquals(2, doc.countSentences());
+  }
+  
 }

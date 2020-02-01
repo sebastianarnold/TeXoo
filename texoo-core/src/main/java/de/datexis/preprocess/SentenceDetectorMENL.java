@@ -73,7 +73,7 @@ public class SentenceDetectorMENL extends SentenceDetectorME {
       int cint = enders.get(i);
       // skip over the leading parts of non-token final delimiters
       int fws = getFirstWS(s, cint + 1);
-      if(i + 1 < end && enders.get(i + 1) < fws) {
+      if(s.charAt(cint) != '\n' && i + 1 < end && enders.get(i + 1) < fws) {
         continue;
       }
       if(positions.size() > 0 && cint < positions.get(positions.size() - 1)) continue;
