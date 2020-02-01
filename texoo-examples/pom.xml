@@ -6,13 +6,13 @@
   <artifactId>texoo-examples</artifactId>
   <name>TeXoo-examples</name>
   <packaging>jar</packaging>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <texoo.version>1.3.0</texoo.version>
+    <texoo.version>1.3.1</texoo.version>
   </properties>
 
   <dependencies>
