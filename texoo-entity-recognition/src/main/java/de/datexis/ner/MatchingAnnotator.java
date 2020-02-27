@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,13 +78,28 @@ public class MatchingAnnotator extends Annotator {
   }
   
   protected Collection<String> convertTerms(Stream<String> terms) {
+    Comparator<String> compByLength = (a, b) -> a.length() - b.length();
     switch(matchingStrategy) {
       case LOWERCASE:
-        return terms.filter(w -> w.length() >= minimumWordLength).map(w -> convertToLowercase(w)).distinct().collect(Collectors.toList());
+        return terms
+          .filter(w -> w.length() >= minimumWordLength)
+          .map(w -> convertToLowercase(w))
+          .distinct()
+          .sorted(compByLength.reversed())
+          .collect(Collectors.toList());
       case LEMMA:
-        return terms.filter(w -> w.length() >= minimumWordLength).map(w -> removePlurals(convertToLowercase(w))).distinct().collect(Collectors.toList());
+        return terms
+          .filter(w -> w.length() >= minimumWordLength)
+          .map(w -> removePlurals(convertToLowercase(w)))
+          .distinct()
+          .sorted(compByLength.reversed())
+          .collect(Collectors.toList());
       case SKIP_STOPWORDS:
-        return terms.filter(w -> w.length() >= minimumWordLength && !wordHelpers.isStopWord(w)).distinct().collect(Collectors.toList());
+        return terms
+          .filter(w -> w.length() >= minimumWordLength && !wordHelpers.isStopWord(w))
+          .distinct()
+          .sorted(compByLength.reversed())
+          .collect(Collectors.toList());
       default:
         return terms.distinct().collect(Collectors.toList());
     }

@@ -4,10 +4,12 @@ import com.google.common.collect.Lists;
 import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.preprocess.DocumentFactory;
+import org.junit.Test;
+
 import java.util.List;
 import java.util.stream.Collectors;
-import static org.junit.Assert.*;
-import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -22,7 +24,7 @@ public class MatchingAnnotatorTest {
       + "Active immunotherapy directs the immune system to attack tumor cells by targeting TAAs. Passive immunotherapies enhance existing "
       + "anti-tumor responses and include the use of monoclonal antibodies, lymphocytes and cytokines.";
   
-  final String[] list = { "cancer", "immune system", "molecules", "TAA", "immunotherapy", "tumor", "tumor cells", "e" } ;
+  final String[] list = { "tum", "cancer", "immune system", "molecules", "TAA", "immunotherapy", "tumor", "tumor cells", "e" } ;
   
   final String[] uppercase = { "NOT", "TEST" } ;
   final String[] lowercase = { "not", "test" } ;
@@ -41,7 +43,7 @@ public class MatchingAnnotatorTest {
     assertEquals(0, doc.countAnnotations());
     
     ann.loadTermsToMatch(Lists.newArrayList(list));
-    assertEquals(8, ann.countTerms());
+    assertEquals(9, ann.countTerms());
     
     ann.annotate(doc);
     
@@ -51,7 +53,7 @@ public class MatchingAnnotatorTest {
     
     assertEquals(0, doc.countAnnotations(Annotation.Source.GOLD));
     assertEquals(0, doc.countAnnotations(Annotation.Source.PRED));
-    assertEquals(9, doc.countAnnotations(Annotation.Source.SILVER));
+    assertEquals(8, doc.countAnnotations(Annotation.Source.SILVER));
     
     
     /*
@@ -78,7 +80,7 @@ public class MatchingAnnotatorTest {
     assertEquals(0, doc.countAnnotations());
     
     ann.loadTermsToMatch(Lists.newArrayList(list));
-    assertEquals(7, ann.countTerms()); // "e" is too short
+    assertEquals(8, ann.countTerms()); // "e" is too short
     
     ann.annotate(doc);
     
