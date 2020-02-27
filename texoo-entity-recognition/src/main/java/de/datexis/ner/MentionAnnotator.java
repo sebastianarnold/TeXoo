@@ -6,25 +6,24 @@ import de.datexis.common.Resource;
 import de.datexis.common.Timer;
 import de.datexis.common.WordHelpers;
 import de.datexis.encoder.Encoder;
-import de.datexis.encoder.EncoderSet;
-import de.datexis.tagger.Tagger;
-import de.datexis.model.Document;
-import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
+import de.datexis.model.Document;
 import de.datexis.model.Sentence;
+import de.datexis.model.tag.BIO2Tag;
 import de.datexis.model.tag.BIOESTag;
 import de.datexis.ner.eval.HTMLExport;
 import de.datexis.ner.eval.MentionAnnotatorEvaluation;
 import de.datexis.ner.tagger.MentionTagger;
+import de.datexis.tagger.Tagger;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A simple NER Annotator that returns a Dataset with Named Entity mentions
@@ -295,7 +294,7 @@ public class MentionAnnotator extends Annotator {
       }
       tagger.setTagset(tagset, types);
       tagger.setEncoders(encoders);
-      tagger.setModelParams(ffwLayerSize, lstmLayerSize, iterations, learningRate * batchSize);
+      tagger.setModelParams(ffwLayerSize, lstmLayerSize, iterations, learningRate);
       if(enabletrainingUI) tagger.enableTrainingUI();
       tagger.setTrainingParams(batchSize, numEpochs, true);
       tagger.setWorkspaceParams(workers);
