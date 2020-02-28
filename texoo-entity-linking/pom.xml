@@ -6,7 +6,7 @@
     <groupId>de.datexis</groupId>
     <artifactId>texoo</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>1.3.1</version>
+    <version>1.3.2-SNAPSHOT</version>
   </parent>
   
   <groupId>de.datexis</groupId>
@@ -32,7 +32,7 @@
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-ui_2.11</artifactId>
+      <artifactId>deeplearning4j-ui</artifactId>
       <version>${dl4j.version}</version>
       <type>jar</type>
       <exclusions>
