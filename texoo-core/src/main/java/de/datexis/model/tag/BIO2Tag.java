@@ -239,13 +239,17 @@ public class BIO2Tag implements Tag {
       else if(last.isI() && current.isI()) tag = BIOESTag.I();
       else if(last.isI() && current.isO()) tag = BIOESTag.E();
       else tag = BIOESTag.O();
-      l.putTag(source, tag.setConfidence(last.getConfidence()));
+      tag.setConfidence(last.getConfidence());
+      tag.setType(last.getType());
+      l.putTag(source, tag);
       l = t;
     }
     if(current.isB()) tag = BIOESTag.S();
     else if(current.isI()) tag = BIOESTag.E();
     else tag = BIOESTag.O();
-    t.putTag(source, tag.setConfidence(current.getConfidence()));
+    tag.setConfidence(current.getConfidence());
+    tag.setType(current.getType());
+    t.putTag(source, tag);
   }
   
 }

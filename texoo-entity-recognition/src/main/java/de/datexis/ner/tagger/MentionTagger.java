@@ -363,7 +363,6 @@ public class MentionTagger extends Tagger {
     for(Sentence s : sents) {
       for(Token token : s.getTokens()) {
         INDArray vec = EncodingHelpers.getTimeStep(predicted, batchNum, t++);
-        // FIXME: we cannot simply assign GENERIC here!
         if(tagset.equals(BIO2Tag.class)) token.putTag(source, new BIO2Tag(vec, type, true));
         if(tagset.equals(BIOESTag.class)) token.putTag(source, new BIOESTag(vec, type, true));
       }

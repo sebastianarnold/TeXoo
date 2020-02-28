@@ -40,7 +40,7 @@ public class BIOESTag implements Tag {
   public static BIOESTag S() { return new BIOESTag(Label.S); }
     
   protected final Label label;
-  protected final String type;
+  protected String type;
   protected final INDArray vector;
   protected double confidence = 0.;
   
@@ -226,6 +226,10 @@ public class BIOESTag implements Tag {
     else return getVector(label);
   }
   
+  public void setType(String type) {
+    this.type = type;
+  }
+  
   public String getType() {
     return type;
   }
@@ -369,11 +373,7 @@ public class BIOESTag implements Tag {
            tag[4] = BIOESTag.max(vec[4]);
            score = vec[1].getDouble(x) + vec[2].getDouble(y) + vec[3].getDouble(z); // use arithmetic mean, can leave out normalization
            if(BIOESTag.isCorrect(tag)) {
-             //log.info("correct: " + Arrays.toString(l) + " (" + w[1].getDouble(x) + ", " + w[2].getDouble(y) + ", " + w[3].getDouble(z) + ")");
-             //output += "\n   CORRECT: "  + Arrays.toString(l) + " (" + w[1].getDouble(x) + ", " + w[2].getDouble(y) + ", " + w[3].getDouble(z) + ")";
              scores.put(score, tag.clone());
-           } else {
-             //output += "\n incorrect: "  + Arrays.toString(l) + " (" + w[1].getDouble(x) + ", " + w[2].getDouble(y) + ", " + w[3].getDouble(z) + ")";
            }
          }
        }
@@ -381,9 +381,9 @@ public class BIOESTag implements Tag {
 
       try {
         tag = scores.get(scores.lastKey());
-        //log.info("best: " + Arrays.toString(l));
-        BIOESTag result = new BIOESTag(tag[1], vec[1], true);
-        tokens.get(cursor).putTag(source, result);
+        BIOESTag corrected = new BIOESTag(tag[1], vec[1], true);
+        corrected.setType(getLabelType(tokens, cursor, source));
+        tokens.get(cursor).putTag(source, corrected);
       } catch(NoSuchElementException e) {
         log.warn("could not find correct labels for sentence '" + sent.toString() + "'");
         log.debug(scores.toString());
@@ -401,6 +401,11 @@ public class BIOESTag implements Tag {
   private static Label getLabel(List<Token> tokens, int pos, Annotation.Source source) {
     if(pos < 0 || pos >= tokens.size()) return BIOESTag.Label.O;
     else return tokens.get(pos).getTag(source, BIOESTag.class).get();
+  }
+  
+  private static String getLabelType(List<Token> tokens, int pos, Annotation.Source source) {
+    if(pos < 0 || pos >= tokens.size()) return Tag.GENERIC;
+    else return tokens.get(pos).getTag(source, BIOESTag.class).getType();
   }
   
 }
