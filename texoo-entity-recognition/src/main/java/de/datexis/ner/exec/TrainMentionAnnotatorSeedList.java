@@ -93,7 +93,7 @@ public class TrainMentionAnnotatorSeedList {
     WordHelpers.Language lang = WordHelpers.getLanguage(params.language);
 
     // Read datasets
-    Dataset train =new RawTextDatasetReader().read(inputPath);
+    Dataset train = new RawTextDatasetReader().read(inputPath);
 
     // Configure matcher
     MatchingAnnotator match = new MatchingAnnotator(MatchingAnnotator.MatchingStrategy.LOWERCASE);

@@ -1,23 +1,25 @@
 package de.datexis.ner.exec;
 
+import com.google.common.primitives.Ints;
 import de.datexis.common.CommandLineParser;
 import de.datexis.common.Resource;
 import de.datexis.common.WordHelpers;
 import de.datexis.common.WordHelpers.Language;
-import de.datexis.encoder.impl.PositionEncoder;
-import de.datexis.encoder.impl.SurfaceEncoder;
-import de.datexis.encoder.impl.TrigramEncoder;
+import de.datexis.encoder.impl.*;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
 import de.datexis.ner.MentionAnnotator;
+import de.datexis.ner.eval.MentionAnnotatorEvaluation;
 import de.datexis.ner.reader.CoNLLDatasetReader;
-import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Main Controller for training of MentionAnnotator / NER models.
@@ -50,8 +52,11 @@ public class TrainMentionAnnotatorCoNLL {
     protected String validationPath;
     protected String testPath;
     protected String outputPath;
+    protected String embeddingsFile = null;
     protected String language;
     protected boolean trainingUI = false;
+    protected int epochs = 10;
+    protected int examples = -1;
 
     @Override
     public void setParams(CommandLine parse) {
@@ -59,8 +64,11 @@ public class TrainMentionAnnotatorCoNLL {
       validationPath = parse.getOptionValue("v");
       testPath = parse.getOptionValue("t");
       outputPath = parse.getOptionValue("o");
+      embeddingsFile = parse.getOptionValue("e");
       trainingUI = parse.hasOption("u");
       language = parse.getOptionValue("l", "en");
+      epochs = Optional.ofNullable(Ints.tryParse(parse.getOptionValue("n", "10"))).orElse(10);
+      examples = Optional.ofNullable(Ints.tryParse(parse.getOptionValue("m", "-1"))).orElse(10);
     }
 
     protected void TrainMentionAnnotatorCoNLL() {}
@@ -69,9 +77,12 @@ public class TrainMentionAnnotatorCoNLL {
     public Options setUpCliOptions() {
       Options op = new Options();
       op.addRequiredOption("i", "input", true, "path to input training data (CoNLL format)");
+      op.addRequiredOption("o", "output", true, "path to create and store the model");
       op.addOption("v", "validation", true, "path to validation data (CoNLL format)");
       op.addOption("t", "test", true, "path to test data (CoNLL format)");
-      op.addRequiredOption("o", "output", true, "path to create and store the model");
+      op.addOption("m", "examples", true, "limit number of examples per epoch (default: all)");
+      op.addOption("n", "epochs", true, "number of epochs (default: 10)");
+      op.addOption("e", "embedding", true, "path to word embedding model (default: letter-trigrams)");
       op.addOption("l", "language", true, "language to use for sentence splitting and stopwords (EN or DE)");
       op.addOption("u", "ui", false, "enable training UI (http://127.0.0.1:9000)");
       return op;
@@ -83,29 +94,57 @@ public class TrainMentionAnnotatorCoNLL {
     
     // Configure parameters
     Resource trainingPath = Resource.fromDirectory(params.trainingPath);
-    //Resource validationPath = Resource.fromDirectory(params.validationPath);
-    //Resource testPath = Resource.fromDirectory(params.testPath);
-    Resource output = Resource.fromDirectory(params.outputPath);
+    Resource validationPath = Resource.fromDirectory(params.validationPath);
+    Resource testPath = Resource.fromDirectory(params.testPath);
+    Resource outputPath = Resource.fromDirectory(params.outputPath);
     Language lang = WordHelpers.getLanguage(params.language);
     
     // Read datasets
     Dataset train = CoNLLDatasetReader.readDataset(trainingPath, trainingPath.getFileName(), CoNLLDatasetReader.Charset.UTF_8);
     //Dataset validation = CoNLLDatasetReader.readDataset(validationPath, validationPath.getFileName(), CoNLLDatasetReader.Charset.UTF_8);
-    //Dataset test = CoNLLDatasetReader.readDataset(testPath, testPath.getFileName(), CoNLLDatasetReader.Charset.UTF_8);
-
-    // Configure model
-    MentionAnnotator ner = new MentionAnnotator.Builder()
-        .withEncoders("tri", new PositionEncoder(), new SurfaceEncoder(), new TrigramEncoder())
-        .enableTrainingUI(params.trainingUI)
-        .pretrain(train)
-        .build();
+  
+    // Initialize builder
+    MentionAnnotator.Builder builder = new MentionAnnotator.Builder();
+  
+    // Configure input encoders (trigram, fasttext or word embeddings)
+    Resource embeddingModel = Resource.fromFile(params.embeddingsFile);
+    if(params.embeddingsFile == null) {
+      TrigramEncoder trigram = new TrigramEncoder();
+      trigram.trainModel(train.getDocuments(), 10);
+      builder.withEncoders("tri", new PositionEncoder(), new SurfaceEncoder(), trigram);
+    } else if(embeddingModel.getFileName().endsWith(".bin") || embeddingModel.getFileName().endsWith(".bin.gz")) {
+      FastTextEncoder fasttext = new FastTextEncoder();
+      fasttext.loadModel(embeddingModel);
+      builder.withEncoders("ft", new PositionEncoder(), new SurfaceEncoder(), fasttext);
+    } else {
+      Word2VecEncoder word2vec = new Word2VecEncoder();
+      word2vec.loadModel(embeddingModel);
+      builder.withEncoders("emb", new PositionEncoder(), new SurfaceEncoder(), word2vec);
+    }
+  
+    // Configure model parameters
+    MentionAnnotator ner = builder
+      .enableTrainingUI(params.trainingUI)
+      .withTrainingParams(0.0001, 64, params.epochs)
+      .withModelParams(512, 256)
+      .withWorkspaceParams(1) // single worker
+      .build();
 
     // Train model
-    // TODO: add parameters for learning rate, epochs etc.
-    ner.trainModel(train, Annotation.Source.GOLD, lang, -1, false, true);
-    
+    ner.trainModel(train, Annotation.Source.GOLD, lang, params.examples, false, true);
+  
     // Save model
-    ner.writeModel(output);
+    System.out.println("saving model to path: " + outputPath);
+    outputPath.toFile().mkdirs();
+    ner.writeModel(outputPath);
+    
+    // Evaluate
+    if(params.testPath != null) {
+      Dataset test = CoNLLDatasetReader.readDataset(testPath, testPath.getFileName(), CoNLLDatasetReader.Charset.UTF_8);
+      MentionAnnotatorEvaluation eval = new MentionAnnotatorEvaluation(testPath.getFileName(), Annotation.Match.STRONG);
+      eval.calculateScores(test);
+      eval.printAnnotationStats();
+    }
     
   }
   

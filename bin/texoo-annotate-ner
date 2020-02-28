@@ -13,4 +13,4 @@ CLASS=de.datexis.ner.exec.RunMentionAnnotator
 
 # exec Maven:
 mvn -e -B -q -DskipTests=true \
-  -pl texoo-entity-recognition exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
+  -pl texoo-entity-recognition compile exec:java -Dexec.mainClass="$CLASS" -Dexec.args="$*"
