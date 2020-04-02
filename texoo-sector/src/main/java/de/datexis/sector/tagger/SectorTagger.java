@@ -268,7 +268,7 @@ public class SectorTagger extends Tagger {
     trainModel(dataset, numEpochs);
   }
   
-  public void trainModel(Dataset dataset, int numEpochs) {
+  public synchronized void trainModel(Dataset dataset, int numEpochs) {
     SectorTaggerIterator it = new SectorTaggerIterator(Stage.TRAIN, dataset.getDocuments(), this, numExamples, maxTimeSeriesLength, batchSize, true, requireSubsampling);
     int batches = numExamples / batchSize;
     timer.start();
@@ -370,12 +370,16 @@ public class SectorTagger extends Tagger {
   
   public static Map<String,INDArray> feedForward(ComputationGraph net, MultiDataSet next) {
     
-      INDArray[] features = next.getFeatures();
-      INDArray[] featuresMasks = next.getFeaturesMaskArrays();
-      INDArray[] labelMasks = next.getLabelsMaskArrays();
-
+    INDArray[] features = next.getFeatures();
+    INDArray[] featuresMasks = next.getFeaturesMaskArrays();
+    INDArray[] labelMasks = next.getLabelsMaskArrays();
+  
+    Map<String, INDArray> weights;
+    
+    synchronized(net) {
       net.setLayerMaskArrays(featuresMasks, labelMasks);
-      Map<String,INDArray> weights = net.feedForward(features, false, true);
+      weights = net.feedForward(features, false, true);
+    }
 
       if(weights.containsKey("target")) {
         //predicted = result.get("target");

@@ -123,7 +123,7 @@ public class LSTMSentenceTagger extends Tagger {
     throw new UnsupportedOperationException("not implemented yet");
   }
 
-  protected void trainModel(Resource trainingSentences, int numEpochs) {
+  protected synchronized void trainModel(Resource trainingSentences, int numEpochs) {
     LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.TRAIN, inputEncoder, targetEncoder, trainingSentences, "utf-8", WordHelpers.Language.EN, stopWords, true, batchSize);
     timer.start();
     appendTrainLog("Training " + getName() + " for " + numEpochs + " epochs.");
@@ -157,19 +157,24 @@ public class LSTMSentenceTagger extends Tagger {
     LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, targetEncoder, stopWords, 1, -1, -1);
     LabeledSentenceBatch batch = new LabeledSentenceBatch(Collections.singletonList(s));
     MultiDataSet data = it.generateDataSet(it.applyStopWordFilter(batch));
-    getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
-    Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
-    if(weights.containsKey("embedding")) return weights.get("embedding").transpose();
-    else throw new IllegalStateException("Embedding does not have an embeddding layer");
+    synchronized(getNN()) {
+      getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
+      Map<String, INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
+      if(weights.containsKey("embedding")) return weights.get("embedding").transpose();
+      else throw new IllegalStateException("Embedding does not have an embeddding layer");
+    }
   }
   
   public INDArray encodeBatchMatrix(LabeledSentenceBatch batch) {
     LSTMSentenceTaggerIterator it = new LSTMSentenceTaggerIterator(AbstractMultiDataSetIterator.Stage.ENCODE, inputEncoder, targetEncoder, stopWords, 1, -1, -1);
     MultiDataSet data = it.generateDataSet(it.applyStopWordFilter(batch));
-    getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
-    Map<String,INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
-    if(weights.containsKey("embedding")) return weights.get("embedding"); //Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize());
-    else throw new IllegalStateException("Embedding does not have an embeddding layer");
+    synchronized(getNN()) {
+      getNN().setLayerMaskArrays(data.getFeaturesMaskArrays(), data.getLabelsMaskArrays());
+      Map<String, INDArray> weights = getNN().feedForward(data.getFeatures(), false, true);
+      if(weights.containsKey("embedding"))
+        return weights.get("embedding"); //Nd4j.zeros(DataType.FLOAT, input.size(), encoder.getEmbeddingVectorSize());
+      else throw new IllegalStateException("Embedding does not have an embeddding layer");
+    }
   }
   
   public INDArray encodeBatchMatrix(List<Sentence> examples) {

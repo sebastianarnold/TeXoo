@@ -238,7 +238,7 @@ public class MentionTagger extends Tagger {
    * attaches: BIO2Tag.class to Token.class
    */
   @Override
-  public synchronized void tag(Collection<Document> documents) {
+  public void tag(Collection<Document> documents) {
     log.debug("Labeling Documents...");
     MentionTaggerIterator it = new MentionTaggerIterator(documents, "train", getEncoderSet(), tagset, -1, batchSize, false);
     it.reset();
@@ -250,11 +250,13 @@ public class MentionTagger extends Tagger {
       INDArray labelsMask = examples.getKey().getLabelsMaskArray();
       // 2. Predict labels
       INDArray predicted = null;
-      if(net instanceof MultiLayerNetwork) {
-        predicted = ((MultiLayerNetwork) net).output(input, false, inputMask, labelsMask);
-      } else if(net instanceof ComputationGraph) {
-        ((ComputationGraph) net).setLayerMaskArrays(new INDArray[]{inputMask}, new INDArray[]{labelsMask});
-        predicted = ((ComputationGraph) net).outputSingle(input);
+      synchronized(net) {
+        if(net instanceof MultiLayerNetwork) {
+          predicted = ((MultiLayerNetwork) net).output(input, false, inputMask, labelsMask);
+        } else if(net instanceof ComputationGraph) {
+          ((ComputationGraph) net).setLayerMaskArrays(new INDArray[]{inputMask}, new INDArray[]{labelsMask});
+          predicted = ((ComputationGraph) net).outputSingle(input);
+        }
       }
       // 3. Create BIOES tags from vectors + CRF and convert to BIO2 - RENAME
       createTags(examples.getValue(), predicted, it.getTagset(), Annotation.Source.PRED, type, false, true);
