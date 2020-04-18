@@ -1,12 +1,15 @@
 package de.datexis.nel;
 
-import de.datexis.model.Annotation;
-import de.datexis.index.ArticleRef;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import de.datexis.index.ArticleRef;
+import de.datexis.model.Annotation;
+import de.datexis.nel.model.NamedEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Annotation of a named entity with candidates.
@@ -20,7 +23,8 @@ public class NamedEntityAnnotation extends Annotation {
   protected String refName;
   protected String refId;
   protected String refUrl;
-  protected List<ArticleRef> candidates = new ArrayList<>();
+  protected NamedEntity entity;
+  protected List<NamedEntity> candidates = new ArrayList<>();
 
   public NamedEntityAnnotation() {
   };
@@ -34,14 +38,7 @@ public class NamedEntityAnnotation extends Annotation {
     super(ann);
     type = ann.getType();
     confidence = ann.getConfidence();
-    this.candidates = candidates;
-    if(candidates != null && !candidates.isEmpty()) {
-      this.refName = candidates.get(0).getTitle();
-      this.refId = candidates.get(0).getId();
-      this.refUrl = candidates.get(0).getUrl();
-    } else {
-      this.refId = "NIL";
-    }
+    setCandidates(candidates, true);
   }
   
   public NamedEntityAnnotation(NamedEntityAnnotation ann, List<ArticleRef> candidates) {
@@ -50,14 +47,7 @@ public class NamedEntityAnnotation extends Annotation {
     refId = ann.refId;
     type = ann.type;
     confidence = ann.getConfidence();
-    this.candidates = candidates;
-    if(candidates != null && !candidates.isEmpty()) {
-      this.refName = candidates.get(0).getTitle();
-      this.refId = candidates.get(0).getId();
-      this.refUrl = candidates.get(0).getUrl();
-    } else {
-      this.refId = "NIL";
-    }
+    setCandidates(candidates, true);
   }
 
   public String getRefName() {
@@ -85,12 +75,21 @@ public class NamedEntityAnnotation extends Annotation {
   }
   
   public void setCandidates(List<ArticleRef> candidates, boolean setId) {
-    this.candidates = candidates;
+    this.candidates = candidates.stream()
+      .map(ref -> {
+        NamedEntity c = new NamedEntity();
+        c.setId(ref.getId());
+        c.setAliases(Lists.newArrayList(ref.getTitle()));
+        c.setName(ref.getTitle());
+        c.addLink("url", ref.getUrl());
+        return c;
+      })
+      .collect(Collectors.toList());
     if(setId) {
-      if(candidates != null && !candidates.isEmpty()) {
-        this.refName = candidates.get(0).getTitle();
-        this.refId = candidates.get(0).getId();
-        this.refUrl = candidates.get(0).getUrl();
+      if(this.candidates != null && !this.candidates.isEmpty()) {
+        this.refId = this.candidates.get(0).getId();
+        this.refName = this.candidates.get(0).getName();
+        this.refUrl = this.candidates.get(0).getLinks("url").stream().findFirst().orElse(null);
       } else {
         this.refId = "NIL";
       }
@@ -106,8 +105,16 @@ public class NamedEntityAnnotation extends Annotation {
   public String getType() {
     return type;
   }
-
-  public List<ArticleRef> getCandidates() {
+  
+  public void setEntity(NamedEntity entity) {
+    this.entity = entity;
+  }
+  
+  public NamedEntity getEntity() {
+    return entity;
+  }
+  
+  public List<NamedEntity> getCandidates() {
     return candidates;
   }
   

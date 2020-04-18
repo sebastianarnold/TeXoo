@@ -201,7 +201,7 @@ public class LSTMSentenceTagger extends Tagger {
     getNN().addListeners(new StatsListener(stats, 1));
     UIServer.getInstance().attach(stats);
     UIServer.getInstance().enableRemoteListener(stats, true);*/
-    throw new UnsupportedOperationException("Training UI is not part of texoo-retrieval. Please use deeplearning4j-ui_2.11 in your code for that.");
+    throw new UnsupportedOperationException("Training UI is not part of texoo-retrieval. Please use deeplearning4j-ui in your code for that.");
   }
   
   /**

@@ -50,6 +50,14 @@ public class GenericMentionAnnotator extends MentionAnnotator {
     annotatorDE = (MentionAnnotator) AnnotatorFactory.loadAnnotator(path.resolve("MentionAnnotator_de_NER-GENERIC_WikiNER+tri_20170309")); // German Wiki Entities
   }
   
+  public MentionAnnotator getEnglishMentionAnnotator() {
+    return annotatorEN;
+  }
+  
+  public MentionAnnotator getGermanMentionAnnotator() {
+    return annotatorDE;
+  }
+  
   /**
    * Annotates given documents for English and German texts.
    */
