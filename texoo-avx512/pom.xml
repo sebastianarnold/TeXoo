@@ -10,11 +10,11 @@
   </parent>
 
   <groupId>de.datexis</groupId>
-  <artifactId>texoo-cuda-9.2</artifactId>
+  <artifactId>texoo-avx512</artifactId>
   <packaging>pom</packaging>
   
-  <name>TeXoo-cuda-9.2</name>
-  <description>Deeplearning4j CUDA dependencies for TeXoo.</description>
+  <name>TeXoo-avx512</name>
+  <description>Deeplearning4j Linux AVX512 dependencies for TeXoo.</description>
 
   <dependencies>
 
@@ -26,29 +26,16 @@
       <version>${dl4j.version}</version>
       <type>jar</type>
     </dependency>
+        <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-native</artifactId>
+      <version>${dl4j.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-native-platform</artifactId>
+      <artifactId>nd4j-native</artifactId>
       <version>${dl4j.version}</version>
-    </dependency>
-    <!-- ND4j CUDA -->
-    <dependency>
-      <groupId>org.nd4j</groupId>
-      <artifactId>nd4j-cuda-9.2-platform</artifactId>
-      <version>${dl4j.version}</version>
-    </dependency>
-    <!-- DL4j cuDNN -->
-    <dependency>
-      <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-cuda-9.2</artifactId>
-      <version>${dl4j.version}</version>
-    </dependency>
-    <!-- DL4j CUDA + cuDNN binaries -->
-    <dependency>
-      <groupId>org.bytedeco.javacpp-presets</groupId>
-      <artifactId>cuda</artifactId>
-      <version>9.2-7.1-1.4.2</version>
-      <classifier>linux-x86_64-redist</classifier>
+      <classifier>linux-x86_64-avx512</classifier>
     </dependency>
 
   </dependencies>
