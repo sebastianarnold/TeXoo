@@ -140,6 +140,44 @@ public class InMemoryIndexTest {
   
   }
   
+  @Test
+  public void testInsertion() {
+    
+    TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();
+    InMemoryIndex index = new InMemoryIndex(preprocessor, trigram);
+    index.buildKeyIndex(headings);
+    index.encodeAndBuildVectorIndex(entries, true);
+    
+    assertEquals(15, index.size());
+    assertEquals(23, index.totalInstances());
+  
+    INDArray vec;
+  
+    vec = index.lookup("Signs and symptoms");
+    assertNotNull(vec);
+    
+    String insertWord = "Test";
+    INDArray insertVec = trigram.encode(insertWord);
+    index.insertKeyAndVector(insertWord, insertVec, true);
+  
+    assertEquals(16, index.size());
+    assertEquals(24, index.totalInstances());
+    
+    // old entries need to stay the same
+    assertEquals(vec, index.lookup("Signs and symptoms"));
+  
+    // new entry needs to be there
+    vec = index.lookup(insertWord);
+    assertEquals(Transforms.unitVec(insertVec), vec); // vec is normalized
+    
+    // IEncoder requires a Mx1 column vector (INDArray)
+    assertFalse(vec.isRowVector());
+    assertTrue(vec.isColumnVector());
+    assertEquals(index.getEmbeddingVectorSize(), vec.rows());
+    assertEquals(1, vec.columns());
+  
+  }
+  
   @Test(expected=IllegalArgumentException.class)
   public void testInvalidInput() {
     TokenPreProcess preprocessor = new MinimalLowercasePreprocessor();

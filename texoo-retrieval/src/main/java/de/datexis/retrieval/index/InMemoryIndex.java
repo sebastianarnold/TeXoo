@@ -118,6 +118,25 @@ public class InMemoryIndex extends Encoder implements IEncoder, IVocabulary, IVe
   }
   
   /**
+   * Insert an additional key and vector into an existing index
+   */
+  public void insertKeyAndVector(String key, INDArray vector, boolean normalizeKey) {
+    if(normalizeKey) key = keyPreprocessor.preProcess(key);
+    if(keyVocabulary.containsWord(key))
+      throw new IllegalArgumentException("key already exists");
+    VocabWord word = new VocabWord(1.0, key, size() + 1);
+    word.setSpecial(false);
+    word.markAsLabel(true);
+    word.setIndex(keyVocabulary.numWords());
+    keyVocabulary.addToken(word);
+    keyVocabulary.addWordToIndex(word.getIndex(), word.getLabel());
+    InMemoryLookupTable<VocabWord> copyTable = new InMemoryLookupTable<>(keyVocabulary, (int)getEmbeddingVectorSize(), true, 0.01, Nd4j.getRandom(), 0, true);
+    copyTable.consume(this.lookupVectors);
+    copyTable.putVector(key, vector.div(vector.norm2(0)));
+    this.lookupVectors = copyTable;
+  }
+  
+  /**
    * Use given entries to build a vector index. All descriptions are encoded into vectors
    * using the configured Encoder.
    * @param entries Map key -> description
