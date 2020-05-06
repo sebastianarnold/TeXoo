@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# CDV run script
+#
+
+# number of threads used for CPU calculation
+export OMP_NUM_THREADS=4
+
+# CUDA device numbers visible to the process
+export CUDA_VISIBLE_DEVICES=1
+
+# device priorities, higher is preferred
+export BACKEND_PRIORITY_CPU=1 
+export BACKEND_PRIORITY_GPU=2 # prefer GPU for training
+
+# set memory limits to 4GB (Java) and 16GB (DL4j Host Memory)
+export MAVEN_OPTS="-XX:+UseG1GC -Xms4G -Xmx16G -Dorg.bytedeco.javacpp.maxbytes=18G -Dorg.bytedeco.javacpp.maxphysicalbytes=32G"
+
+# make sure we read UTF-8 data
+export JAVA_TOOL_OPTIONS=-Dfile.encoding="UTF-8"
+
+# exec Maven:
+mvn -e -B -q -DskipTests=true -Djavacpp.platform=linux-x86_64 -Dfile.encoding="UTF-8" \
+  package exec:java -Dexec.mainClass="de.datexis.cdv.train.TrainCDVAnnotator" -Dexec.args="$*"
+
