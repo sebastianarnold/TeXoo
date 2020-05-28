@@ -2,17 +2,19 @@ package de.datexis.ner.eval;
 
 import com.google.common.collect.Lists;
 import de.datexis.evaluation.ModelEvaluation;
-import static de.datexis.evaluation.ModelEvaluation.Measure.*;
 import de.datexis.model.Annotation;
-import de.datexis.ner.MentionAnnotation;
 import de.datexis.model.Dataset;
 import de.datexis.model.Document;
 import de.datexis.model.Token;
 import de.datexis.model.tag.BIO2Tag;
+import de.datexis.ner.MentionAnnotation;
+import org.nd4j.common.primitives.Counter;
+
 import java.util.List;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import org.nd4j.linalg.primitives.Counter;
+
+import static de.datexis.evaluation.ModelEvaluation.Measure.*;
 
 /**
  * Evaluates Precision/Recall/F1 for span-based annotation (e.g. NER)

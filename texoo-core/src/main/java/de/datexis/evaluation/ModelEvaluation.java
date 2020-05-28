@@ -1,12 +1,14 @@
 package de.datexis.evaluation;
 
 import de.datexis.common.Timer;
-import static de.datexis.evaluation.ModelEvaluation.Measure.*;
 import de.datexis.model.Annotation;
 import de.datexis.model.Dataset;
+import org.nd4j.common.primitives.Counter;
+
 import java.util.Locale;
 import java.util.TreeMap;
-import org.nd4j.linalg.primitives.Counter;
+
+import static de.datexis.evaluation.ModelEvaluation.Measure.*;
 
 /**
  * Common methods for model evaluation
@@ -20,7 +22,7 @@ public class ModelEvaluation {
   
   public static enum Measure {TP, FP, TN, FN};
   
-  protected TreeMap<Measure,Counter<Integer>> counts;
+  protected TreeMap<Measure, Counter<Integer>> counts;
   
   protected long trainCount, trainTime;
   protected long testCount, testTime;

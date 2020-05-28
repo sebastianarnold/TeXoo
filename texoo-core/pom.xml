@@ -83,42 +83,6 @@
         </plugins>
       </build>
     </profile>
-    <profile>
-      <id>cuda-9.2</id>
-      <activation>
-        <property>
-          <name>env.TEXOO_CUDA</name>
-          <value>9.2</value>
-        </property>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>de.datexis</groupId>
-          <artifactId>texoo-cuda-9.2</artifactId>
-          <version>${texoo.version}</version>
-          <type>pom</type>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>cuda-10.1</id>
-      <activation>
-        <property>
-          <name>env.TEXOO_CUDA</name>
-          <value>10.1</value>
-        </property>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>de.datexis</groupId>
-          <artifactId>texoo-cuda-10.1</artifactId>
-          <version>${texoo.version}</version>
-          <type>pom</type>
-        </dependency>
-      </dependencies>
-    </profile>
   </profiles>
 
   <build>
@@ -180,6 +144,30 @@
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-native</artifactId>
       <version>${dl4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-ui</artifactId>
+      <version>${dl4j.version}</version>
+      <type>jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-parallel-wrapper</artifactId>
+      <version>${dl4j.version}</version>
+      <type>jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- FastText for Java (MIT license)-->

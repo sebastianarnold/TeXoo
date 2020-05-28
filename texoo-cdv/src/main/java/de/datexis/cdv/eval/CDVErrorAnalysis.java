@@ -8,7 +8,7 @@ import de.datexis.common.AnnotationHelpers;
 import de.datexis.common.Resource;
 import de.datexis.model.*;
 import de.datexis.retrieval.model.ScoredResult;
-import org.nd4j.linalg.primitives.Counter;
+import org.nd4j.common.primitives.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

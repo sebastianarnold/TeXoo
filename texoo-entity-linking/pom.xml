@@ -35,24 +35,24 @@
       <version>${texoo.version}</version>
       <type>jar</type>
     </dependency>
-    <dependency>
-      <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-ui</artifactId>
-      <version>${dl4j.version}</version>
-      <type>jar</type>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.deeplearning4j</groupId>
-      <artifactId>deeplearning4j-parallel-wrapper</artifactId>
-      <version>${dl4j.version}</version>
-      <type>jar</type>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.deeplearning4j</groupId>-->
+<!--      <artifactId>deeplearning4j-ui</artifactId>-->
+<!--      <version>${dl4j.version}</version>-->
+<!--      <type>jar</type>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>com.google.guava</groupId>-->
+<!--          <artifactId>guava</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.deeplearning4j</groupId>-->
+<!--      <artifactId>deeplearning4j-parallel-wrapper</artifactId>-->
+<!--      <version>${dl4j.version}</version>-->
+<!--      <type>jar</type>-->
+<!--    </dependency>-->
     
     <!-- Apache Lucene -->
     <!-- Apache 2.0 License https://lucene.apache.org/core/ -->

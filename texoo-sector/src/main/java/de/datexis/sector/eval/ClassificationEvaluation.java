@@ -7,6 +7,7 @@ import de.datexis.model.Annotation;
 import de.datexis.model.Document;
 import de.datexis.model.Span;
 import de.datexis.model.tag.Tag;
+import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.EvaluationAveraging;
 import org.nd4j.evaluation.EvaluationUtils;
 import org.nd4j.evaluation.IEvaluation;
@@ -14,7 +15,6 @@ import org.nd4j.evaluation.IMetric;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.primitives.Pair;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
