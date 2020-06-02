@@ -89,14 +89,11 @@
       </activation>
       <modules>
         <module>texoo-core</module>
-        <module>texoo-cuda-9.2</module>
-        <module>texoo-cuda-10.1</module>
-	<module>texoo-avx512</module>
-	<module>texoo-avx2</module>
         <module>texoo-retrieval</module>
         <module>texoo-entity-recognition</module>
         <module>texoo-entity-linking</module>
         <module>texoo-sector</module>
+	<module>texoo-cdv</module>
       </modules>
       <build>
         <plugins>
