@@ -61,25 +61,47 @@ To use TeXoo NER in your Java project, just add the following dependencies to yo
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-core</artifactId>
-  <version>1.3.0</version>
+  <version>1.3.3</version>
   <type>jar</type>
 </dependency>
 <dependency>
   <groupId>de.datexis</groupId>
   <artifactId>texoo-entity-recognition</artifactId>
-  <version>1.3.0</version>
+  <version>1.3.3</version>
   <type>jar</type>
 </dependency>
 ```
 
-And to enable CUDA support, set `TEXOO_CUDA=10.1` add the following dependency in your project:
+To enable CUDA support, add the following dependencies in your project:
 
 ```
 <dependency>
-  <groupId>de.datexis</groupId>
-  <artifactId>texoo-cuda-10.1</artifactId>
-  <version>1.3.0</version>
-  <type>pom</type>
+  <groupId>org.nd4j</groupId>
+  <artifactId>nd4j-cuda-9.2-platform</artifactId>
+  <version>${dl4j.version}</version>
+</dependency>
+<!-- DL4j cuDNN -->
+<dependency>
+  <groupId>org.deeplearning4j</groupId>
+  <artifactId>deeplearning4j-cuda-9.2</artifactId>
+  <version>${dl4j.version}</version>
+</dependency>
+<!-- DL4j CUDA + cuDNN binaries -->
+<dependency>
+  <groupId>org.bytedeco.javacpp-presets</groupId>
+  <artifactId>cuda</artifactId>
+  <version>9.2-7.1-1.4.2</version>
+  <classifier>linux-x86_64-redist</classifier>
+</dependency>
+```
+
+And to enable AVX512 CPU optimizations, add the following dependencies in your project:
+
+```
+<dependency>
+  <groupId>org.nd4j</groupId>
+  <artifactId>nd4j-native</artifactId>
+  <classifier>linux-x86_64-avx512</classifier>
 </dependency>
 ```
 
@@ -217,7 +239,7 @@ TeXoo: train SectorAnnotator from WikiSection dataset
 
 ## License
 
-   Copyright 2015-2019 Sebastian Arnold, Alexander Löser, Rudolf Schneider
+   Copyright 2015-2020 Sebastian Arnold, Alexander Löser, Rudolf Schneider
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

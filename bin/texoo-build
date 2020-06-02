@@ -6,4 +6,4 @@
 # configure environment:
 . bin/texoo-env
 
-mvn -e -DskipTests=true -Dmaven.javadoc.skip=true install
+mvn -e -DskipTests=true -Dmaven.javadoc.skip=true clean install

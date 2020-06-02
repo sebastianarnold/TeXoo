@@ -6,7 +6,7 @@
   <artifactId>texoo-examples</artifactId>
   <name>TeXoo-examples</name>
   <packaging>jar</packaging>
-  <version>1.3.3-SNAPSHOT</version>
+  <version>1.3.3</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
